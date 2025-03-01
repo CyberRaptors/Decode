@@ -34,10 +34,10 @@ public abstract class IRobot {
             }
         }
 
-        postInit();
+        postInit(hardwareMap);
     }
 
-    protected void postInit() { }
+    protected void postInit(HardwareMap hardwareMap) { }
 
     protected static <THardwareDevice> THardwareDevice loadDevice(HardwareMap hardwareMap, Class<THardwareDevice> cls, String name) {
         if (cls.equals(VirtualMotor.class)) return (THardwareDevice) new VirtualMotor();
