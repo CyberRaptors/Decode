@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.robot;
 
 import com.acmerobotics.roadrunner.Pose2d;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import lib8812.common.robot.IMecanumRobot;
@@ -10,7 +11,7 @@ public class RaptorRobot extends IMecanumRobot {
 //	public DcMotor leftFlywheel;
 //	public DcMotor rightFlywheel;
 //
-//	public DcMotor intake;
+	public DcMotor intake;
 //
 //	public DcMotor pipelineDriveOne;
 //	public DcMotor pipelineDriveTwo;
