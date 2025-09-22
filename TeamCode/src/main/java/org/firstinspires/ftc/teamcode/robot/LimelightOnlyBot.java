@@ -1,13 +1,19 @@
 package org.firstinspires.ftc.teamcode.robot;
+import com.acmerobotics.roadrunner.Pose2d;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import lib8812.common.robot.IMecanumRobot;
+import lib8812.common.rr.SparkFunOTOSDrive;
 
 public class LimelightOnlyBot extends IMecanumRobot {
     public Limelight3A limelight;
+    public SparkFunOTOSDrive drive;
 
-    public void postInit() {
+    public void postInit(HardwareMap hardwareMap) {
         limelight.setPollRateHz(100);
         limelight.start();
+
+        drive = new SparkFunOTOSDrive(hardwareMap, new Pose2d(0, 0, 0));
     }
 }

@@ -1,48 +1,109 @@
 package org.firstinspires.ftc.teamcode.teleop.normal.runners;
-import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
-import org.firstinspires.ftc.teamcode.robot.LimelightOnlyBot;
+
+import com.acmerobotics.roadrunner.InstantAction;
+import com.acmerobotics.roadrunner.PoseVelocity2d;
+import com.acmerobotics.roadrunner.SequentialAction;
+import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 
+import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
+import org.firstinspires.ftc.teamcode.robot.LimelightOnlyBot;
+
 import java.util.List;
 
+import lib8812.common.actions.OnceAction;
+import lib8812.common.field.GameConstants;
 import lib8812.common.robot.IRobot;
 import lib8812.common.teleop.ITeleOpRunner;
 
 public class LimelightOnlyRunner extends ITeleOpRunner {
     LimelightOnlyBot bot = new LimelightOnlyBot();
 
+    public boolean LOCK_DRIVE = false;
+
+    void alignToTarget(boolean blue) {
+        if (LOCK_DRIVE) return;
+
+        LOCK_DRIVE = true;
+
+        int targetTagId = GameConstants.DECODE.GOAL_APRILTAG_ID(blue);
+
+        actions.schedule(new SequentialAction(
+                new InstantAction(() -> {
+                    bot.drive.setDrivePowers(
+                            new PoseVelocity2d(
+                                    new Vector2d(0, 0),
+                                    0.5
+                            )
+                    );
+                }),
+                new OnceAction(() -> {
+                    LLResult result = bot.limelight.getLatestResult();
+
+                    if (result != null && result.isValid()) {
+                        List<LLResultTypes.FiducialResult> fiducials = result.getFiducialResults();
+                        for (LLResultTypes.FiducialResult fiducial : fiducials) {
+                            if (fiducial.getFiducialId() == targetTagId) {
+                                return true;
+                            }
+                        }
+                    }
+
+                    return false;
+                }, new InstantAction(() -> {
+                    bot.drive.setDrivePowers(
+                            new PoseVelocity2d(
+                                    new Vector2d(0, 0),
+                                    0
+                            )
+                    );
+
+                    LOCK_DRIVE = false;
+                }))
+
+        ));
+    }
+
     @Override
     protected void internalRun() {
         bot.limelight.pipelineSwitch(2);
+
+        keybinder.bind("x").of(gamepad1).to(() -> alignToTarget(false));
+        keybinder.bind("b").of(gamepad1).to(() -> alignToTarget(true));
 
         while (opModeIsActive()) {
 
             LLResult result = bot.limelight.getLatestResult();
             if (result != null && result.isValid()) {
-                double tx = result.getTx(); // How far left or right the target is (degrees)
-                double ty = result.getTy(); // How far up or down the target is (degrees)
-                double ta = result.getTa(); // How big the target looks (0%-100% of the image)
+                double tx = result.getTx();
+                double ty = result.getTy();
+                double ta = result.getTa();
 
                 telemetry.addData("Target X", tx);
                 telemetry.addData("Target Y", ty);
                 telemetry.addData("Target Area", ta);
-            } else {
-                telemetry.addData("Limelight", "No Targets");
-            }
-            if (result != null && result.isValid()) {
+
                 Pose3D botpose = result.getBotpose();
                 if (botpose != null) {
                     double x = botpose.getPosition().x;
                     double y = botpose.getPosition().y;
                     telemetry.addData("MT1 Location", "(" + x + ", " + y + ")");
                 }
+
+                List<LLResultTypes.FiducialResult> fiducials = result.getFiducialResults();
+                for (LLResultTypes.FiducialResult fiducial : fiducials) {
+                    int id = fiducial.getFiducialId(); // The ID number of the fiducial
+                    telemetry.addData("Fiducial", "id (%d)", id);
+                }
+            } else {
+                telemetry.addData("Limelight", "No Targets");
             }
-            List<LLResultTypes.FiducialResult> fiducials = result.getFiducialResults();
-            for (LLResultTypes.FiducialResult fiducial : fiducials) {
-                int id = fiducial.getFiducialId(); // The ID number of the fiducial
-                telemetry.addData("Fiducial", "id (%d)", id);
-            }
+
+            telemetry.update();
+
+            keybinder.executeActions();
+            actions.execute();
         }
     }
 
