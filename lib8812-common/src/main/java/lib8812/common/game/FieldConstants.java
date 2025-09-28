@@ -1,4 +1,4 @@
-package lib8812.common.field;
+package lib8812.common.game;
 
 public class FieldConstants {
     public static final double TILE_LENGTH_IN = 24;
