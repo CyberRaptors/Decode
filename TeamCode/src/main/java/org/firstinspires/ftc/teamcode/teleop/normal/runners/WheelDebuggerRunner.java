@@ -10,12 +10,14 @@ public class WheelDebuggerRunner extends ITeleOpRunner {
 
 	@Override
 	protected void internalRun() {
-		keybinder.bind("y").of(gamepad1).to(bot.leftFront::setPower);
-		keybinder.bind("b").of(gamepad1).to(bot.rightFront::setPower);
-		keybinder.bind("x").of(gamepad1).to(bot.leftBack::setPower);
-		keybinder.bind("a").of(gamepad1).to(bot.rightBack::setPower);
+		keybinder.bind("dpad_up").of(gamepad1).to(bot.leftFront::setPower);
+		keybinder.bind("dpad_right").of(gamepad1).to(bot.rightFront::setPower);
+		keybinder.bind("dpad_left").of(gamepad1).to(bot.leftBack::setPower);
+		keybinder.bind("dpad_down").of(gamepad1).to(bot.rightBack::setPower);
 
 		while (opModeIsActive()) {
+			keybinder.executeActions();
+
 			telemetry.addData(
 					"wheels",
 					"rightFront (%.2f) leftFront (%.2f) rightBack (%.2f) leftBack (%.2f)",
