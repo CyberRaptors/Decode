@@ -11,7 +11,10 @@ public class LimelightOnlyBot extends IMecanumRobot {
     public SparkFunOTOSDrive drive;
 
     public void postInit(HardwareMap hardwareMap) {
+        limelight = hardwareMap.get(Limelight3A.class, "limelight");
+
         limelight.setPollRateHz(100);
+        limelight.pipelineSwitch(1);
         limelight.start();
 
         drive = new SparkFunOTOSDrive(hardwareMap, new Pose2d(0, 0, 0));

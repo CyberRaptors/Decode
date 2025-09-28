@@ -6,6 +6,7 @@ import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
+import com.qualcomm.hardware.limelightvision.LLStatus;
 
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.teamcode.robot.LimelightOnlyBot;
@@ -67,15 +68,16 @@ public class LimelightOnlyRunner extends ITeleOpRunner {
 
     @Override
     protected void internalRun() {
-        bot.limelight.pipelineSwitch(2);
-
         keybinder.bind("x").of(gamepad1).to(() -> alignToTarget(false));
         keybinder.bind("b").of(gamepad1).to(() -> alignToTarget(true));
 
         while (opModeIsActive()) {
 
             LLResult result = bot.limelight.getLatestResult();
-            if (result != null && result.isValid()) {
+
+            if (result != null  &&  result.isValid()) {
+                telemetry.addData("Limelight Result", "pipeline %d (%s)", result.getPipelineIndex(), result.getPipelineType());
+
                 double tx = result.getTx();
                 double ty = result.getTy();
                 double ta = result.getTa();
@@ -100,6 +102,10 @@ public class LimelightOnlyRunner extends ITeleOpRunner {
                 telemetry.addData("Limelight", "No Targets");
             }
 
+            LLStatus limelightStatus = bot.limelight.getStatus();
+
+            telemetry.addData("Limelight", "%s, %s, %s", bot.limelight.isConnected() ? "connected" : "not connected", bot.limelight.isRunning() ? "running" : "not running", bot.limelight.getConnectionInfo().trim());
+            telemetry.addData("Limelight Status", "name (%s), temp (%.2f °C)", limelightStatus.getName(), limelightStatus.getTemp());
             telemetry.update();
 
             keybinder.executeActions();
