@@ -1,14 +1,7 @@
-package lib8812.common.field;
+package lib8812.common.game;
 
 public class GameConstants {
 	public static class DECODE {
-		public enum Motif
-		{
-			GPP,
-			PGP,
-			PPG
-		}
-
 		public static final int RED_GOAL_APRILTAG_ID = 24;
 		public static final int BLUE_GOAL_APRILTAG_ID = 20;
 
@@ -29,10 +22,12 @@ public class GameConstants {
 			return RED_GOAL_APRILTAG_ID;
 		}
 
-		public static Motif getMotifFromAprilTagId(int id) {
-			if (id > 23 || id < 21) throw new IllegalArgumentException("AprilTag id does not represent a motif!");
+		public static ArtifactConfiguration getMotifFromAprilTagId(int id) {
+			if (id == MOTIF_GPP_APRILTAG_ID) return ArtifactConfiguration.GPP;
+			if (id == MOTIF_PGP_APRILTAG_ID) return ArtifactConfiguration.PGP;
+			if (id == MOTIF_PPG_APRILTAG_ID) return ArtifactConfiguration.PPG;
 
-			return Motif.values()[id - 21];
+			throw new IllegalArgumentException("AprilTag id does not represent a motif!");
 		}
 	}
 }
