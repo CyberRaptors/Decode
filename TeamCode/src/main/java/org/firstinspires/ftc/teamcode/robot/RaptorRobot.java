@@ -1,6 +1,8 @@
 package org.firstinspires.ftc.teamcode.robot;
 
 import com.acmerobotics.roadrunner.Pose2d;
+import com.acmerobotics.roadrunner.PoseVelocity2d;
+import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -15,7 +17,7 @@ public class RaptorRobot extends IMecanumRobot {
 	public final double REJECT_GATE_CLOSED = 0;
 	public final double REJECT_GATE_OPEN = 0;
 
-	public ArtifactConfiguration artifacts;
+	public final ArtifactConfiguration artifacts = new ArtifactConfiguration();
 
 	public DcMotor intake;
 	public CRServo centralTooth;
@@ -30,5 +32,27 @@ public class RaptorRobot extends IMecanumRobot {
 				REJECT_GATE_OPEN,
 				REJECT_GATE_CLOSED
 		);
+	}
+
+	public final LockingControl driverControl = new LockingControl();
+
+	public class LockingControl {
+		public void applyDrivePower(double forwardPower, double strafePower, double angularPower) {
+			useAndRelease(drive, () -> drive.setDrivePowers(new PoseVelocity2d(
+					new Vector2d(
+							forwardPower,
+							strafePower
+					),
+					angularPower
+			)));
+		}
+
+		public void setIntakePower(double power) {
+			useAndRelease(intake, () -> intake.setPower(power));
+		}
+
+		public void setCentralToothPower(double power) {
+			useAndRelease(centralTooth, () -> centralTooth.setPower(power));
+		}
 	}
 }

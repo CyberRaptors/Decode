@@ -1,8 +1,5 @@
 package org.firstinspires.ftc.teamcode.teleop.normal.runners;
 
-import com.acmerobotics.roadrunner.PoseVelocity2d;
-import com.acmerobotics.roadrunner.Vector2d;
-
 import org.firstinspires.ftc.teamcode.robot.RaptorRobot;
 
 import lib8812.common.robot.IRobot;
@@ -11,27 +8,13 @@ import lib8812.common.teleop.ITeleOpRunner;
 public class RaptorMainRunner extends ITeleOpRunner {
 	RaptorRobot bot = new RaptorRobot();
 
-	public void moveWheels() {
-		double forwardPower = gamepad1.inner.left_stick_y;
-		double strafePower = gamepad1.inner.left_stick_x;
-		double angularPower = gamepad1.inner.right_stick_x;
-
-		bot.drive.setDrivePowers(new PoseVelocity2d(
-				new Vector2d(
-						forwardPower,
-						strafePower
-				),
-				angularPower
-		));
-	}
-
 	@Override
 	protected void internalRun() {
-		keybinder.bind("right_trigger").of(gamepad2).to(bot.intake::setPower);
+		keybinder.bind("left_stick_y").of(gamepad2).to(bot.driverControl::setIntakePower);
+		keybinder.bind("right_stick_y").of(gamepad2).to(bot.driverControl::setCentralToothPower);
 
 		while (opModeIsActive()) {
-			moveWheels();
-
+			bot.driverControl.applyDrivePower(gamepad1.inner.left_stick_y, gamepad1.inner.left_stick_x, gamepad1.inner.right_stick_x);
 
 			keybinder.executeActions();
 
