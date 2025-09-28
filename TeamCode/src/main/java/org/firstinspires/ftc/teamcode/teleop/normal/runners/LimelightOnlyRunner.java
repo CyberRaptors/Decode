@@ -14,7 +14,7 @@ import org.firstinspires.ftc.teamcode.robot.LimelightOnlyBot;
 import java.util.List;
 
 import lib8812.common.actions.OnceAction;
-import lib8812.common.field.GameConstants;
+import lib8812.common.game.GameConstants;
 import lib8812.common.robot.IRobot;
 import lib8812.common.teleop.ITeleOpRunner;
 
