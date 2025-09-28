@@ -12,12 +12,16 @@ public class RaptorMainRunner extends ITeleOpRunner {
 	RaptorRobot bot = new RaptorRobot();
 
 	public void moveWheels() {
+		double forwardPower = gamepad1.inner.left_stick_y;
+		double strafePower = gamepad1.inner.left_stick_x;
+		double angularPower = gamepad1.inner.right_stick_x;
+
 		bot.drive.setDrivePowers(new PoseVelocity2d(
 				new Vector2d(
-						gamepad1.inner.left_stick_x,
-						gamepad1.inner.left_stick_y
+						forwardPower,
+						strafePower
 				),
-				gamepad1.inner.right_stick_x
+				angularPower
 		));
 	}
 
