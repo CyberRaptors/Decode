@@ -12,6 +12,7 @@ public class RaptorMainRunner extends ITeleOpRunner {
 	protected void internalRun() {
 		keybinder.bind("left_stick_y").of(gamepad2).to(bot.driverControl::setIntakePower);
 		keybinder.bind("right_stick_y").of(gamepad2).to(bot.driverControl::setCentralToothPower);
+		keybinder.bind("right_trigger").of(gamepad2).to(bot.driverControl::setShooterPower);
 
 		while (opModeIsActive()) {
 			bot.driverControl.applyDrivePower(gamepad1.inner.left_stick_y, gamepad1.inner.left_stick_x, gamepad1.inner.right_stick_x);
