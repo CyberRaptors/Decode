@@ -24,7 +24,6 @@ public class RaptorRobot extends IMecanumRobot {
 
 	public CRServo intakeLeft;
 	public CRServo intakeRight;
-	public CRServo centralTooth;
 	public BinaryClaw rejectGate; // this is not actually a claw but has the same open/close verbs so we stylize it as a BinaryClaw (which is really a LabeledPositionServo)
 	public SparkFunOTOSDrive drive;
 
@@ -43,7 +42,6 @@ public class RaptorRobot extends IMecanumRobot {
 				REJECT_GATE_CLOSED
 		);
 
-		
 		intakeRight.setDirection(DcMotorSimple.Direction.REVERSE);
 		shooterRight.setDirection(DcMotorSimple.Direction.REVERSE);
 	}
@@ -70,10 +68,6 @@ public class RaptorRobot extends IMecanumRobot {
 			}
 		}
 
-		public void setCentralToothPower(double power) {
-			useAndRelease(centralTooth, () -> centralTooth.setPower(power));
-		}
-
 		public void setShooterPower(double power) {
 			if (use(shooterLeft, shooterRight)) {
 				shooterLeft.setPower(power);
@@ -84,15 +78,11 @@ public class RaptorRobot extends IMecanumRobot {
 		}
 
 		public void setRailDriveOnePower(double power) {
-			useAndRelease(railDriveOne, () -> {
-				railDriveOne.setPower(power);
-			});
+			useAndRelease(railDriveOne, () -> railDriveOne.setPower(power));
 		}
 
 		public void setRailDriveTwoPower(double power) {
-			useAndRelease(railDriveTwo, () -> {
-				railDriveTwo.setPower(power);
-			});
+			useAndRelease(railDriveTwo, () -> railDriveTwo.setPower(power));
 		}
 	}
 }

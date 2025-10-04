@@ -5,39 +5,105 @@ import org.firstinspires.ftc.teamcode.robot.RaptorRobot;
 import lib8812.common.robot.IRobot;
 import lib8812.common.teleop.ITeleOpRunner;
 
+/* RaptorMain - Main TeleOp OpMode for [Named]Raptor
+
+List of Controls
+
+DRIVER A
+	LEFT STICK (Y) - Move forward (+) and backward (-)
+	LEFT STICK (X) - Strafe right (+) and left (-)
+	RIGHT STICK (X) - Turn clockwise (+) and counterclockwise (-)
+
+	X - Enable/disable verbose mode
+
+DRIVER B
+	LEFT TRIGGER - Run intake & rail drive one (collectively rail group one)
+	RIGHT TRIGGER - Apply shooter brakes
+	LEFT STICK (Y) - Run rail drive two counterclockwise (+) and clockwise (-)
+
+	A - Enable/disable shooter
+ */
+
 public class RaptorMainRunner extends ITeleOpRunner {
 	RaptorRobot bot = new RaptorRobot();
 
+	boolean shooterEnabled = false;
+	boolean verbose = false;
+
+	void setRailGroupOnePower(double power) {
+		bot.driverControl.setIntakePower(power);
+		bot.driverControl.setRailDriveOnePower(power);
+	}
+
+	void toggleShooterEnabled(double power) {
+		shooterEnabled = !shooterEnabled;
+
+		bot.driverControl.setShooterPower(0);
+	}
+
+	void applyShooterPowerFromInput(double brakePower) {
+		if (!shooterEnabled) return;
+
+		bot.driverControl.setShooterPower(1-brakePower);
+	}
+
 	@Override
 	protected void internalRun() {
-		keybinder.bind("left_stick_y").of(gamepad2).to(bot.driverControl::setIntakePower);
-		keybinder.bind("right_stick_y").of(gamepad2).to(bot.driverControl::setRailDriveTwoPower);
-		keybinder.bind("right_trigger").of(gamepad2).to(bot.driverControl::setShooterPower);
-		keybinder.bind("left_trigger").of(gamepad2).to(bot.driverControl::setRailDriveOnePower);
+		keybinder.bind("left_stick_y").of(gamepad2).to(bot.driverControl::setRailDriveTwoPower);
+
+		keybinder.bind("a").of(gamepad2).to(this::toggleShooterEnabled);
+
+		keybinder.bind("right_trigger").of(gamepad2).to(this::applyShooterPowerFromInput);
+		keybinder.bind("left_trigger").of(gamepad2).to(this::setRailGroupOnePower);
+
+		keybinder.bind("x").of(gamepad1).to(() -> verbose = !verbose);
 
 		while (opModeIsActive()) {
 			bot.driverControl.applyDrivePower(gamepad1.inner.left_stick_y, gamepad1.inner.left_stick_x, gamepad1.inner.right_stick_x);
 
 			keybinder.executeActions();
 
-			telemetry.addData(
-					"wheels",
-					"rightFront (%.2f) leftFront (%.2f) rightBack (%.2f) leftBack (%.2f)",
-					bot.rightFront.getPower(),
-					bot.leftFront.getPower(),
-					bot.rightBack.getPower(),
-					bot.leftBack.getPower()
-			);
+			if (verbose) {
+				telemetry.addData(
+						"wheels",
+						"rightFront (%.2f) leftFront (%.2f) rightBack (%.2f) leftBack (%.2f)",
+						bot.rightFront.getPower(),
+						bot.leftFront.getPower(),
+						bot.rightBack.getPower(),
+						bot.leftBack.getPower()
+				);
+			}
 
 			telemetry.addData(
 					"intake",
-					"left power (%.2f) right power (%.2f) left %s right %s",
-					bot.intakeLeft.getPower(),
-					bot.intakeRight.getPower(),
-					bot.lockedResources.contains(bot.intakeLeft) ? "locked" : "unlocked",
-					bot.lockedResources.contains(bot.intakeRight) ? "locked" : "unlocked"
-
+					"unified normalized power (%.2f)",
+					bot.intakeLeft.getPower()+bot.intakeRight.getPower()-bot.intakeLeft.getPower()*bot.INTAKE_RIGHT_POWER_MULTIPLIER
 			);
+
+			telemetry.addData(
+					"rail drive one",
+					"power (%.2f)",
+					bot.railDriveOne.getPower()
+			);
+
+			telemetry.addData(
+					"rail drive two",
+					"power (%.2f)",
+					bot.railDriveTwo.getPower()
+			);
+
+			if (shooterEnabled) {
+				telemetry.addData(
+						"shooter",
+						"power (%.2f)",
+						bot.shooterLeft.getPower()
+				);
+			} else {
+				telemetry.addData(
+						"shooter",
+						"disabled"
+				);
+			}
 
 			telemetry.update();
 		}
