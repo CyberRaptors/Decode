@@ -11,5 +11,4 @@ public class LimelightOnly extends LinearOpMode {
     public void runOpMode() {
         new LimelightOnlyRunner().run(this);
     }
-
 }

@@ -11,5 +11,4 @@ public class RaptorMain extends LinearOpMode {
     public void runOpMode() {
         new RaptorMainRunner().run(this);
     }
-
 }

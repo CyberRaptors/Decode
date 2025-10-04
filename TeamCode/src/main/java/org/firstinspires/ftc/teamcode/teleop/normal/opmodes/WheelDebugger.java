@@ -11,5 +11,4 @@ public class WheelDebugger extends LinearOpMode {
     public void runOpMode() {
         new WheelDebuggerRunner().run(this);
     }
-
 }
