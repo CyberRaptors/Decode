@@ -11,8 +11,9 @@ public class RaptorMainRunner extends ITeleOpRunner {
 	@Override
 	protected void internalRun() {
 		keybinder.bind("left_stick_y").of(gamepad2).to(bot.driverControl::setIntakePower);
-		keybinder.bind("right_stick_y").of(gamepad2).to(bot.driverControl::setCentralToothPower);
+		keybinder.bind("right_stick_y").of(gamepad2).to(bot.driverControl::setRailDriveTwoPower);
 		keybinder.bind("right_trigger").of(gamepad2).to(bot.driverControl::setShooterPower);
+		keybinder.bind("left_trigger").of(gamepad2).to(bot.driverControl::setRailDriveOnePower);
 
 		while (opModeIsActive()) {
 			bot.driverControl.applyDrivePower(gamepad1.inner.left_stick_y, gamepad1.inner.left_stick_x, gamepad1.inner.right_stick_x);
@@ -30,8 +31,12 @@ public class RaptorMainRunner extends ITeleOpRunner {
 
 			telemetry.addData(
 					"intake",
-					"power (%.2f)",
-					bot.intake.getPower()
+					"left power (%.2f) right power (%.2f) left %s right %s",
+					bot.intakeLeft.getPower(),
+					bot.intakeRight.getPower(),
+					bot.lockedResources.contains(bot.intakeLeft) ? "locked" : "unlocked",
+					bot.lockedResources.contains(bot.intakeRight) ? "locked" : "unlocked"
+
 			);
 
 			telemetry.update();

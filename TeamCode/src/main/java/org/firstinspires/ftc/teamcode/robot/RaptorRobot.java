@@ -5,6 +5,7 @@ import com.acmerobotics.roadrunner.PoseVelocity2d;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
@@ -17,13 +18,18 @@ public class RaptorRobot extends IMecanumRobot {
 	public final double REJECT_GATE_CLOSED = 0;
 	public final double REJECT_GATE_OPEN = 0;
 
+	public final double INTAKE_RIGHT_POWER_MULTIPLIER = 0.7;
+
 	public final ArtifactConfiguration artifacts = new ArtifactConfiguration();
 
-	public DcMotor intake;
+	public CRServo intakeLeft;
+	public CRServo intakeRight;
 	public CRServo centralTooth;
 	public BinaryClaw rejectGate; // this is not actually a claw but has the same open/close verbs so we stylize it as a BinaryClaw (which is really a LabeledPositionServo)
 	public SparkFunOTOSDrive drive;
 
+	public DcMotor railDriveOne;
+	public CRServo railDriveTwo;
 
 	public DcMotor shooterLeft;
 	public DcMotor shooterRight;
@@ -36,6 +42,10 @@ public class RaptorRobot extends IMecanumRobot {
 				REJECT_GATE_OPEN,
 				REJECT_GATE_CLOSED
 		);
+
+		
+		intakeRight.setDirection(DcMotorSimple.Direction.REVERSE);
+		shooterRight.setDirection(DcMotorSimple.Direction.REVERSE);
 	}
 
 	public final LockingControl driverControl = new LockingControl();
@@ -52,7 +62,12 @@ public class RaptorRobot extends IMecanumRobot {
 		}
 
 		public void setIntakePower(double power) {
-			useAndRelease(intake, () -> intake.setPower(power));
+			if (use(intakeLeft, intakeRight)) {
+				intakeLeft.setPower(power);
+				intakeRight.setPower(power*INTAKE_RIGHT_POWER_MULTIPLIER);
+
+				release(intakeLeft, intakeRight);
+			}
 		}
 
 		public void setCentralToothPower(double power) {
@@ -63,7 +78,21 @@ public class RaptorRobot extends IMecanumRobot {
 			if (use(shooterLeft, shooterRight)) {
 				shooterLeft.setPower(power);
 				shooterRight.setPower(power);
+
+				release(shooterLeft, shooterRight);
 			}
+		}
+
+		public void setRailDriveOnePower(double power) {
+			useAndRelease(railDriveOne, () -> {
+				railDriveOne.setPower(power);
+			});
+		}
+
+		public void setRailDriveTwoPower(double power) {
+			useAndRelease(railDriveTwo, () -> {
+				railDriveTwo.setPower(power);
+			});
 		}
 	}
 }
