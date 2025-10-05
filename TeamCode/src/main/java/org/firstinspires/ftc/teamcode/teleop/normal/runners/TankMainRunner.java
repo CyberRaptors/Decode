@@ -12,9 +12,7 @@ public class TankMainRunner extends ITeleOpRunner {
 	protected void internalRun() {
 		while (opModeIsActive()) {
 			bot.leftFront.setPower(gamepad1.inner.left_stick_y);
-			bot.leftBack.setPower(gamepad1.inner.left_stick_y);
 			bot.rightFront.setPower(gamepad1.inner.right_stick_y);
-			bot.rightBack.setPower(gamepad1.inner.right_stick_y);
 		}
 	}
 
