@@ -35,14 +35,17 @@ public class RaptorMainRunner extends ITeleOpRunner {
 		bot.driverControl.setRailDriveOnePower(power);
 	}
 
-	void toggleShooterEnabled(double power) {
+	void toggleShooterEnabled() {
 		shooterEnabled = !shooterEnabled;
 
 		bot.driverControl.setShooterPower(0);
 	}
 
 	void applyShooterPowerFromInput(double brakePower) {
-		if (!shooterEnabled) return;
+		if (!shooterEnabled) {
+			bot.driverControl.setShooterPower(0);
+			return;
+		}
 
 		bot.driverControl.setShooterPower(1-brakePower);
 	}

@@ -42,7 +42,7 @@ public class RaptorRobot extends IMecanumRobot {
 				REJECT_GATE_CLOSED
 		);
 
-		intakeRight.setDirection(DcMotorSimple.Direction.REVERSE);
+		intakeLeft.setDirection(DcMotorSimple.Direction.REVERSE);
 		shooterRight.setDirection(DcMotorSimple.Direction.REVERSE);
 	}
 
