@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.teleop.normal.opmodes;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.teamcode.teleop.normal.runners.LimelightOnlyRunner;
 
@@ -9,6 +10,7 @@ import org.firstinspires.ftc.teamcode.teleop.normal.runners.LimelightOnlyRunner;
 public class LimelightOnly extends LinearOpMode {
     @Override
     public void runOpMode() {
-        new LimelightOnlyRunner().run(this);
+        new LimelightOnlyRunner() {
+        }.run(this);
     }
 }
