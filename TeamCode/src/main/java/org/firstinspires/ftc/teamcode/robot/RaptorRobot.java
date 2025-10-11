@@ -20,6 +20,9 @@ public class RaptorRobot extends IMecanumRobot {
 
 	public final double INTAKE_RIGHT_POWER_MULTIPLIER = 0.7;
 
+	public final double RAIL_DRIVE_THREE_MIN_POS = 0.551;
+	public final double RAIL_DRIVE_THREE_MAX_POS = 1.0;
+
 	public final ArtifactConfiguration artifacts = new ArtifactConfiguration();
 
 	public CRServo intakeLeft;
@@ -29,6 +32,7 @@ public class RaptorRobot extends IMecanumRobot {
 
 	public DcMotor railDriveOne;
 	public CRServo railDriveTwo;
+	public Servo railDriveThree;
 
 	public DcMotor shooterLeft;
 	public DcMotor shooterRight;
@@ -44,6 +48,7 @@ public class RaptorRobot extends IMecanumRobot {
 
 		intakeLeft.setDirection(DcMotorSimple.Direction.REVERSE);
 		shooterRight.setDirection(DcMotorSimple.Direction.REVERSE);
+		railDriveThree.setPosition(RAIL_DRIVE_THREE_MAX_POS);
 	}
 
 	public final LockingControl driverControl = new LockingControl();
@@ -83,6 +88,20 @@ public class RaptorRobot extends IMecanumRobot {
 
 		public void setRailDriveTwoPower(double power) {
 			useAndRelease(railDriveTwo, () -> railDriveTwo.setPower(power));
+		}
+
+		public void setRailDriveThreePosition(double position) {
+			double boundedPosition = Math.max(
+					RAIL_DRIVE_THREE_MIN_POS,
+					Math.min(
+							RAIL_DRIVE_THREE_MAX_POS,
+							position
+					)
+			);
+
+			useAndRelease(railDriveThree, () -> {
+				railDriveThree.setPosition(boundedPosition);
+			});
 		}
 	}
 }

@@ -59,6 +59,12 @@ public class RaptorMainRunner extends ITeleOpRunner {
 		keybinder.bind("right_trigger").of(gamepad2).to(this::applyShooterPowerFromInput);
 		keybinder.bind("left_trigger").of(gamepad2).to(this::setRailGroupOnePower);
 
+		keybinder.bind("right_stick_y").of(gamepad2).to((value) -> {
+			bot.driverControl.setRailDriveThreePosition(
+					bot.railDriveThree.getPosition()+(value/1000)
+			);
+		});
+
 		keybinder.bind("x").of(gamepad1).to(() -> verbose = !verbose);
 
 		while (opModeIsActive()) {
@@ -93,6 +99,14 @@ public class RaptorMainRunner extends ITeleOpRunner {
 					"rail drive two",
 					"power (%.2f)",
 					bot.railDriveTwo.getPower()
+			);
+
+			telemetry.addData(
+					"rail drive three (feeder)",
+					"position (%.2f) min (%.2f) max (%.2f)",
+					bot.railDriveThree.getPosition(),
+					bot.RAIL_DRIVE_THREE_MIN_POS,
+					bot.RAIL_DRIVE_THREE_MAX_POS
 			);
 
 			if (shooterEnabled) {
