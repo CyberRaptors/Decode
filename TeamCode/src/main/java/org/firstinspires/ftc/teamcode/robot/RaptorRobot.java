@@ -21,7 +21,7 @@ public class RaptorRobot extends IMecanumRobot {
 	public final double INTAKE_RIGHT_POWER_MULTIPLIER = 0.7;
 
 	public final double RAIL_DRIVE_THREE_MIN_POS = 0.551;
-	public final double RAIL_DRIVE_THREE_MAX_POS = 1.0;
+	public final double RAIL_DRIVE_THREE_MAX_POS = 0.86;
 
 	public final ArtifactConfiguration artifacts = new ArtifactConfiguration();
 
