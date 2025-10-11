@@ -14,15 +14,8 @@ public class TankMainRunner extends ITeleOpRunner {
 	@Override
 	protected void internalRun() {
 		while (opModeIsActive()) {
-			double leftPower = gamepad1.inner.left_stick_y;
-			double rightPower = gamepad1.inner.right_stick_y;
-
-			bot.leftFront.setPower(gamepad1.inner.left_stick_y);
-			bot.rightFront.setPower(gamepad1.inner.right_stick_y);
-
-			telemetry.addData("Left Motor Power", leftPower);
-			telemetry.addData("Right Motor Power", rightPower);
-			telemetry.update();
+			bot.leftFront.setPower(-gamepad1.inner.left_stick_y);
+			bot.rightFront.setPower(-gamepad1.inner.right_stick_y);
 		}
 	}
 	@Override
