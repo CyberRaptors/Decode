@@ -1,9 +1,5 @@
 package org.firstinspires.ftc.teamcode.robot;
-
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.HardwareMap;
-
 import lib8812.common.robot.IRobot;
 
 public class TankRaptor extends IRobot {
