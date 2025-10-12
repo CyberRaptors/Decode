@@ -12,6 +12,10 @@ public class TeleOpUtils {
 
     final static ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(4);
 
+    public static boolean isApproximatelyEqual(double val1, double val2, double tolerance) {
+        return Math.abs(val1-val2) <= tolerance;
+    }
+
     public static boolean isBetweenInclusive(double val, double low, double high)
     {
         return val >= low && val <= high;
