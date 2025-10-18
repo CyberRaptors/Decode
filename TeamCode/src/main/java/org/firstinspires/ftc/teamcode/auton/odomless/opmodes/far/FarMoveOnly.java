@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.auton.odomless.runners.far.FarMoveOnlyRunner;
 
-@Autonomous(name = "-FM", group = "MoveOnly")
+@Autonomous(name = "-Fm", group = "MoveOnly")
 public class FarMoveOnly extends LinearOpMode {
 	@Override
 	public void runOpMode() throws InterruptedException {
