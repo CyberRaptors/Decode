@@ -30,7 +30,7 @@ public class RaptorMainRunner extends ITeleOpRunner {
 	boolean shooterEnabled = false;
 	boolean verbose = false;
 
-	double shooterMaxPower = 1;
+	double shooterMaxPower = 0.6;
 
 	void setRailGroupOnePower(double power) {
 		bot.driverControl.setIntakePower(power);
@@ -67,8 +67,8 @@ public class RaptorMainRunner extends ITeleOpRunner {
 
 		keybinder.bind("x").of(gamepad1).to(() -> verbose = !verbose);
 
-		keybinder.bind("dpad_left").of(gamepad2).to(() -> shooterMaxPower = Math.max(0, shooterMaxPower -0.05));
-		keybinder.bind("dpad_right").of(gamepad2).to(() -> shooterMaxPower = Math.min(1, shooterMaxPower +0.05));
+		keybinder.bind("dpad_up").of(gamepad2).to(() -> shooterMaxPower = 0.6); // close corner shot
+		keybinder.bind("dpad_down").of(gamepad2).to(() -> shooterMaxPower = 0.55); // close mid shot
 
 		while (opModeIsActive()) {
 			bot.driverControl.applyDrivePower(gamepad1.inner.left_stick_y, gamepad1.inner.left_stick_x, gamepad1.inner.right_stick_x);
