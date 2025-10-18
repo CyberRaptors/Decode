@@ -1,4 +1,4 @@
-/* RaptorMain - Main TeleOp OpMode for [Named]Raptor
+/* RaptorMain - Main TeleOp OpMode for Raptor Series Bots
 
 List of Controls
 
