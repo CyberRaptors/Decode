@@ -88,8 +88,8 @@ public class RaptorMainRunner extends ITeleOpRunner {
 
 			telemetry.addData(
 					"intake",
-					"unified normalized power (%.2f)",
-					bot.intakeLeft.getPower()+bot.intakeRight.getPower()-bot.intakeLeft.getPower()*bot.INTAKE_RIGHT_POWER_MULTIPLIER
+					"left power (%.2f) right power (%.2f)",
+					bot.intakeLeft.getPower(), bot.intakeRight.getPower()
 			);
 
 			telemetry.addData(

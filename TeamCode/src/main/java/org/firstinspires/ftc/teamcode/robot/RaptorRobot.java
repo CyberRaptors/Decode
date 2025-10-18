@@ -17,8 +17,6 @@ import lib8812.common.rr.SparkFunOTOSDrive;
 public class RaptorRobot extends IMecanumRobot {
 	public final double SHOOTER_TICKS_PER_REV = 28;
 
-	public final double INTAKE_RIGHT_POWER_MULTIPLIER = 0.7;
-
 	public final double RAIL_DRIVE_THREE_MIN_POS = 0.551;
 	public final double RAIL_DRIVE_THREE_MAX_POS = 0.89;
 
@@ -62,7 +60,7 @@ public class RaptorRobot extends IMecanumRobot {
 		public void setIntakePower(double power) {
 			if (use(intakeLeft, intakeRight)) {
 				intakeLeft.setPower(power);
-				intakeRight.setPower(power*INTAKE_RIGHT_POWER_MULTIPLIER);
+				intakeRight.setPower(power);
 
 				release(intakeLeft, intakeRight);
 			}
