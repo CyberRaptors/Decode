@@ -1,7 +1,5 @@
 package org.firstinspires.ftc.teamcode.teleop.normal.runners;
 
-import com.acmerobotics.roadrunner.Action;
-
 import org.firstinspires.ftc.teamcode.robot.ActionableRaptorRobot;
 
 import lib8812.common.robot.IRobot;
@@ -72,13 +70,7 @@ public class RaptorMainRunner extends ITeleOpRunner {
 		keybinder.bind("dpad_up").of(gamepad2).to(() -> shooterMaxPower = 0.6); // close corner shot
 		keybinder.bind("dpad_down").of(gamepad2).to(() -> shooterMaxPower = 0.55); // close mid shot
 
-		keybinder.bind("x").of(gamepad2).to(() -> {
-			Action action = bot.shootGeneric(shooterMaxPower);
-
-			if (action == null) return;
-
-			actions.schedule(action);
-		});
+		keybinder.bind("x").of(gamepad2).to(() -> actions.scheduleAll(bot.shootWithPower(shooterMaxPower)));
 
 		while (opModeIsActive()) {
 			bot.driverControl.applyDrivePower(gamepad1.inner.left_stick_y, gamepad1.inner.left_stick_x, gamepad1.inner.right_stick_x);

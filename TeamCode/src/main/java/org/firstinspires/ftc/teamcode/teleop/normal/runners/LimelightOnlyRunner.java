@@ -30,7 +30,7 @@ public class LimelightOnlyRunner extends ITeleOpRunner {
 
         int targetTagId = GameConstants.DECODE.GOAL_APRILTAG_ID(blue);
 
-        actions.schedule(new SequentialAction(
+        actions.scheduleAll(new SequentialAction(
                 new InstantAction(() -> {
                     bot.drive.setDrivePowers(
                             new PoseVelocity2d(
