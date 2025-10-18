@@ -72,6 +72,11 @@ public class RaptorMainRunner extends ITeleOpRunner {
 
 		keybinder.bind("x").of(gamepad2).to(() -> actions.scheduleAll(bot.shootWithPower(shooterMaxPower)));
 
+		keybinder.bind("y").of(gamepad2).to(() -> actions.scheduleAll(bot.successiveShootWithPower(3, shooterMaxPower)));
+
+		keybinder.bind("b").of(gamepad1).to(actions::clear);
+		keybinder.bind("b").of(gamepad2).to(actions::clear);
+
 		while (opModeIsActive()) {
 			bot.driverControl.applyDrivePower(gamepad1.inner.left_stick_y, gamepad1.inner.left_stick_x, gamepad1.inner.right_stick_x);
 
