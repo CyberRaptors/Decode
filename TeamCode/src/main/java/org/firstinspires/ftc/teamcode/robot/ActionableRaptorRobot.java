@@ -5,19 +5,17 @@ import com.acmerobotics.roadrunner.InstantAction;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.SleepAction;
 
-import lib8812.common.util.ActionCreator;
-
 public class ActionableRaptorRobot extends RaptorRobot {
-	public Action shootGeneric(double power) {
+	public Action shootWithPower(double power) {
 		if (!use(shooterLeft, shooterRight, railDriveThree)) return null;
 
 		return new SequentialAction(
-				_shootGeneric(power),
+				_shootWithPower(power),
 				new InstantAction(() -> release(shooterLeft, shooterRight, railDriveThree))
 		);
 	}
 
-	public Action _shootGeneric(double power) {
+	public Action _shootWithPower(double power) {
 		return new SequentialAction(
 				new InstantAction(
 						() -> {
@@ -56,24 +54,49 @@ public class ActionableRaptorRobot extends RaptorRobot {
 					railDriveThree.setPosition(FEEDER_READY_POS);
 					railDriveTwo.setPower(1);
 				}),
-				new SleepAction(1.5)
+				new SleepAction(1.5),
+				new InstantAction(() -> railDriveTwo.setPower(0))
 		);
 	}
 
-	public Action successiveShootGeneric(int ammunition, int power) {
-		return successiveShoot(ammunition, () -> _shootGeneric(power));
-	}
-
-	public Action successiveShoot(int ammunition, ActionCreator unlockedShootAction) {
+	public Action successiveShootWithPower(int ammunition, double power) {
 		if (!use(railDriveTwo, railDriveThree, shooterLeft, shooterRight)) return null;
 
-		Action[] shots = new Action[ammunition*2];
+		Action[] actionSequence = new Action[ammunition+2];
 
 		for (int i = 0; i < ammunition; i++) {
-			shots[i] = _feedNext();
-			shots[i+1] = unlockedShootAction.run();
+			actionSequence[i+1] = new SequentialAction(
+					// load
+					new InstantAction(() -> {
+						railDriveTwo.setPower(1);
+					}),
+					new SleepAction(1.5),
+					new InstantAction(() -> railDriveTwo.setPower(0)),
+
+					// shoot
+					new InstantAction(
+							() -> railDriveThree.setPosition(FEEDER_SHOOT_POS)
+					),
+					new SleepAction(0.6),
+					new InstantAction(() -> {
+						railDriveThree.setPosition(FEEDER_READY_POS);
+					})
+			);
 		}
 
-		return new SequentialAction(shots);
+		actionSequence[0] = new InstantAction(() -> {
+			railDriveThree.setPosition(FEEDER_READY_POS);
+			shooterLeft.setPower(power);
+			shooterRight.setPower(power);
+		});
+
+		actionSequence[actionSequence.length-1] = new InstantAction(() -> {
+			shooterLeft.setPower(0);
+			shooterRight.setPower(0);
+
+			release(railDriveTwo, railDriveThree, shooterLeft, shooterRight);
+		});
+
+		return new SequentialAction(actionSequence);
 	}
 }
