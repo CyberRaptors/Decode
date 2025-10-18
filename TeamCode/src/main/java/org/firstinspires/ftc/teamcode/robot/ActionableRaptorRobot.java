@@ -5,42 +5,36 @@ import com.acmerobotics.roadrunner.InstantAction;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.SleepAction;
 
-import lib8812.common.actions.InitAndPredicateAction;
-import lib8812.common.teleop.TeleOpUtils;
 import lib8812.common.util.ActionCreator;
-import lib8812.common.util.ZeroArgPredicate;
 
 public class ActionableRaptorRobot extends RaptorRobot {
-	public Action shootGeneric() {
+	public Action shootGeneric(double power) {
 		if (!use(shooterLeft, shooterRight, railDriveThree)) return null;
 
-		return _shootGeneric();
+		return new SequentialAction(
+				_shootGeneric(power),
+				new InstantAction(() -> release(shooterLeft, shooterRight, railDriveThree))
+		);
 	}
 
-	public Action _shootGeneric() {
-		double defaultVelocityTicksPerSec = SHOOTER_TICKS_PER_REV*60;
-
-		ZeroArgPredicate motorsAreAtShootingVelocity = () -> (
-				TeleOpUtils.isApproximatelyEqual(shooterRight.getVelocity(), defaultVelocityTicksPerSec, 100) &&
-						TeleOpUtils.isApproximatelyEqual(shooterLeft.getVelocity(), defaultVelocityTicksPerSec, 100)
-		);
-
+	public Action _shootGeneric(double power) {
 		return new SequentialAction(
-				new InitAndPredicateAction(
+				new InstantAction(
 						() -> {
-							shooterRight.setPower(defaultVelocityTicksPerSec);
-							shooterLeft.setPower(defaultVelocityTicksPerSec);
-						},
-						motorsAreAtShootingVelocity
+							shooterRight.setPower(power);
+							shooterLeft.setPower(power);
+						}
 				),
-				new InitAndPredicateAction(
-						() -> railDriveThree.setPosition(FEEDER_SHOOT_POS),
-						() -> !motorsAreAtShootingVelocity.run() // when the motor velocity decreases, we realize that the ball has shot (as of now, there is unfortunately no other way to confirm this truth)
+				new SleepAction(0.3),
+//				new WaitUntilFullyAcceleratedAction(shooterLeft),
+//				new WaitUntilFullyAcceleratedAction(shooterRight),
+				new InstantAction(
+						() -> railDriveThree.setPosition(FEEDER_SHOOT_POS)
 				),
+				new SleepAction(0.6),
+//				new WaitUntilMotorVelocityChangedAction(shooterLeft), // when the motor velocity decreases, we realize that the ball has shot (as of now, there is unfortunately no other way to confirm this truth)
 				new InstantAction(() -> {
 					railDriveThree.setPosition(FEEDER_READY_POS);
-
-					release(shooterLeft, shooterRight, railDriveThree);
 				})
 		);
 	}
@@ -48,7 +42,12 @@ public class ActionableRaptorRobot extends RaptorRobot {
 	public Action feedNext() {
 		if (!use(railDriveTwo, railDriveThree)) return null;
 
-		return _feedNext();
+		return new SequentialAction(
+				_feedNext(),
+				new InstantAction(() ->
+						release(railDriveTwo, railDriveThree)
+				)
+		);
 	}
 
 	public Action _feedNext() {
@@ -57,15 +56,12 @@ public class ActionableRaptorRobot extends RaptorRobot {
 					railDriveThree.setPosition(FEEDER_READY_POS);
 					railDriveTwo.setPower(1);
 				}),
-				new SleepAction(1.5),
-				new InstantAction(() ->
-						release(railDriveTwo, railDriveThree)
-				)
+				new SleepAction(1.5)
 		);
 	}
 
-	public Action successiveShootGeneric(int ammunition) {
-		return successiveShoot(ammunition, this::shootGeneric);
+	public Action successiveShootGeneric(int ammunition, int power) {
+		return successiveShoot(ammunition, () -> _shootGeneric(power));
 	}
 
 	public Action successiveShoot(int ammunition, ActionCreator unlockedShootAction) {

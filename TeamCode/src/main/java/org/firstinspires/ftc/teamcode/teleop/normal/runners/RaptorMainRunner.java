@@ -1,6 +1,8 @@
 package org.firstinspires.ftc.teamcode.teleop.normal.runners;
 
-import org.firstinspires.ftc.teamcode.robot.RaptorRobot;
+import com.acmerobotics.roadrunner.Action;
+
+import org.firstinspires.ftc.teamcode.robot.ActionableRaptorRobot;
 
 import lib8812.common.robot.IRobot;
 import lib8812.common.teleop.ITeleOpRunner;
@@ -25,7 +27,7 @@ DRIVER B
  */
 
 public class RaptorMainRunner extends ITeleOpRunner {
-	RaptorRobot bot = new RaptorRobot();
+	ActionableRaptorRobot bot = new ActionableRaptorRobot();
 
 	boolean shooterEnabled = false;
 	boolean verbose = false;
@@ -70,10 +72,19 @@ public class RaptorMainRunner extends ITeleOpRunner {
 		keybinder.bind("dpad_up").of(gamepad2).to(() -> shooterMaxPower = 0.6); // close corner shot
 		keybinder.bind("dpad_down").of(gamepad2).to(() -> shooterMaxPower = 0.55); // close mid shot
 
+		keybinder.bind("x").of(gamepad2).to(() -> {
+			Action action = bot.shootGeneric(shooterMaxPower);
+
+			if (action == null) return;
+
+			actions.schedule(action);
+		});
+
 		while (opModeIsActive()) {
 			bot.driverControl.applyDrivePower(gamepad1.inner.left_stick_y, gamepad1.inner.left_stick_x, gamepad1.inner.right_stick_x);
 
 			keybinder.executeActions();
+			actions.execute();
 
 			if (verbose) {
 				telemetry.addData(

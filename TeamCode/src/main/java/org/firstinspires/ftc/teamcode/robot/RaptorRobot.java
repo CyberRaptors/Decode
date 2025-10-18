@@ -42,6 +42,10 @@ public class RaptorRobot extends IMecanumRobot {
 		intakeLeft.setDirection(DcMotorSimple.Direction.REVERSE);
 		shooterRight.setDirection(DcMotorSimple.Direction.REVERSE);
 		railDriveThree.setPosition(FEEDER_READY_POS);
+
+		shooterLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+		shooterRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
 	}
 
 	public final LockingControl driverControl = new LockingControl();
