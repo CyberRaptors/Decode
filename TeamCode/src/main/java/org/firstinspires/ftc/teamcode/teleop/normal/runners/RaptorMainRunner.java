@@ -14,14 +14,22 @@ DRIVER A
 	LEFT STICK (X) - Strafe right (+) and left (-)
 	RIGHT STICK (X) - Turn clockwise (+) and counterclockwise (-)
 
+	B - Globally cancel all macros
 	X - Enable/disable verbose mode
 
 DRIVER B
 	LEFT TRIGGER - Run intake & rail drive one (collectively rail group one)
 	RIGHT TRIGGER - Apply shooter brakes
 	LEFT STICK (Y) - Run rail drive two counterclockwise (+) and clockwise (-)
+	RIGHT STICK (Y) - Move rail drive three (feeder) forwards (+) and backwards (-)
+
+	DPAD UP - Set shooter speed for mid shot
+	DPAD DOWN - Set shooter speed for close shot
 
 	A - Enable/disable shooter
+	B - Globally cancel all macros
+	X - Dispatch auto-shoot macro
+	Y - Dispatch successive auto-shoot macro (3 shots)
  */
 
 public class RaptorMainRunner extends ITeleOpRunner {
@@ -54,28 +62,30 @@ public class RaptorMainRunner extends ITeleOpRunner {
 
 	@Override
 	protected void internalRun() {
-		keybinder.bind("left_stick_y").of(gamepad2).to(bot.driverControl::setRailDriveTwoPower);
+		Runnable cancelMacros = () -> {
+			actions.clear();
+			bot.releaseAllDevices();
+		};
 
-		keybinder.bind("a").of(gamepad2).to(this::toggleShooterEnabled);
+		keybinder.bind("b").of(gamepad1).to(cancelMacros);
+		keybinder.bind("x").of(gamepad1).to(() -> verbose = !verbose);
 
-		keybinder.bind("right_trigger").of(gamepad2).to(this::applyShooterPowerFromInput);
+
+
 		keybinder.bind("left_trigger").of(gamepad2).to(this::setRailGroupOnePower);
-
+		keybinder.bind("right_trigger").of(gamepad2).to(this::applyShooterPowerFromInput);
+		keybinder.bind("left_stick_y").of(gamepad2).to(bot.driverControl::setRailDriveTwoPower);
 		keybinder.bind("right_stick_y").of(gamepad2).to((value) -> bot.driverControl.setRailDriveThreePosition(
 				bot.railDriveThree.getPosition()+(value/1000)
 		));
 
-		keybinder.bind("x").of(gamepad1).to(() -> verbose = !verbose);
+		keybinder.bind("dpad_up").of(gamepad2).to(() -> shooterMaxPower = 0.6); // mid shot
+		keybinder.bind("dpad_down").of(gamepad2).to(() -> shooterMaxPower = 0.55); // close shot
 
-		keybinder.bind("dpad_up").of(gamepad2).to(() -> shooterMaxPower = 0.6); // close corner shot
-		keybinder.bind("dpad_down").of(gamepad2).to(() -> shooterMaxPower = 0.55); // close mid shot
-
+		keybinder.bind("a").of(gamepad2).to(this::toggleShooterEnabled);
+		keybinder.bind("b").of(gamepad2).to(cancelMacros);
 		keybinder.bind("x").of(gamepad2).to(() -> actions.scheduleAll(bot.shootWithPower(shooterMaxPower)));
-
 		keybinder.bind("y").of(gamepad2).to(() -> actions.scheduleAll(bot.successiveShootWithPower(3, shooterMaxPower)));
-
-		keybinder.bind("b").of(gamepad1).to(actions::clear);
-		keybinder.bind("b").of(gamepad2).to(actions::clear);
 
 		while (opModeIsActive()) {
 			bot.driverControl.applyDrivePower(gamepad1.inner.left_stick_y, gamepad1.inner.left_stick_x, gamepad1.inner.right_stick_x);

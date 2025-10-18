@@ -16,6 +16,10 @@ import lib8812.common.robot.hardwarewrappers.VirtualServo;
 public abstract class IRobot {
     public ArrayList<Object> lockedResources = new ArrayList<>();
 
+    public void releaseAllDevices() {
+        lockedResources.clear();
+    }
+
     public void useAndRelease(Object resource, Runnable action) {
         if (!resourceAvailable(resource)) return;
 
