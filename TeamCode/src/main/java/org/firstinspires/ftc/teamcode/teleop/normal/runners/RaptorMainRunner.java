@@ -1,10 +1,3 @@
-package org.firstinspires.ftc.teamcode.teleop.normal.runners;
-
-import org.firstinspires.ftc.teamcode.robot.ActionableRaptorRobot;
-
-import lib8812.common.robot.IRobot;
-import lib8812.common.teleop.ITeleOpRunner;
-
 /* RaptorMain - Main TeleOp OpMode for [Named]Raptor
 
 List of Controls
@@ -31,6 +24,13 @@ DRIVER B
 	X - Dispatch auto-shoot macro
 	Y - Dispatch successive auto-shoot macro (3 shots)
  */
+
+package org.firstinspires.ftc.teamcode.teleop.normal.runners;
+
+import org.firstinspires.ftc.teamcode.robot.ActionableRaptorRobot;
+
+import lib8812.common.robot.IRobot;
+import lib8812.common.teleop.ITeleOpRunner;
 
 public class RaptorMainRunner extends ITeleOpRunner {
 	ActionableRaptorRobot bot = new ActionableRaptorRobot();
