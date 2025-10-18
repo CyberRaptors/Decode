@@ -17,6 +17,9 @@ import lib8812.common.rr.SparkFunOTOSDrive;
 public class RaptorRobot extends IMecanumRobot {
 	public final double SHOOTER_TICKS_PER_REV = 28;
 
+	public final double SHOOTER_POWER_FOR_CLOSE_SHOT = 0.55;
+	public final double SHOOTER_POWER_FOR_MID_SHOT = 0.6;
+
 	public final double RAIL_DRIVE_THREE_MIN_POS = 0.551;
 	public final double RAIL_DRIVE_THREE_MAX_POS = 0.89;
 

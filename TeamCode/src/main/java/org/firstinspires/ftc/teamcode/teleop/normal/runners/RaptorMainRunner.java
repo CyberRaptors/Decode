@@ -38,7 +38,7 @@ public class RaptorMainRunner extends ITeleOpRunner {
 	boolean shooterEnabled = false;
 	boolean verbose = false;
 
-	double shooterMaxPower = 0.6;
+	double shooterMaxPower = bot.SHOOTER_POWER_FOR_MID_SHOT;
 
 	void setRailGroupOnePower(double power) {
 		bot.driverControl.setIntakePower(power);
@@ -79,8 +79,8 @@ public class RaptorMainRunner extends ITeleOpRunner {
 				bot.railDriveThree.getPosition()+(value/1000)
 		));
 
-		keybinder.bind("dpad_up").of(gamepad2).to(() -> shooterMaxPower = 0.6); // mid shot
-		keybinder.bind("dpad_down").of(gamepad2).to(() -> shooterMaxPower = 0.55); // close shot
+		keybinder.bind("dpad_up").of(gamepad2).to(() -> shooterMaxPower = bot.SHOOTER_POWER_FOR_MID_SHOT);
+		keybinder.bind("dpad_down").of(gamepad2).to(() -> shooterMaxPower = bot.SHOOTER_POWER_FOR_CLOSE_SHOT);
 
 		keybinder.bind("a").of(gamepad2).to(this::toggleShooterEnabled);
 		keybinder.bind("b").of(gamepad2).to(cancelMacros);
