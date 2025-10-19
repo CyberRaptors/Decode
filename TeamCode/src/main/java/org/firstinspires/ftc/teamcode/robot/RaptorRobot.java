@@ -17,8 +17,8 @@ import lib8812.common.rr.SparkFunOTOSDrive;
 public class RaptorRobot extends IMecanumRobot {
 	public final double SHOOTER_TICKS_PER_REV = 28;
 
-	public final double SHOOTER_POWER_FOR_CLOSE_SHOT = 0.55;
-	public final double SHOOTER_POWER_FOR_MID_SHOT = 0.6;
+	public final double SHOOTER_VELO_FOR_CLOSE_SHOT = 1180									;
+	public final double SHOOTER_VELO_FOR_MID_SHOT = 1300;
 
 	public final double RAIL_DRIVE_THREE_MIN_POS = 0.551;
 	public final double RAIL_DRIVE_THREE_MAX_POS = 0.89;
@@ -77,6 +77,15 @@ public class RaptorRobot extends IMecanumRobot {
 			if (use(shooterLeft, shooterRight)) {
 				shooterLeft.setPower(power);
 				shooterRight.setPower(power);
+
+				release(shooterLeft, shooterRight);
+			}
+		}
+
+		public void setShooterVelocity(double velo) {
+			if (use(shooterLeft, shooterRight)) {
+				shooterLeft.setVelocity(velo);
+				shooterRight.setVelocity(velo);
 
 				release(shooterLeft, shooterRight);
 			}

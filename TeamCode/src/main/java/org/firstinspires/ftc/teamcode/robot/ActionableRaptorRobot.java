@@ -6,24 +6,24 @@ import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.SleepAction;
 
 public class ActionableRaptorRobot extends RaptorRobot {
-	public Action shootWithPower(double power) {
+	public Action shootWithVelo(double velo) {
 		if (!use(shooterLeft, shooterRight, railDriveThree)) return null;
 
 		return new SequentialAction(
-				_shootWithPower(power),
+				_shootWithVelo(velo),
 				new InstantAction(() -> release(shooterLeft, shooterRight, railDriveThree))
 		);
 	}
 
-	public Action _shootWithPower(double power) {
+	public Action _shootWithVelo(double velo) {
 		return new SequentialAction(
 				new InstantAction(
 						() -> {
-							shooterRight.setPower(power);
-							shooterLeft.setPower(power);
+							shooterRight.setVelocity(velo);
+							shooterLeft.setVelocity(velo);
 						}
 				),
-				new SleepAction(0.3),
+				new SleepAction(0.4),
 //				new WaitUntilFullyAcceleratedAction(shooterLeft),
 //				new WaitUntilFullyAcceleratedAction(shooterRight),
 				new InstantAction(
@@ -52,14 +52,14 @@ public class ActionableRaptorRobot extends RaptorRobot {
 		return new SequentialAction(
 				new InstantAction(() -> {
 					railDriveThree.setPosition(FEEDER_READY_POS);
-					railDriveTwo.setPower(1);
+					railDriveTwo.setPower(-1);
 				}),
 				new SleepAction(1.5),
 				new InstantAction(() -> railDriveTwo.setPower(0))
 		);
 	}
 
-	public Action successiveShootWithPower(int ammunition, double power) {
+	public Action successiveShootWithVelo(int ammunition, double velo) {
 		if (!use(railDriveTwo, railDriveThree, shooterLeft, shooterRight)) return null;
 
 		Action[] actionSequence = new Action[ammunition+2];
@@ -68,7 +68,7 @@ public class ActionableRaptorRobot extends RaptorRobot {
 			actionSequence[i+1] = new SequentialAction(
 					// load
 					new InstantAction(() -> {
-						railDriveTwo.setPower(1);
+						railDriveTwo.setPower(-1);
 					}),
 					new SleepAction(1.5),
 					new InstantAction(() -> railDriveTwo.setPower(0)),
@@ -86,8 +86,8 @@ public class ActionableRaptorRobot extends RaptorRobot {
 
 		actionSequence[0] = new InstantAction(() -> {
 			railDriveThree.setPosition(FEEDER_READY_POS);
-			shooterLeft.setPower(power);
-			shooterRight.setPower(power);
+			shooterLeft.setVelocity(velo);
+			shooterRight.setPower(velo);
 		});
 
 		actionSequence[actionSequence.length-1] = new InstantAction(() -> {

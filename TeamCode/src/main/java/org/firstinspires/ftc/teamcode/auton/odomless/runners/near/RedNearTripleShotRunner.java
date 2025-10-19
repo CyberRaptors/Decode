@@ -36,7 +36,7 @@ public class RedNearTripleShotRunner extends ITeleOpRunner {
 				)
 		);
 
-		Actions.runBlocking(bot.successiveShootWithPower(3, bot.SHOOTER_POWER_FOR_CLOSE_SHOT));
+		Actions.runBlocking(bot.successiveShootWithVelo(3, bot.SHOOTER_VELO_FOR_CLOSE_SHOT));
 
 		bot.drive.setDrivePowers(
 				new PoseVelocity2d(

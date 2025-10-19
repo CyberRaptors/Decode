@@ -38,7 +38,7 @@ public class RaptorMainRunner extends ITeleOpRunner {
 	boolean shooterEnabled = false;
 	boolean verbose = false;
 
-	double shooterMaxPower = bot.SHOOTER_POWER_FOR_MID_SHOT;
+	double shooterMaxVelo = bot.SHOOTER_VELO_FOR_MID_SHOT;
 
 	void setRailGroupOnePower(double power) {
 		bot.driverControl.setIntakePower(power);
@@ -51,13 +51,13 @@ public class RaptorMainRunner extends ITeleOpRunner {
 		bot.driverControl.setShooterPower(0);
 	}
 
-	void applyShooterPowerFromInput(double brakePower) {
+	void runShooter() {
 		if (!shooterEnabled) {
 			bot.driverControl.setShooterPower(0);
 			return;
 		}
 
-		bot.driverControl.setShooterPower(Math.max(0, shooterMaxPower -brakePower));
+		bot.driverControl.setShooterVelocity(Math.max(0, shooterMaxVelo));
 	}
 
 	@Override
@@ -70,25 +70,31 @@ public class RaptorMainRunner extends ITeleOpRunner {
 		keybinder.bind("b").of(gamepad1).to(cancelMacros);
 		keybinder.bind("x").of(gamepad1).to(() -> verbose = !verbose);
 
-
+		// for reject
+		// shooter power : 0.175
+		// move feeder to 0.65, then min
 
 		keybinder.bind("left_trigger").of(gamepad2).to(this::setRailGroupOnePower);
-		keybinder.bind("right_trigger").of(gamepad2).to(this::applyShooterPowerFromInput);
 		keybinder.bind("left_stick_y").of(gamepad2).to(bot.driverControl::setRailDriveTwoPower);
 		keybinder.bind("right_stick_y").of(gamepad2).to((value) -> bot.driverControl.setRailDriveThreePosition(
 				bot.railDriveThree.getPosition()+(value/1000)
 		));
 
-		keybinder.bind("dpad_up").of(gamepad2).to(() -> shooterMaxPower = bot.SHOOTER_POWER_FOR_MID_SHOT);
-		keybinder.bind("dpad_down").of(gamepad2).to(() -> shooterMaxPower = bot.SHOOTER_POWER_FOR_CLOSE_SHOT);
+		keybinder.bind("dpad_up").of(gamepad2).to(() -> shooterMaxVelo = bot.SHOOTER_VELO_FOR_MID_SHOT);
+		keybinder.bind("dpad_down").of(gamepad2).to(() -> shooterMaxVelo = bot.SHOOTER_VELO_FOR_CLOSE_SHOT);
 
 		keybinder.bind("a").of(gamepad2).to(this::toggleShooterEnabled);
 		keybinder.bind("b").of(gamepad2).to(cancelMacros);
-		keybinder.bind("x").of(gamepad2).to(() -> actions.scheduleAll(bot.shootWithPower(shooterMaxPower)));
-		keybinder.bind("y").of(gamepad2).to(() -> actions.scheduleAll(bot.successiveShootWithPower(3, shooterMaxPower)));
+		keybinder.bind("x").of(gamepad2).to(() -> actions.scheduleAll(bot.shootWithVelo(shooterMaxVelo)));
+		keybinder.bind("y").of(gamepad2).to(() -> actions.scheduleAll(bot.successiveShootWithVelo(3, shooterMaxVelo)));
+
+
+		keybinder.bind("dpad_left").of(gamepad2).to(() -> shooterMaxVelo-=0.025);
+		keybinder.bind("dpad_right").of(gamepad2).to(() -> shooterMaxVelo+=0.025);
 
 		while (opModeIsActive()) {
 			bot.driverControl.applyDrivePower(gamepad1.inner.left_stick_y, gamepad1.inner.left_stick_x, gamepad1.inner.right_stick_x);
+			runShooter();
 
 			keybinder.executeActions();
 			actions.execute();
@@ -133,15 +139,16 @@ public class RaptorMainRunner extends ITeleOpRunner {
 			if (shooterEnabled) {
 				telemetry.addData(
 						"shooter",
-						"power (%.2f) power limit (%.2f)",
-						bot.shooterLeft.getPower(),
-						shooterMaxPower
+						"velo limit (%.2f) left velo (%.2f) right velo (%.2f)",
+						shooterMaxVelo,
+						bot.shooterLeft.getVelocity(),
+						bot.shooterRight.getVelocity()
 				);
 			} else {
 				telemetry.addData(
 						"shooter",
-						"disabled, power limit (%.2f)",
-						shooterMaxPower
+						"disabled, velo limit (%.2f)",
+						shooterMaxVelo
 				);
 			}
 
