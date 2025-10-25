@@ -99,4 +99,34 @@ public class ActionableRaptorRobot extends RaptorRobot {
 
 		return new SequentialAction(actionSequence);
 	}
+
+	public Action reject() {
+		if (!use(railDriveOne, railDriveThree, shooterLeft, shooterRight)) return null;
+
+		return new SequentialAction(
+				new InstantAction(() -> {
+					railDriveThree.setPosition(FEEDER_SHOOT_POS);
+					shooterLeft.setVelocity(0);
+					shooterRight.setVelocity(0);
+				}),
+				new SleepAction(0.6),
+				new InstantAction(() -> {
+					shooterRight.setVelocity(SHOOTER_VELO_FOR_REJECT);
+					shooterLeft.setVelocity(SHOOTER_VELO_FOR_REJECT);
+					railDriveOne.setPower(-1);
+				}),
+				new SleepAction(0.4),
+				new InstantAction(() -> {
+					railDriveThree.setPosition(FEEDER_READY_POS);
+				}),
+				new SleepAction(1),
+				new InstantAction(() -> {
+					railDriveOne.setPower(0);
+					shooterRight.setVelocity(0);
+					shooterLeft.setVelocity(0);
+
+					release(railDriveOne, railDriveThree, shooterLeft, shooterRight);
+				})
+		);
+	}
 }
