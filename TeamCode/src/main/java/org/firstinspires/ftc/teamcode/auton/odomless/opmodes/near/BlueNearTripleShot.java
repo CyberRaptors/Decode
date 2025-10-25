@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.auton.odomless.runners.near.BlueNearTripleShotRunner;
 
-@Autonomous(name = "BN???m", group = "BlindTripleShot")
+@Autonomous(name = "Blue Near TripleShootPreload Move", group = "BlindTripleShot")
 public class BlueNearTripleShot extends LinearOpMode {
 	@Override
 	public void runOpMode() throws InterruptedException {

@@ -5,7 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.auton.odomless.runners.near.RedNearMoveOnlyRunner;
 
-@Autonomous(name = "RNm", group = "MoveOnly")
+@Autonomous(name = "Red Near Move", group = "MoveOnly")
 public class RedNearMoveOnly extends LinearOpMode {
 	@Override
 	public void runOpMode() throws InterruptedException {
