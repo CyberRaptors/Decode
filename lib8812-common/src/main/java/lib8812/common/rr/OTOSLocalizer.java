@@ -1,99 +1,68 @@
 package lib8812.common.rr;
 
 import com.acmerobotics.dashboard.config.Config;
-import com.acmerobotics.roadrunner.DualNum;
+import com.acmerobotics.roadrunner.Pose2d;
+import com.acmerobotics.roadrunner.PoseVelocity2d;
 import com.acmerobotics.roadrunner.Rotation2d;
-import com.acmerobotics.roadrunner.Time;
-import com.acmerobotics.roadrunner.Twist2dDual;
 import com.acmerobotics.roadrunner.Vector2d;
-import com.acmerobotics.roadrunner.Vector2dDual;
+import com.acmerobotics.roadrunner.ftc.OTOSKt;
 import com.qualcomm.hardware.sparkfun.SparkFunOTOS;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
-import lib8812.common.robot.hardwarewrappers.DegreeInchesOTOS;
-import lib8812.common.robot.poses.SimpleDegreePose;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 @Config
-public final class OTOSLocalizer implements Localizer {
-    public  final DegreeInchesOTOS otos;
-    final DegreeInchesOTOS.Configuration otosConfig =
-            new DegreeInchesOTOS.Configuration()
-                    .withOffset(
-                            0, 0, 0
-                    )
-                    .withStartingPoint(
-                            0, 0, 0
-                    )
-                    .withLinearMultiplier(1)
-                    .withAngularMultiplier(1);
+public class OTOSLocalizer implements Localizer {
+    public static class Params {
+        public double angularScalar = 0.9897;
+        public double linearScalar = 0.94986807387;
 
-    private double lastXPos, lastYPos;
-    private Rotation2d lastHeading;
-
-
-    private double lastRawHeadingVel, headingVelOffset;
-    private boolean initialized;
-
-    public OTOSLocalizer(HardwareMap hardwareMap) {
-        otos = new DegreeInchesOTOS(
-                hardwareMap.get(SparkFunOTOS.class, "otos"),
-                otosConfig
-        );
+        // Note: units are in inches and radians
+        public SparkFunOTOS.Pose2D offset = new SparkFunOTOS.Pose2D(0, 0, Math.PI/2);
     }
 
-    public Twist2dDual<Time> update() {
-        SimpleDegreePose pos = otos.getPosition();
-        SimpleDegreePose velo = otos.getVelocity();
+    public static Params PARAMS = new Params();
 
-        Rotation2d heading = Rotation2d.exp(pos.h);
+    public final SparkFunOTOS otos;
+    private Pose2d currentPose;
 
-        double rawHeadingVel = velo.h;
+    public OTOSLocalizer(HardwareMap hardwareMap, Pose2d initialPose) {
+        // TODO: make sure your config has an OTOS device with this name
+        //   see https://ftc-docs.firstinspires.org/en/latest/hardware_and_software_configuration/configuring/index.html
+        otos = hardwareMap.get(SparkFunOTOS.class, "otos");
+        currentPose = initialPose;
+        otos.setPosition(OTOSKt.toOTOSPose(currentPose));
+        otos.setLinearUnit(DistanceUnit.INCH);
+        otos.setAngularUnit(AngleUnit.RADIANS);
 
-        if (Math.abs(rawHeadingVel - lastRawHeadingVel) > Math.PI) {
-            headingVelOffset -= Math.signum(rawHeadingVel) * 2 * Math.PI;
-        }
+        otos.calibrateImu();
+        otos.setLinearScalar(PARAMS.linearScalar);
+        otos.setAngularScalar(PARAMS.angularScalar);
+        otos.setOffset(PARAMS.offset);
+    }
 
-        lastRawHeadingVel = rawHeadingVel;
-        double headingVel = headingVelOffset + rawHeadingVel;
+    @Override
+    public Pose2d getPose() {
+        return currentPose;
+    }
 
-        if (!initialized) {
-            initialized = true;
+    @Override
+    public void setPose(Pose2d pose) {
+        currentPose = pose;
+        otos.setPosition(OTOSKt.toOTOSPose(currentPose));
+    }
 
-            lastXPos = pos.x;
-            lastYPos = pos.y;
-            lastHeading = heading;
+    @Override
+    public PoseVelocity2d update() {
+        SparkFunOTOS.Pose2D otosPose = new SparkFunOTOS.Pose2D();
+        SparkFunOTOS.Pose2D otosVel = new SparkFunOTOS.Pose2D();
+        SparkFunOTOS.Pose2D otosAcc = new SparkFunOTOS.Pose2D();
+        otos.getPosVelAcc(otosPose, otosVel, otosAcc);
 
-            return new Twist2dDual<>(
-                    Vector2dDual.constant(new Vector2d(0.0, 0.0), 2),
-                    DualNum.constant(0.0, 2)
-            );
-        }
-
-        double parPosDelta = pos.x - lastXPos;
-        double perpPosDelta = pos.y - lastYPos;
-        double headingDelta = heading.minus(lastHeading);
-
-        Twist2dDual<Time> twist = new Twist2dDual<>(
-                new Vector2dDual<>(
-						new DualNum<>(new double[]{
-								parPosDelta,
-								velo.x,
-						}),
-                        new DualNum<>(new double[] {
-                                perpPosDelta,
-                                velo.y,
-                        })
-                ),
-                new DualNum<>(new double[] {
-                        headingDelta,
-                        headingVel,
-                })
-        );
-
-        lastXPos = pos.x;
-        lastYPos = pos.y;
-        lastHeading = heading;
-
-        return twist;
+        currentPose = OTOSKt.toRRPose(otosPose);
+        Vector2d fieldVel = new Vector2d(otosVel.x, otosVel.y);
+        Vector2d robotVel = Rotation2d.exp(otosPose.h).inverse().times(fieldVel);
+        return new PoseVelocity2d(robotVel, otosVel.h);
     }
 }

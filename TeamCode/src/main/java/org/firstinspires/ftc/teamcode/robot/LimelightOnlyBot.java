@@ -4,11 +4,11 @@ import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import lib8812.common.robot.IMecanumRobot;
-import lib8812.common.rr.SparkFunOTOSDrive;
+import lib8812.common.rr.MecanumDrive;
 
 public class LimelightOnlyBot extends IMecanumRobot {
     public Limelight3A limelight;
-    public SparkFunOTOSDrive drive;
+    public MecanumDrive drive;
 
     public void postInit(HardwareMap hardwareMap) {
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
@@ -17,6 +17,6 @@ public class LimelightOnlyBot extends IMecanumRobot {
         limelight.pipelineSwitch(1);
         limelight.start();
 
-        drive = new SparkFunOTOSDrive(hardwareMap, new Pose2d(0, 0, 0));
+        drive = new MecanumDrive(hardwareMap, new Pose2d(0, 0, 0));
     }
 }

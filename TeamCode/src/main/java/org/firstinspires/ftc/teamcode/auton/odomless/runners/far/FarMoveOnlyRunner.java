@@ -16,14 +16,14 @@ public class FarMoveOnlyRunner extends ITeleOpRunner {
 		bot.drive.setDrivePowers(
 				new PoseVelocity2d(
 						new Vector2d(
-								1,
+								-1,
 								0
 						),
 						0
 				)
 		);
 
-		sleep(1000);
+		sleep(700);
 
 		bot.drive.setDrivePowers(
 				new PoseVelocity2d(
