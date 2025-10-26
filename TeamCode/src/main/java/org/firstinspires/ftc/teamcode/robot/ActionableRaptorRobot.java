@@ -2,8 +2,19 @@ package org.firstinspires.ftc.teamcode.robot;
 
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.InstantAction;
+import com.acmerobotics.roadrunner.PoseVelocity2d;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.SleepAction;
+import com.acmerobotics.roadrunner.Vector2d;
+import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.limelightvision.LLResultTypes;
+
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+
+import java.util.List;
+
+import lib8812.common.actions.OnceAction;
+import lib8812.common.game.GameConstants;
 
 public class ActionableRaptorRobot extends RaptorRobot {
 	public Action shootWithVelo(double velo) {
@@ -23,7 +34,7 @@ public class ActionableRaptorRobot extends RaptorRobot {
 							shooterLeft.setVelocity(velo);
 						}
 				),
-				new SleepAction(0.4),
+				new SleepAction(0.8),
 //				new WaitUntilFullyAcceleratedAction(shooterLeft),
 //				new WaitUntilFullyAcceleratedAction(shooterRight),
 				new InstantAction(
@@ -77,7 +88,7 @@ public class ActionableRaptorRobot extends RaptorRobot {
 					new InstantAction(
 							() -> railDriveThree.setPosition(FEEDER_SHOOT_POS)
 					),
-					new SleepAction(0.6),
+					new SleepAction(0.8),
 					new InstantAction(() -> {
 						railDriveThree.setPosition(FEEDER_READY_POS);
 					})
@@ -87,7 +98,7 @@ public class ActionableRaptorRobot extends RaptorRobot {
 		actionSequence[0] = new InstantAction(() -> {
 			railDriveThree.setPosition(FEEDER_READY_POS);
 			shooterLeft.setVelocity(velo);
-			shooterRight.setPower(velo);
+			shooterRight.setVelocity(velo);
 		});
 
 		actionSequence[actionSequence.length-1] = new InstantAction(() -> {
@@ -127,6 +138,68 @@ public class ActionableRaptorRobot extends RaptorRobot {
 
 					release(railDriveOne, railDriveThree, shooterLeft, shooterRight);
 				})
+		);
+	}
+
+	// TODO: switch between red/blue
+	public Action limelightAlignToGoal(Telemetry telemetry) {
+		if (!use(limelight, drive)) return null;
+
+		return new SequentialAction(
+				new InstantAction(() -> limelight.pipelineSwitch(LIMELIGHT_APRILTAG_INDEX)),
+				(telemetryPacket) -> {
+					LLResult res = limelight.getLatestResult();
+
+					telemetry.addData("res", "isValid (%b), pipelineIndex (%d)", res.isValid(), res.getPipelineIndex());
+
+					return res.getPipelineIndex() != LIMELIGHT_APRILTAG_INDEX;
+				},
+				new OnceAction(
+						() -> {
+							LLResult res = limelight.getLatestResult();
+
+							return res.isValid();
+						},
+						(telemetryPacket) -> {
+							LLResult res = limelight.getLatestResult();
+
+							telemetry.addData("res", "isValid (%b), pipelineIndex (%d)", res.isValid(), res.getPipelineIndex());
+
+							if (!res.isValid()) return false;
+
+							List<LLResultTypes.FiducialResult> fiducials = res.getFiducialResults();
+							for (LLResultTypes.FiducialResult fiducial : fiducials) {
+								telemetry.addData("Fiducial", "id (%d)", fiducial.getFiducialId());
+
+								if (fiducial.getFiducialId() == GameConstants.DECODE.GOAL_APRILTAG_ID(true)) {
+									double delX = fiducial.getTargetXDegrees();
+
+									telemetry.addData("auto-align delX", delX);
+
+
+									if (Math.abs(delX) < 2) {
+										drive.setDrivePowers(
+												new PoseVelocity2d(new Vector2d(0, 0), 0)
+										);
+										return false;
+									}
+
+									drive.setDrivePowers(
+											new PoseVelocity2d(
+													new Vector2d(0, 0),
+													delX / 20 // pure proportional controller
+											)
+									);
+
+									return true;
+								}
+							}
+
+							return false;
+						},
+						10
+				),
+				new InstantAction(() -> release(limelight, drive))
 		);
 	}
 }

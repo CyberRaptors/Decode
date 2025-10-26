@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.robot;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.PoseVelocity2d;
 import com.acmerobotics.roadrunner.Vector2d;
+import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -12,9 +13,11 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import lib8812.common.game.ArtifactConfiguration;
 import lib8812.common.robot.IMecanumRobot;
-import lib8812.common.rr.SparkFunOTOSDrive;
+import lib8812.common.rr.MecanumDrive;
 
 public class RaptorRobot extends IMecanumRobot {
+	public final int LIMELIGHT_APRILTAG_INDEX = 1;
+
 	public final double SHOOTER_TICKS_PER_REV = 28;
 
 	public final double SHOOTER_VELO_FOR_CLOSE_SHOT = 1180									;
@@ -32,7 +35,7 @@ public class RaptorRobot extends IMecanumRobot {
 
 	public CRServo intakeLeft;
 	public CRServo intakeRight;
-	public SparkFunOTOSDrive drive;
+	public MecanumDrive drive;
 
 	public DcMotor railDriveOne;
 	public CRServo railDriveTwo;
@@ -40,10 +43,11 @@ public class RaptorRobot extends IMecanumRobot {
 
 	public DcMotorEx shooterLeft;
 	public DcMotorEx shooterRight;
+	public Limelight3A limelight;
 
 	@Override
 	protected void postInit(HardwareMap hardwareMap) {
-		drive = new SparkFunOTOSDrive(hardwareMap, new Pose2d(0, 0, 0));
+		drive = new MecanumDrive(hardwareMap, new Pose2d(0, 0, 0));
 		intakeLeft.setDirection(DcMotorSimple.Direction.REVERSE);
 		shooterRight.setDirection(DcMotorSimple.Direction.REVERSE);
 		railDriveThree.setPosition(FEEDER_READY_POS);
@@ -51,6 +55,8 @@ public class RaptorRobot extends IMecanumRobot {
 		shooterLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 		shooterRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
+		limelight.setPollRateHz(50);
+		limelight.start();
 	}
 
 	public final LockingControl driverControl = new LockingControl();

@@ -17,14 +17,14 @@ public class RedNearTripleShotRunner extends ITeleOpRunner {
 		bot.drive.setDrivePowers(
 				new PoseVelocity2d(
 						new Vector2d(
-								-1,
+								1,
 								0
 						),
 						0
 				)
 		);
 
-		sleep(1500);
+		sleep(1000);
 
 		bot.drive.setDrivePowers(
 				new PoseVelocity2d(
@@ -36,19 +36,19 @@ public class RedNearTripleShotRunner extends ITeleOpRunner {
 				)
 		);
 
-		Actions.runBlocking(bot.successiveShootWithVelo(3, bot.SHOOTER_VELO_FOR_CLOSE_SHOT));
+		Actions.runBlocking(bot.successiveShootWithVelo(2, bot.SHOOTER_VELO_FOR_CLOSE_SHOT));
 
 		bot.drive.setDrivePowers(
 				new PoseVelocity2d(
 						new Vector2d(
 								0,
-								1
+								-1
 						),
 						0
 				)
 		);
 
-		sleep(1500);
+		sleep(400);
 
 		bot.drive.setDrivePowers(
 				new PoseVelocity2d(

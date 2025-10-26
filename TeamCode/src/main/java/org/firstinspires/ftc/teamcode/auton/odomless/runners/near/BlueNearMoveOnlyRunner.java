@@ -23,7 +23,7 @@ public class BlueNearMoveOnlyRunner extends ITeleOpRunner {
 				)
 		);
 
-		sleep(1000);
+		sleep(700);
 
 		bot.drive.setDrivePowers(
 				new PoseVelocity2d(

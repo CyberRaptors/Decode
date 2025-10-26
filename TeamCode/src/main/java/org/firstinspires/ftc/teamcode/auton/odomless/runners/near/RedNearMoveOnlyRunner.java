@@ -23,7 +23,7 @@ public class RedNearMoveOnlyRunner extends ITeleOpRunner {
 				)
 		);
 
-		sleep(1000);
+		sleep(700);
 
 		bot.drive.setDrivePowers(
 				new PoseVelocity2d(
