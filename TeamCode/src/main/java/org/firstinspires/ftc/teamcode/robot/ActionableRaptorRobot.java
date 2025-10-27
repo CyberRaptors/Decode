@@ -9,8 +9,6 @@ import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 
-import org.firstinspires.ftc.robotcore.external.Telemetry;
-
 import java.util.List;
 
 import lib8812.common.actions.OnceAction;
@@ -142,15 +140,13 @@ public class ActionableRaptorRobot extends RaptorRobot {
 	}
 
 	// TODO: switch between red/blue
-	public Action limelightAlignToGoal(Telemetry telemetry) {
+	public Action limelightAlignToGoal() {
 		if (!use(limelight, drive)) return null;
 
 		return new SequentialAction(
 				new InstantAction(() -> limelight.pipelineSwitch(LIMELIGHT_APRILTAG_INDEX)),
 				(telemetryPacket) -> {
 					LLResult res = limelight.getLatestResult();
-
-					telemetry.addData("res", "isValid (%b), pipelineIndex (%d)", res.isValid(), res.getPipelineIndex());
 
 					return res.getPipelineIndex() != LIMELIGHT_APRILTAG_INDEX;
 				},
@@ -163,19 +159,13 @@ public class ActionableRaptorRobot extends RaptorRobot {
 						(telemetryPacket) -> {
 							LLResult res = limelight.getLatestResult();
 
-							telemetry.addData("res", "isValid (%b), pipelineIndex (%d)", res.isValid(), res.getPipelineIndex());
-
 							if (!res.isValid()) return false;
 
 							List<LLResultTypes.FiducialResult> fiducials = res.getFiducialResults();
 							for (LLResultTypes.FiducialResult fiducial : fiducials) {
-								telemetry.addData("Fiducial", "id (%d)", fiducial.getFiducialId());
 
 								if (fiducial.getFiducialId() == GameConstants.DECODE.GOAL_APRILTAG_ID(true)) {
 									double delX = fiducial.getTargetXDegrees();
-
-									telemetry.addData("auto-align delX", delX);
-
 
 									if (Math.abs(delX) < 2) {
 										drive.setDrivePowers(
