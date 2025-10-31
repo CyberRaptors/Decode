@@ -2,14 +2,19 @@ package lib8812.meepmeeptests.stubs;
 
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.NullAction;
+import com.acmerobotics.roadrunner.VelConstraint;
 
 public class ActionableRaptorRobotStub {
 	public final int LIMELIGHT_APRILTAG_INDEX = 1;
 
 	public final double SHOOTER_TICKS_PER_REV = 28;
 
-	public final double SHOOTER_VELO_FOR_CLOSE_SHOT = 1180									;
+	public final double MAX_ROBOT_VELO_FOR_SPIKE_PICKUP = 7;
+	public final VelConstraint SPIKE_PICKUP_VEL_CONSTRAINT = (pose2dDual, posePath, v) -> MAX_ROBOT_VELO_FOR_SPIKE_PICKUP;
+
+	public final double SHOOTER_VELO_FOR_CLOSE_SHOT = 1180;
 	public final double SHOOTER_VELO_FOR_MID_SHOT = 1300;
+	public final double SHOOTER_VELO_FOR_FAR_SHOT = 0;
 
 	public final double SHOOTER_VELO_FOR_REJECT = 400;
 
