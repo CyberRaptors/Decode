@@ -1,8 +1,11 @@
 package lib8812.meepmeeptests.stubs;
 
 import com.acmerobotics.roadrunner.Action;
+import com.acmerobotics.roadrunner.InstantAction;
 import com.acmerobotics.roadrunner.NullAction;
 import com.acmerobotics.roadrunner.VelConstraint;
+
+import lib8812.meepmeeptests.stubs.game.ArtifactConfiguration;
 
 public class ActionableRaptorRobotStub {
 	public final int LIMELIGHT_APRILTAG_INDEX = 1;
@@ -23,6 +26,10 @@ public class ActionableRaptorRobotStub {
 
 	public final double FEEDER_READY_POS = RAIL_DRIVE_THREE_MAX_POS;
 	public final double FEEDER_SHOOT_POS = RAIL_DRIVE_THREE_MIN_POS;
+
+	public final ArtifactConfiguration artifactConfiguration = ArtifactConfiguration.PPG.copySelf();
+
+	public ArtifactConfiguration storedMotif;
 
 	public Action setRailDriveTwoPower(double power) { return new NullAction(); }
 
@@ -54,5 +61,19 @@ public class ActionableRaptorRobotStub {
 
 	public Action limelightAlignToGoal() {
 		return new NullAction();
+	}
+
+	public Action storeMotif() {
+		return new NullAction();
+	}
+
+	public Action sortToMotif() {
+		return new NullAction(); // return a OnceAction waiting for the motif to be stored with reasonable maxTries
+	}
+
+	public Action setArtifactConfig(ArtifactConfiguration config) {
+		return new InstantAction(() -> {
+			storedMotif = config.copySelf();
+		});
 	}
 }
