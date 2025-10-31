@@ -11,7 +11,9 @@ import com.qualcomm.hardware.limelightvision.LLResultTypes;
 
 import java.util.List;
 
+import lib8812.common.actions.LazyAction;
 import lib8812.common.actions.OnceAction;
+import lib8812.common.game.ArtifactConfiguration;
 import lib8812.common.game.GameConstants;
 
 public class ActionableRaptorRobot extends RaptorRobot {
@@ -25,45 +27,37 @@ public class ActionableRaptorRobot extends RaptorRobot {
 
 	public Action shootWithVelo(double velo) {
 		return new LockedUsageAction(
-				_shootWithVelo(velo),
+				new SequentialAction(
+						new InstantAction(
+								() -> {
+									shooterRight.setVelocity(velo);
+									shooterLeft.setVelocity(velo);
+								}
+						),
+						new SleepAction(0.8),
+						new InstantAction(
+								() -> railDriveThree.setPosition(FEEDER_SHOOT_POS)
+						),
+						new SleepAction(0.6),
+						new InstantAction(() -> {
+							railDriveThree.setPosition(FEEDER_READY_POS);
+						})
+				),
 				shooterLeft, shooterRight, railDriveThree
-		);
-	}
-
-	public Action _shootWithVelo(double velo) {
-		return new SequentialAction(
-				new InstantAction(
-						() -> {
-							shooterRight.setVelocity(velo);
-							shooterLeft.setVelocity(velo);
-						}
-				),
-				new SleepAction(0.8),
-				new InstantAction(
-						() -> railDriveThree.setPosition(FEEDER_SHOOT_POS)
-				),
-				new SleepAction(0.6),
-				new InstantAction(() -> {
-					railDriveThree.setPosition(FEEDER_READY_POS);
-				})
 		);
 	}
 
 	public Action feedNext() {
 		return new LockedUsageAction(
-				_feedNext(),
+				new SequentialAction(
+						new InstantAction(() -> {
+							railDriveThree.setPosition(FEEDER_READY_POS);
+							railDriveTwo.setPower(-1);
+						}),
+						new SleepAction(1.5),
+						new InstantAction(() -> railDriveTwo.setPower(0))
+				),
 				railDriveTwo, railDriveThree
-		);
-	}
-
-	public Action _feedNext() {
-		return new SequentialAction(
-				new InstantAction(() -> {
-					railDriveThree.setPosition(FEEDER_READY_POS);
-					railDriveTwo.setPower(-1);
-				}),
-				new SleepAction(1.5),
-				new InstantAction(() -> railDriveTwo.setPower(0))
 		);
 	}
 
@@ -187,5 +181,71 @@ public class ActionableRaptorRobot extends RaptorRobot {
 				),
 				limelight, drive
 		);
+	}
+
+	public Action storeMotif() {
+		return new LockedUsageAction(
+				new SequentialAction(
+						new InstantAction(() -> limelight.pipelineSwitch(LIMELIGHT_APRILTAG_INDEX)),
+						(telemetryPacket) -> {
+							LLResult res = limelight.getLatestResult();
+
+							return res.getPipelineIndex() != LIMELIGHT_APRILTAG_INDEX;
+						},
+						new OnceAction(
+								() -> {
+									LLResult res = limelight.getLatestResult();
+
+									return res.isValid();
+								},
+								(telemetryPacket) -> {
+									LLResult res = limelight.getLatestResult();
+
+									if (!res.isValid()) return false;
+
+									List<LLResultTypes.FiducialResult> fiducials = res.getFiducialResults();
+
+									for (LLResultTypes.FiducialResult fiducial : fiducials) {
+										ArtifactConfiguration motif = GameConstants.DECODE.getMotifFromAprilTagId(fiducial.getFiducialId());
+
+										if (motif == null) continue;
+
+										storedMotif = motif.copySelf();
+
+										return false;
+									}
+
+									return false;
+								},
+								10
+						)
+				),
+				limelight
+		);
+	}
+
+	public Action sortToMotif() {
+		return new OnceAction(
+				() -> storedMotif != null,
+				new LazyAction(() -> {
+					int delta = artifactConfiguration.calculateForwardRotatesNeeded(storedMotif);
+
+					Action[] rejects = new Action[delta*2];
+
+					for (int i = 0; i < rejects.length; i+=2) {
+						rejects[i] = reject();
+						rejects[i+1] = feedNext();
+					}
+
+					return new SequentialAction(rejects);
+				}),
+				10
+		);
+	}
+
+	public Action setInternalArtifactConfig(ArtifactConfiguration config) {
+		return new InstantAction(() -> {
+			artifactConfiguration = config.copySelf();
+		});
 	}
 }

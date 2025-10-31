@@ -92,11 +92,11 @@ public class MeepMeepBlueNearWithMotif {
 				initialMoveToShoot,
 				bot.successiveShootWithVelo(2, bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
 				pickupFirstSpike,
-				bot.setArtifactConfig(ArtifactConfiguration.PPG),
+				bot.setInternalArtifactConfig(ArtifactConfiguration.PPG),
 				secondMoveToShoot,
 				bot.successiveShootWithVelo(3, bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
 				pickupSecondSpike,
-				bot.setArtifactConfig(ArtifactConfiguration.PGP),
+				bot.setInternalArtifactConfig(ArtifactConfiguration.PGP),
 				thirdMoveToShoot,
 				bot.successiveShootWithVelo(3, bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
 				park

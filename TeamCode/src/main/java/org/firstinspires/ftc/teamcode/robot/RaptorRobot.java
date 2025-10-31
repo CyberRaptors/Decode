@@ -39,8 +39,8 @@ public class RaptorRobot extends IMecanumRobot {
 	public final double FEEDER_READY_POS = RAIL_DRIVE_THREE_MAX_POS;
 	public final double FEEDER_SHOOT_POS = RAIL_DRIVE_THREE_MIN_POS;
 
-	public ArtifactConfiguration artifacts = ArtifactConfiguration.PPG.copySelf(); // default auto starting config
-	public ArtifactConfiguration storedMotif;
+	public ArtifactConfiguration artifactConfiguration = ArtifactConfiguration.PPG.copySelf(); // default auto starting config
+	public ArtifactConfiguration storedMotif = null;
 
 	public CRServo intakeLeft;
 	public CRServo intakeRight;

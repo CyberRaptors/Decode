@@ -27,7 +27,7 @@ public class GameConstants {
 			if (id == MOTIF_PGP_APRILTAG_ID) return ArtifactConfiguration.PGP;
 			if (id == MOTIF_PPG_APRILTAG_ID) return ArtifactConfiguration.PPG;
 
-			throw new IllegalArgumentException("AprilTag id does not represent a motif!");
+			return null;
 		}
 	}
 }

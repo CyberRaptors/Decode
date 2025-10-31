@@ -71,7 +71,7 @@ public class ActionableRaptorRobotStub {
 		return new NullAction(); // return a OnceAction waiting for the motif to be stored with reasonable maxTries
 	}
 
-	public Action setArtifactConfig(ArtifactConfiguration config) {
+	public Action setInternalArtifactConfig(ArtifactConfiguration config) {
 		return new InstantAction(() -> {
 			artifactConfiguration = config.copySelf();
 		});
