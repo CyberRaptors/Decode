@@ -27,7 +27,7 @@ public class ActionableRaptorRobotStub {
 	public final double FEEDER_READY_POS = RAIL_DRIVE_THREE_MAX_POS;
 	public final double FEEDER_SHOOT_POS = RAIL_DRIVE_THREE_MIN_POS;
 
-	public final ArtifactConfiguration artifactConfiguration = ArtifactConfiguration.PPG.copySelf();
+	public ArtifactConfiguration artifactConfiguration = ArtifactConfiguration.PPG.copySelf();
 
 	public ArtifactConfiguration storedMotif;
 
@@ -73,7 +73,7 @@ public class ActionableRaptorRobotStub {
 
 	public Action setArtifactConfig(ArtifactConfiguration config) {
 		return new InstantAction(() -> {
-			storedMotif = config.copySelf();
+			artifactConfiguration = config.copySelf();
 		});
 	}
 }

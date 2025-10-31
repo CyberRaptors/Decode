@@ -16,6 +16,14 @@ import lib8812.common.robot.IMecanumRobot;
 import lib8812.common.rr.MecanumDrive;
 
 public class RaptorRobot extends IMecanumRobot {
+	public RaptorRobot() {
+		this(true);
+	}
+
+	public RaptorRobot(boolean blueTeam) {
+		onBlueTeam = blueTeam;
+	}
+
 	public final int LIMELIGHT_APRILTAG_INDEX = 1;
 
 	public final double SHOOTER_TICKS_PER_REV = 28;
@@ -31,7 +39,8 @@ public class RaptorRobot extends IMecanumRobot {
 	public final double FEEDER_READY_POS = RAIL_DRIVE_THREE_MAX_POS;
 	public final double FEEDER_SHOOT_POS = RAIL_DRIVE_THREE_MIN_POS;
 
-	public final ArtifactConfiguration artifacts = new ArtifactConfiguration();
+	public ArtifactConfiguration artifacts = ArtifactConfiguration.PPG.copySelf(); // default auto starting config
+	public ArtifactConfiguration storedMotif;
 
 	public CRServo intakeLeft;
 	public CRServo intakeRight;
@@ -44,6 +53,8 @@ public class RaptorRobot extends IMecanumRobot {
 	public DcMotorEx shooterLeft;
 	public DcMotorEx shooterRight;
 	public Limelight3A limelight;
+
+	public final boolean onBlueTeam;
 
 	@Override
 	protected void postInit(HardwareMap hardwareMap) {

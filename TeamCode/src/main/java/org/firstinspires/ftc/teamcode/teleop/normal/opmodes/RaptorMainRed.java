@@ -5,10 +5,10 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.teleop.normal.runners.RaptorMainRunner;
 
-@TeleOp(name="RaptorMain", group="Linear Opmode")
-public class RaptorMain extends LinearOpMode {
+@TeleOp(name="RaptorMain [Red]", group="Linear Opmode")
+public class RaptorMainRed extends LinearOpMode {
     @Override
     public void runOpMode() {
-        new RaptorMainRunner().run(this);
+        new RaptorMainRunner(false).run(this);
     }
 }

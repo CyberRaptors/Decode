@@ -33,12 +33,17 @@ import lib8812.common.robot.IRobot;
 import lib8812.common.teleop.ITeleOpRunner;
 
 public class RaptorMainRunner extends ITeleOpRunner {
-	ActionableRaptorRobot bot = new ActionableRaptorRobot();
+	public RaptorMainRunner(boolean blueTeam) {
+		bot = new ActionableRaptorRobot(blueTeam);
+		shooterMaxVelo = bot.SHOOTER_VELO_FOR_MID_SHOT;
+	}
+
+	final ActionableRaptorRobot bot;
 
 	boolean shooterEnabled = false;
 	boolean verbose = false;
 
-	double shooterMaxVelo = bot.SHOOTER_VELO_FOR_MID_SHOT;
+	double shooterMaxVelo;
 
 	void setRailGroupOnePower(double power) {
 		bot.driverControl.setIntakePower(power);

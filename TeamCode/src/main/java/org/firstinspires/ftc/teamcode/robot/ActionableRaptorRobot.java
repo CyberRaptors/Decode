@@ -15,6 +15,14 @@ import lib8812.common.actions.OnceAction;
 import lib8812.common.game.GameConstants;
 
 public class ActionableRaptorRobot extends RaptorRobot {
+	public ActionableRaptorRobot() {
+		this(true);
+	}
+
+	public ActionableRaptorRobot(boolean blueTeam) {
+		super(blueTeam);
+	}
+
 	public Action shootWithVelo(double velo) {
 		if (!use(shooterLeft, shooterRight, railDriveThree)) return null;
 
@@ -162,9 +170,9 @@ public class ActionableRaptorRobot extends RaptorRobot {
 							if (!res.isValid()) return false;
 
 							List<LLResultTypes.FiducialResult> fiducials = res.getFiducialResults();
-							for (LLResultTypes.FiducialResult fiducial : fiducials) {
 
-								if (fiducial.getFiducialId() == GameConstants.DECODE.GOAL_APRILTAG_ID(true)) {
+							for (LLResultTypes.FiducialResult fiducial : fiducials) {
+								if (fiducial.getFiducialId() == GameConstants.DECODE.GOAL_APRILTAG_ID(onBlueTeam)) {
 									double delX = fiducial.getTargetXDegrees();
 
 									if (Math.abs(delX) < 2) {
