@@ -1,5 +1,9 @@
 package lib8812.common.robot;
 
+import androidx.annotation.NonNull;
+
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
+import com.acmerobotics.roadrunner.Action;
 import com.qualcomm.robotcore.hardware.HardwareDevice;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
@@ -14,6 +18,36 @@ import lib8812.common.robot.hardwarewrappers.VirtualServo;
 
 /** @noinspection unchecked*/
 public abstract class IRobot {
+    public class LockedUsageAction implements Action
+    {
+        Action inner;
+        public Object[] resources;
+        boolean started = false;
+
+        public LockedUsageAction(Action inner, Object... resources) {
+            this.resources = resources;
+            this.inner = inner;
+        }
+
+        @Override
+        public boolean run(@NonNull TelemetryPacket telemetryPacket) {
+            if (started) {
+                boolean runAgain =  inner.run(telemetryPacket);
+
+                if (!runAgain) {
+                    release(resources);
+
+                    return false;
+                }
+            }
+
+            if (!use(resources)) return false; // resources are locked, don't try again, just quit
+
+            started = true;
+            return run(telemetryPacket);
+        }
+    }
+
     public ArrayList<Object> lockedResources = new ArrayList<>();
 
     public void releaseAllDevices() {
@@ -31,18 +65,6 @@ public abstract class IRobot {
     public boolean resourceAvailable(Object resource) {
 		return !lockedResources.contains(resource);
 	}
-
-    public boolean use(Object resource) {
-        if (lockedResources.contains(resource)) return false;
-
-        lockedResources.add(resource);
-
-        return true;
-    }
-
-    public void release(Object resource) {
-        lockedResources.remove(resource);
-    }
 
     public boolean resourcesAvailable(Object... resources) {
         for (Object resource : resources)

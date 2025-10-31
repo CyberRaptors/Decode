@@ -24,11 +24,9 @@ public class ActionableRaptorRobot extends RaptorRobot {
 	}
 
 	public Action shootWithVelo(double velo) {
-		if (!use(shooterLeft, shooterRight, railDriveThree)) return null;
-
-		return new SequentialAction(
+		return new LockedUsageAction(
 				_shootWithVelo(velo),
-				new InstantAction(() -> release(shooterLeft, shooterRight, railDriveThree))
+				shooterLeft, shooterRight, railDriveThree
 		);
 	}
 
@@ -41,13 +39,10 @@ public class ActionableRaptorRobot extends RaptorRobot {
 						}
 				),
 				new SleepAction(0.8),
-//				new WaitUntilFullyAcceleratedAction(shooterLeft),
-//				new WaitUntilFullyAcceleratedAction(shooterRight),
 				new InstantAction(
 						() -> railDriveThree.setPosition(FEEDER_SHOOT_POS)
 				),
 				new SleepAction(0.6),
-//				new WaitUntilMotorVelocityChangedAction(shooterLeft), // when the motor velocity decreases, we realize that the ball has shot (as of now, there is unfortunately no other way to confirm this truth)
 				new InstantAction(() -> {
 					railDriveThree.setPosition(FEEDER_READY_POS);
 				})
@@ -55,13 +50,9 @@ public class ActionableRaptorRobot extends RaptorRobot {
 	}
 
 	public Action feedNext() {
-		if (!use(railDriveTwo, railDriveThree)) return null;
-
-		return new SequentialAction(
+		return new LockedUsageAction(
 				_feedNext(),
-				new InstantAction(() ->
-						release(railDriveTwo, railDriveThree)
-				)
+				railDriveTwo, railDriveThree
 		);
 	}
 
@@ -77,8 +68,6 @@ public class ActionableRaptorRobot extends RaptorRobot {
 	}
 
 	public Action successiveShootWithVelo(int ammunition, double velo) {
-		if (!use(railDriveTwo, railDriveThree, shooterLeft, shooterRight)) return null;
-
 		Action[] actionSequence = new Action[ammunition+2];
 
 		for (int i = 0; i < ammunition; i++) {
@@ -110,94 +99,93 @@ public class ActionableRaptorRobot extends RaptorRobot {
 		actionSequence[actionSequence.length-1] = new InstantAction(() -> {
 			shooterLeft.setPower(0);
 			shooterRight.setPower(0);
-
-			release(railDriveTwo, railDriveThree, shooterLeft, shooterRight);
 		});
 
-		return new SequentialAction(actionSequence);
-	}
-
-	public Action reject() {
-		if (!use(railDriveOne, railDriveThree, shooterLeft, shooterRight)) return null;
-
-		return new SequentialAction(
-				new InstantAction(() -> {
-					railDriveThree.setPosition(FEEDER_SHOOT_POS);
-					shooterLeft.setVelocity(0);
-					shooterRight.setVelocity(0);
-				}),
-				new SleepAction(0.6),
-				new InstantAction(() -> {
-					shooterRight.setVelocity(SHOOTER_VELO_FOR_REJECT);
-					shooterLeft.setVelocity(SHOOTER_VELO_FOR_REJECT);
-					railDriveOne.setPower(-1);
-				}),
-				new SleepAction(0.4),
-				new InstantAction(() -> {
-					railDriveThree.setPosition(FEEDER_READY_POS);
-				}),
-				new SleepAction(1),
-				new InstantAction(() -> {
-					railDriveOne.setPower(0);
-					shooterRight.setVelocity(0);
-					shooterLeft.setVelocity(0);
-
-					release(railDriveOne, railDriveThree, shooterLeft, shooterRight);
-				})
+		return new LockedUsageAction(
+				new SequentialAction(actionSequence),
+				railDriveTwo, railDriveThree, shooterLeft, shooterRight
 		);
 	}
 
-	// TODO: switch between red/blue
-	public Action limelightAlignToGoal() {
-		if (!use(limelight, drive)) return null;
-
-		return new SequentialAction(
-				new InstantAction(() -> limelight.pipelineSwitch(LIMELIGHT_APRILTAG_INDEX)),
-				(telemetryPacket) -> {
-					LLResult res = limelight.getLatestResult();
-
-					return res.getPipelineIndex() != LIMELIGHT_APRILTAG_INDEX;
-				},
-				new OnceAction(
-						() -> {
-							LLResult res = limelight.getLatestResult();
-
-							return res.isValid();
-						},
-						(telemetryPacket) -> {
-							LLResult res = limelight.getLatestResult();
-
-							if (!res.isValid()) return false;
-
-							List<LLResultTypes.FiducialResult> fiducials = res.getFiducialResults();
-
-							for (LLResultTypes.FiducialResult fiducial : fiducials) {
-								if (fiducial.getFiducialId() == GameConstants.DECODE.GOAL_APRILTAG_ID(onBlueTeam)) {
-									double delX = fiducial.getTargetXDegrees();
-
-									if (Math.abs(delX) < 2) {
-										drive.setDrivePowers(
-												new PoseVelocity2d(new Vector2d(0, 0), 0)
-										);
-										return false;
-									}
-
-									drive.setDrivePowers(
-											new PoseVelocity2d(
-													new Vector2d(0, 0),
-													delX / 20 // pure proportional controller
-											)
-									);
-
-									return true;
-								}
-							}
-
-							return false;
-						},
-						10
+	public Action reject() {
+		return new LockedUsageAction(
+				new SequentialAction(
+					new InstantAction(() -> {
+						railDriveThree.setPosition(FEEDER_SHOOT_POS);
+						shooterLeft.setVelocity(0);
+						shooterRight.setVelocity(0);
+					}),
+					new SleepAction(0.6),
+					new InstantAction(() -> {
+						shooterRight.setVelocity(SHOOTER_VELO_FOR_REJECT);
+						shooterLeft.setVelocity(SHOOTER_VELO_FOR_REJECT);
+						railDriveOne.setPower(-1);
+					}),
+					new SleepAction(0.4),
+					new InstantAction(() -> {
+						railDriveThree.setPosition(FEEDER_READY_POS);
+					}),
+					new SleepAction(1),
+					new InstantAction(() -> {
+						railDriveOne.setPower(0);
+						shooterRight.setVelocity(0);
+						shooterLeft.setVelocity(0);
+					})
 				),
-				new InstantAction(() -> release(limelight, drive))
+				railDriveOne, railDriveThree, shooterLeft, shooterRight
+		);
+	}
+
+	public Action limelightAlignToGoal() {
+		return new LockedUsageAction(
+				new SequentialAction(
+					new InstantAction(() -> limelight.pipelineSwitch(LIMELIGHT_APRILTAG_INDEX)),
+					(telemetryPacket) -> {
+						LLResult res = limelight.getLatestResult();
+
+						return res.getPipelineIndex() != LIMELIGHT_APRILTAG_INDEX;
+					},
+					new OnceAction(
+							() -> {
+								LLResult res = limelight.getLatestResult();
+
+								return res.isValid();
+							},
+							(telemetryPacket) -> {
+								LLResult res = limelight.getLatestResult();
+
+								if (!res.isValid()) return false;
+
+								List<LLResultTypes.FiducialResult> fiducials = res.getFiducialResults();
+
+								for (LLResultTypes.FiducialResult fiducial : fiducials) {
+									if (fiducial.getFiducialId() == GameConstants.DECODE.GOAL_APRILTAG_ID(onBlueTeam)) {
+										double delX = fiducial.getTargetXDegrees();
+
+										if (Math.abs(delX) < 2) {
+											drive.setDrivePowers(
+													new PoseVelocity2d(new Vector2d(0, 0), 0)
+											);
+											return false;
+										}
+
+										drive.setDrivePowers(
+												new PoseVelocity2d(
+														new Vector2d(0, 0),
+														delX / 20 // pure proportional controller
+												)
+										);
+
+										return true;
+									}
+								}
+
+								return false;
+							},
+							10
+					)
+				),
+				limelight, drive
 		);
 	}
 }
