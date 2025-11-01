@@ -6,6 +6,7 @@ import com.acmerobotics.roadrunner.PoseVelocity2d;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.SleepAction;
 import com.acmerobotics.roadrunner.Vector2d;
+import com.acmerobotics.roadrunner.VelConstraint;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 
@@ -23,6 +24,29 @@ public class ActionableRaptorRobot extends RaptorRobot {
 
 	public ActionableRaptorRobot(boolean blueTeam) {
 		super(blueTeam);
+	}
+
+	public final double MAX_ROBOT_VELO_FOR_SPIKE_PICKUP = 7;
+	public final VelConstraint SPIKE_PICKUP_VEL_CONSTRAINT = (pose2dDual, posePath, v) -> MAX_ROBOT_VELO_FOR_SPIKE_PICKUP;
+
+	public Action setRailDriveTwoPower(double power) {
+		return new LockedUsageAction(
+				new InstantAction(() -> {
+					railDriveTwo.setPower(power);
+				}),
+				railDriveTwo
+		);
+	}
+
+	public Action setIntakeGroupPower(double power) {
+		return new LockedUsageAction(
+				new InstantAction(() -> {
+					intakeRight.setPower(power);
+					intakeLeft.setPower(power);
+					railDriveOne.setPower(power);
+				}),
+				intakeRight, intakeLeft, railDriveOne
+		);
 	}
 
 	public Action shootWithVelo(double velo) {
@@ -70,7 +94,7 @@ public class ActionableRaptorRobot extends RaptorRobot {
 					new InstantAction(() -> {
 						railDriveTwo.setPower(-1);
 					}),
-					new SleepAction(1.5),
+					new SleepAction(2),
 					new InstantAction(() -> railDriveTwo.setPower(0)),
 
 					// shoot

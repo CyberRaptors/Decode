@@ -39,6 +39,8 @@ public abstract class IRobot {
 
                     return false;
                 }
+
+                return true;
             }
 
             if (!use(resources)) return false; // resources are locked, don't try again, just quit

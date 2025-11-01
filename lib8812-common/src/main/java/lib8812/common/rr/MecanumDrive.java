@@ -74,15 +74,21 @@ public final class MecanumDrive {
 
         // drive model parameters
         public double inPerTick = 1;
-        public double lateralInPerTick = inPerTick;
-        public double trackWidthTicks = 0;
+        public double lateralInPerTick = 0.7428486616886165;
+        public double trackWidthTicks = 13.021426223213467;
 
         // feedforward parameters (in tick units)
-        public double kS = 0;
-        public double kV = 0;
-        public double kA = 0;
+        public double kS = 0.8526731351019712;
+        public double kV = 0.21863436286913418;
+        public double kA = 0.0955;
 
         // path profile parameters (in inches)
+
+        // DEFAULTS:
+//        public double maxWheelVel = 50;
+//        public double minProfileAccel = -30;
+//        public double maxProfileAccel = 50;
+
         public double maxWheelVel = 50;
         public double minProfileAccel = -30;
         public double maxProfileAccel = 50;
@@ -92,12 +98,12 @@ public final class MecanumDrive {
         public double maxAngAccel = Math.PI;
 
         // path controller gains
-        public double axialGain = 0.0;
-        public double lateralGain = 0.0;
-        public double headingGain = 0.0; // shared with turn
+        public double axialGain = 8.0;
+        public double lateralGain = 8.0;
+        public double headingGain = 8.0; // shared with turn
 
-        public double axialVelGain = 0.0;
-        public double lateralVelGain = 0.0;
+        public double axialVelGain = 0;
+        public double lateralVelGain = 1.0;
         public double headingVelGain = 0.0; // shared with turn
     }
 
@@ -247,6 +253,7 @@ public final class MecanumDrive {
 
         // TODO: reverse motor directions if needed
         //   leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
+
 
         leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
         leftBack.setDirection(DcMotorSimple.Direction.REVERSE);

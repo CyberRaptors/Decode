@@ -7,7 +7,7 @@ import lib8812.meepmeeptests.stubs.game.FieldConstants;
 
 public class CommonPoses {
 	final static double BASE_DEGREES_AGAINST_GOAL = 233.6;
-	final static double BASE_DEGREES_FOR_NEAR_SHOT = 220;
+	final static double BASE_DEGREES_FOR_NEAR_SHOT = BASE_DEGREES_AGAINST_GOAL; // 220;
 	final static double BASE_DEGREES_FOR_FAR_SHOT = 205;
 	final static double BASE_DEGREES_FOR_NEAR_MOTIF_READ = 143.6;
 	final static double BASE_DEGREES_FOR_FAR_MOTIF_READ = 180;

@@ -100,7 +100,7 @@ public class RaptorMainRunner extends ITeleOpRunner {
 		keybinder.bind("dpad_right").of(gamepad2).to(() -> shooterMaxVelo+=30);
 
 		while (opModeIsActive()) {
-			bot.driverControl.applyDrivePower(gamepad1.inner.left_stick_y, gamepad1.inner.left_stick_x, gamepad1.inner.right_stick_x);
+			bot.driverControl.applyDrivePower(-gamepad1.inner.left_stick_y, -gamepad1.inner.left_stick_x, -gamepad1.inner.right_stick_x);
 			runShooter();
 
 			keybinder.executeActions();
