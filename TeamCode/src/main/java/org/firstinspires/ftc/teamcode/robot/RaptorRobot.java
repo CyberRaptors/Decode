@@ -35,7 +35,7 @@ public class RaptorRobot extends IMecanumRobot {
 	public final double SHOOTER_VELO_FOR_REJECT = 400;
 
 	public final double RAIL_DRIVE_THREE_MIN_POS = 0.551;
-	public final double RAIL_DRIVE_THREE_MAX_POS = 0.89;
+	public final double RAIL_DRIVE_THREE_MAX_POS = 0.873;
 
 	public final double FEEDER_READY_POS = RAIL_DRIVE_THREE_MAX_POS;
 	public final double FEEDER_SHOOT_POS = RAIL_DRIVE_THREE_MIN_POS;

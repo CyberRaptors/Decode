@@ -26,7 +26,7 @@ public class ActionableRaptorRobot extends RaptorRobot {
 		super(blueTeam);
 	}
 
-	public final double MAX_ROBOT_VELO_FOR_SPIKE_PICKUP = 7;
+	public final double MAX_ROBOT_VELO_FOR_SPIKE_PICKUP = 3.5;
 	public final VelConstraint SPIKE_PICKUP_VEL_CONSTRAINT = (pose2dDual, posePath, v) -> MAX_ROBOT_VELO_FOR_SPIKE_PICKUP;
 
 	public Action setRailDriveTwoPower(double power) {
@@ -71,14 +71,14 @@ public class ActionableRaptorRobot extends RaptorRobot {
 		);
 	}
 
-	public Action feedNext() {
+	public Action feedNext(double runTime) {
 		return new LockedUsageAction(
 				new SequentialAction(
 						new InstantAction(() -> {
 							railDriveThree.setPosition(FEEDER_READY_POS);
 							railDriveTwo.setPower(-1);
 						}),
-						new SleepAction(1.5),
+						new SleepAction(runTime),
 						new InstantAction(() -> railDriveTwo.setPower(0))
 				),
 				railDriveTwo, railDriveThree
@@ -92,19 +92,20 @@ public class ActionableRaptorRobot extends RaptorRobot {
 			actionSequence[i+1] = new SequentialAction(
 					// load
 					new InstantAction(() -> {
-						railDriveTwo.setPower(-1);
+						railDriveTwo.setPower(-1.0);
 					}),
-					new SleepAction(2),
+					new SleepAction(1.7),
 					new InstantAction(() -> railDriveTwo.setPower(0)),
 
 					// shoot
 					new InstantAction(
 							() -> railDriveThree.setPosition(FEEDER_SHOOT_POS)
 					),
-					new SleepAction(0.8),
+					new SleepAction(0.6),
 					new InstantAction(() -> {
 						railDriveThree.setPosition(FEEDER_READY_POS);
-					})
+					}),
+					new SleepAction(0.2)
 			);
 		}
 
@@ -258,7 +259,7 @@ public class ActionableRaptorRobot extends RaptorRobot {
 
 					for (int i = 0; i < rejects.length; i+=2) {
 						rejects[i] = reject();
-						rejects[i+1] = feedNext();
+						rejects[i+1] = feedNext(1.5);
 					}
 
 					return new SequentialAction(rejects);
