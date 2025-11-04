@@ -92,6 +92,7 @@ public class BlueNearNineArtifactRunner extends ITeleOpRunner {
 						bot.shootWithVelo(bot.SHOOTER_VELO_FOR_CLOSE_SHOT)
 				),
 				bot.shootWithVelo(bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
+				bot.disableShootersAsync(),
 				pickupFirstSpike,
 				bot.setRailDriveTwoPower(-1.0),
 				secondMoveToShoot,

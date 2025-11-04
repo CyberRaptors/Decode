@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.robot;
 
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.InstantAction;
+import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.PoseVelocity2d;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.SleepAction;
@@ -13,6 +14,7 @@ import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import java.util.List;
 
 import lib8812.common.actions.LazyAction;
+import lib8812.common.actions.MotorSetVelocityAction;
 import lib8812.common.actions.OnceAction;
 import lib8812.common.game.ArtifactConfiguration;
 import lib8812.common.game.GameConstants;
@@ -49,16 +51,23 @@ public class ActionableRaptorRobot extends RaptorRobot {
 		);
 	}
 
+	public Action disableShootersAsync() {
+		return new LockedUsageAction(
+				new InstantAction(() -> {
+					shooterLeft.setPower(0);
+					shooterRight.setPower(0);
+				}),
+				shooterLeft, shooterRight
+		);
+	}
+
 	public Action shootWithVelo(double velo) {
 		return new LockedUsageAction(
 				new SequentialAction(
-						new InstantAction(
-								() -> {
-									shooterRight.setVelocity(velo);
-									shooterLeft.setVelocity(velo);
-								}
+						new ParallelAction(
+								new MotorSetVelocityAction(shooterLeft, velo),
+								new MotorSetVelocityAction(shooterRight, velo)
 						),
-						new SleepAction(0.8),
 						new InstantAction(
 								() -> railDriveThree.setPosition(FEEDER_SHOOT_POS)
 						),
