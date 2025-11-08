@@ -40,6 +40,7 @@ public class ActionableRaptorRobot extends RaptorRobot {
 		);
 	}
 
+
 	public Action setIntakeGroupPower(double power) {
 		return new LockedUsageAction(
 				new InstantAction(() -> {
@@ -65,13 +66,13 @@ public class ActionableRaptorRobot extends RaptorRobot {
 		return new LockedUsageAction(
 				new SequentialAction(
 						new ParallelAction(
-								new MotorSetVelocityAction(shooterLeft, velo),
-								new MotorSetVelocityAction(shooterRight, velo)
+								new MotorSetVelocityAction(shooterLeft, velo, 175),
+								new MotorSetVelocityAction(shooterRight, velo, 175)
 						),
 						new InstantAction(
 								() -> railDriveThree.setPosition(FEEDER_SHOOT_POS)
 						),
-						new SleepAction(0.6),
+						new SleepAction(0.7),
 						new InstantAction(() -> {
 							railDriveThree.setPosition(FEEDER_READY_POS);
 						})

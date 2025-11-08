@@ -62,7 +62,11 @@ public class RaptorMainRunner extends ITeleOpRunner {
 			return;
 		}
 
-		bot.driverControl.setShooterVelocity(Math.max(0, shooterMaxVelo));
+		bot.driverControl.setShooterVelocity(shooterMaxVelo);
+	}
+
+	void toggleShooterEat() {
+
 	}
 
 	@Override
@@ -81,14 +85,37 @@ public class RaptorMainRunner extends ITeleOpRunner {
 		// move feeder to 0.65, then min
 
 		keybinder.bind("left_trigger").of(gamepad2).to(this::setRailGroupOnePower);
-		keybinder.bind("right_trigger").of(gamepad2).to((power) -> bot.driverControl.setRailDriveOnePower(-power));
+		keybinder.bind("right_trigger").of(gamepad2).to((power) -> setRailGroupOnePower(-power));
 		keybinder.bind("left_stick_y").of(gamepad2).to(bot.driverControl::setRailDriveTwoPower);
 		keybinder.bind("right_stick_y").of(gamepad2).to((value) -> bot.driverControl.setRailDriveThreePosition(
 				bot.railDriveThree.getPosition()+(value/100)
 		));
 
-		keybinder.bind("dpad_up").of(gamepad2).to(() -> shooterMaxVelo = bot.SHOOTER_VELO_FOR_MID_SHOT);
-		keybinder.bind("dpad_down").of(gamepad2).to(() -> shooterMaxVelo = bot.SHOOTER_VELO_FOR_CLOSE_SHOT);
+		keybinder.bind("dpad_up").of(gamepad2).to(() -> {
+			if (shooterMaxVelo <= bot.SHOOTER_VELO_FOR_CLOSE_SHOT) {
+				shooterMaxVelo = bot.SHOOTER_VELO_FOR_MID_SHOT;
+			} else {
+				shooterMaxVelo = bot.SHOOTER_VELO_FOR_FAR_SHOT;
+			}
+		});
+		keybinder.bind("dpad_down").of(gamepad2).to(() -> {
+			if (shooterMaxVelo >= bot.SHOOTER_VELO_FOR_FAR_SHOT) {
+				shooterMaxVelo = bot.SHOOTER_VELO_FOR_MID_SHOT;
+			} else {
+				shooterMaxVelo = bot.SHOOTER_VELO_FOR_CLOSE_SHOT;
+			}
+		});
+
+		keybinder.bind("right_bumper").of(gamepad2).to(() -> {
+			if (shooterMaxVelo < 0) {
+				shooterMaxVelo = bot.SHOOTER_VELO_FOR_MID_SHOT;
+				shooterEnabled = false;
+			} else {
+				shooterMaxVelo = -1000;
+				shooterEnabled = true;
+			}
+
+		});
 
 		keybinder.bind("a").of(gamepad2).to(this::toggleShooterEnabled);
 		keybinder.bind("b").of(gamepad2).to(cancelMacros);
