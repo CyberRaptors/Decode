@@ -40,6 +40,7 @@ public class ActionableRaptorRobot extends RaptorRobot {
 		);
 	}
 
+
 	public Action setIntakeGroupPower(double power) {
 		return new LockedUsageAction(
 				new InstantAction(() -> {
@@ -65,13 +66,13 @@ public class ActionableRaptorRobot extends RaptorRobot {
 		return new LockedUsageAction(
 				new SequentialAction(
 						new ParallelAction(
-								new MotorSetVelocityAction(shooterLeft, velo),
-								new MotorSetVelocityAction(shooterRight, velo)
+								new MotorSetVelocityAction(shooterLeft, velo, 175),
+								new MotorSetVelocityAction(shooterRight, velo, 175)
 						),
 						new InstantAction(
 								() -> railDriveThree.setPosition(FEEDER_SHOOT_POS)
 						),
-						new SleepAction(0.6),
+						new SleepAction(0.7),
 						new InstantAction(() -> {
 							railDriveThree.setPosition(FEEDER_READY_POS);
 						})
@@ -188,9 +189,9 @@ public class ActionableRaptorRobot extends RaptorRobot {
 
 								for (LLResultTypes.FiducialResult fiducial : fiducials) {
 									if (fiducial.getFiducialId() == GameConstants.DECODE.GOAL_APRILTAG_ID(onBlueTeam)) {
-										double delX = fiducial.getTargetXDegrees();
+										double delX = (fiducial.getTargetXDegrees()-1);
 
-										if (Math.abs(delX) < 2) {
+										if (Math.abs(delX) < 1) {
 											drive.setDrivePowers(
 													new PoseVelocity2d(new Vector2d(0, 0), 0)
 											);
@@ -200,7 +201,7 @@ public class ActionableRaptorRobot extends RaptorRobot {
 										drive.setDrivePowers(
 												new PoseVelocity2d(
 														new Vector2d(0, 0),
-														delX / 20 // pure proportional controller
+													 	- delX / 20 // pure proportional controller
 												)
 										);
 
