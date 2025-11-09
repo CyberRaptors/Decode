@@ -28,9 +28,10 @@ public class RaptorRobot extends IMecanumRobot {
 
 	public final double SHOOTER_TICKS_PER_REV = 28;
 
-	public final double SHOOTER_VELO_FOR_CLOSE_SHOT = 1180									;
-	public final double SHOOTER_VELO_FOR_MID_SHOT = 1300;
-	public final double SHOOTER_VELO_FOR_FAR_SHOT = 2200;
+	public final double SHOOTER_VELO_FOR_CLOSE_SHOT = 1180;
+	public final double SHOOTER_VELO_FOR_MID_SHOT = 1375;
+	public final double SHOOTER_VELO_FOR_FAR_SHOT = 1565;
+	public final double SHOOTER_VELO_FOR_CLOSE_PARALLEL_SHOT = 1280;
 
 	public final double SHOOTER_VELO_FOR_REJECT = 400;
 

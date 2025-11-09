@@ -189,9 +189,9 @@ public class ActionableRaptorRobot extends RaptorRobot {
 
 								for (LLResultTypes.FiducialResult fiducial : fiducials) {
 									if (fiducial.getFiducialId() == GameConstants.DECODE.GOAL_APRILTAG_ID(onBlueTeam)) {
-										double delX = fiducial.getTargetXDegrees();
+										double delX = (fiducial.getTargetXDegrees()-1);
 
-										if (Math.abs(delX) < 2) {
+										if (Math.abs(delX) < 1) {
 											drive.setDrivePowers(
 													new PoseVelocity2d(new Vector2d(0, 0), 0)
 											);
@@ -201,7 +201,7 @@ public class ActionableRaptorRobot extends RaptorRobot {
 										drive.setDrivePowers(
 												new PoseVelocity2d(
 														new Vector2d(0, 0),
-														delX / 20 // pure proportional controller
+													 	- delX / 20 // pure proportional controller
 												)
 										);
 

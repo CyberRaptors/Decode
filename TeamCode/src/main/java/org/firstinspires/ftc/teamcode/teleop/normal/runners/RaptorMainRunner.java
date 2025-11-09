@@ -9,15 +9,20 @@ DRIVER A
 
 	B - Globally cancel all macros
 	X - Enable/disable verbose mode
+	Y - Dispatch Limelight-enabled goal alignment macro
 
 DRIVER B
-	LEFT TRIGGER - Run intake & rail drive one (collectively rail group one)
-	RIGHT TRIGGER - Apply shooter brakes
+	RIGHT TRIGGER - Run intake & rail drive one (collectively rail group one)
+	LEFT TRIGGER - Reverse intake group one
 	LEFT STICK (Y) - Run rail drive two counterclockwise (+) and clockwise (-)
 	RIGHT STICK (Y) - Move rail drive three (feeder) forwards (+) and backwards (-)
 
-	DPAD UP - Set shooter speed for mid shot
-	DPAD DOWN - Set shooter speed for close shot
+	RIGHT BUMPER - Run shooter to intake from human
+
+	DPAD UP - Increase shooter preset velocity
+	DPAD DOWN - Decrease shooter preset velocity
+	DPAD RIGHT - Increase shooter velocity
+	DPAD LEFT - Decrease shooter velocity
 
 	A - Enable/disable shooter
 	B - Globally cancel all macros
@@ -51,7 +56,11 @@ public class RaptorMainRunner extends ITeleOpRunner {
 	}
 
 	void toggleShooterEnabled() {
-		shooterEnabled = !shooterEnabled;
+		if (shooterMaxVelo < 0) {
+			shooterMaxVelo = bot.SHOOTER_VELO_FOR_MID_SHOT;
+		} else {
+			shooterEnabled = !shooterEnabled;
+		}
 
 		bot.driverControl.setShooterPower(0);
 	}
@@ -84,8 +93,8 @@ public class RaptorMainRunner extends ITeleOpRunner {
 		// shooter power : 0.175
 		// move feeder to 0.65, then min
 
-		keybinder.bind("left_trigger").of(gamepad2).to(this::setRailGroupOnePower);
-		keybinder.bind("right_trigger").of(gamepad2).to((power) -> setRailGroupOnePower(-power));
+		keybinder.bind("right_trigger").of(gamepad2).to(this::setRailGroupOnePower);
+		keybinder.bind("left_trigger").of(gamepad2).to((power) -> setRailGroupOnePower(-power));
 		keybinder.bind("left_stick_y").of(gamepad2).to(bot.driverControl::setRailDriveTwoPower);
 		keybinder.bind("right_stick_y").of(gamepad2).to((value) -> bot.driverControl.setRailDriveThreePosition(
 				bot.railDriveThree.getPosition()+(value/100)
@@ -120,7 +129,7 @@ public class RaptorMainRunner extends ITeleOpRunner {
 		keybinder.bind("a").of(gamepad2).to(this::toggleShooterEnabled);
 		keybinder.bind("b").of(gamepad2).to(cancelMacros);
 		keybinder.bind("x").of(gamepad2).to(() -> actions.scheduleAll(bot.shootWithVelo(shooterMaxVelo)));
-		keybinder.bind("y").of(gamepad2).to(() -> actions.scheduleAll(bot.reject()));
+//		keybinder.bind("y").of(gamepad2).to(() -> actions.scheduleAll(bot.reject()));
 
 
 		keybinder.bind("dpad_left").of(gamepad2).to(() -> shooterMaxVelo = Math.max(0, shooterMaxVelo-30));

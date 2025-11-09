@@ -100,7 +100,7 @@ public class RedNearNineArtifactRunner extends ITeleOpRunner {
 				pickupSecondSpike,
 				bot.setRailDriveTwoPower(-1.0),
 				thirdMoveToShootAndPark,
-				bot.shootWithVelo(bot.SHOOTER_VELO_FOR_CLOSE_SHOT)
+				bot.shootWithVelo(bot.SHOOTER_VELO_FOR_CLOSE_PARALLEL_SHOT)
 		);
 	}
 
