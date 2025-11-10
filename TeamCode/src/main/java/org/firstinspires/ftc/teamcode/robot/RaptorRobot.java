@@ -16,10 +16,6 @@ import lib8812.common.robot.IMecanumRobot;
 import lib8812.common.rr.MecanumDrive;
 
 public class RaptorRobot extends IMecanumRobot {
-	public RaptorRobot() {
-		this(true);
-	}
-
 	public RaptorRobot(boolean blueTeam) {
 		onBlueTeam = blueTeam;
 	}

@@ -87,7 +87,8 @@ public class RaptorMainRunner extends ITeleOpRunner {
 
 		keybinder.bind("b").of(gamepad1).to(cancelMacros);
 		keybinder.bind("x").of(gamepad1).to(() -> verbose = !verbose);
-		keybinder.bind("y").of(gamepad1).to(() -> actions.scheduleAll(bot.limelightAlignToGoal()));
+		keybinder.bind("y").of(gamepad1).to(() -> actions.scheduleAll(bot.localizationEnabledAlignToGoal()));
+		keybinder.bind("a").of(gamepad1).to(() -> actions.scheduleAll(bot.strafeToBase()));
 
 		// for reject
 		// shooter power : 0.175

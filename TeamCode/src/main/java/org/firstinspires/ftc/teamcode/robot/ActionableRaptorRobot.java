@@ -3,13 +3,20 @@ package org.firstinspires.ftc.teamcode.robot;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.InstantAction;
 import com.acmerobotics.roadrunner.ParallelAction;
+import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.PoseVelocity2d;
+import com.acmerobotics.roadrunner.Rotation2d;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.SleepAction;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.acmerobotics.roadrunner.VelConstraint;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
+
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
+import org.firstinspires.ftc.robotcore.external.navigation.Position;
+import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 
 import java.util.List;
 
@@ -20,10 +27,6 @@ import lib8812.common.game.ArtifactConfiguration;
 import lib8812.common.game.GameConstants;
 
 public class ActionableRaptorRobot extends RaptorRobot {
-	public ActionableRaptorRobot() {
-		this(true);
-	}
-
 	public ActionableRaptorRobot(boolean blueTeam) {
 		super(blueTeam);
 	}
@@ -38,8 +41,7 @@ public class ActionableRaptorRobot extends RaptorRobot {
 				}),
 				railDriveTwo
 		);
-	}
-
+	}	
 
 	public Action setIntakeGroupPower(double power) {
 		return new LockedUsageAction(
@@ -282,5 +284,80 @@ public class ActionableRaptorRobot extends RaptorRobot {
 		return new InstantAction(() -> {
 			artifactConfiguration = config.copySelf();
 		});
+	}
+
+	public Action requireLimelightRelocalization(Action action) {
+		return new LockedUsageAction(
+				new SequentialAction(
+						new InstantAction(() -> limelight.pipelineSwitch(LIMELIGHT_APRILTAG_INDEX)),
+						new OnceAction(
+								() -> {
+									double yawDegrees = Math.toDegrees(drive.localizer.getPose().heading.toDouble());
+
+									limelight.updateRobotOrientation(yawDegrees);
+
+									LLResult res = limelight.getLatestResult();
+
+									if (!(res.isValid() && res.getPipelineIndex() == LIMELIGHT_APRILTAG_INDEX)) {
+										return false;
+									}
+
+									List<LLResultTypes.FiducialResult> fiducials = res.getFiducialResults();
+
+									if (fiducials.isEmpty()) return false;
+
+									// relocalize bot
+									Pose3D botPose = res.getBotpose_MT2();
+									Position botPos = botPose.getPosition();
+									YawPitchRollAngles botOrientation = botPose.getOrientation();
+
+									drive.localizer.setPose(new Pose2d(
+											botPos.x,
+											botPos.y,
+											botOrientation.getYaw(AngleUnit.RADIANS)
+									));
+
+									return true;
+								}, action
+						)
+				),
+				limelight, drive.localizer
+		);
+	}
+
+	public Action teleOpUnlocalizedStrafeTo(Pose2d pose) {
+		// requireLimelightRelocalization auto-lockslimelight
+		return requireLimelightRelocalization(
+				new LockedUsageAction(
+						new LazyAction(() -> drive.actionBuilder(drive.localizer.getPose()).strafeToSplineHeading(pose.position, pose.heading).build()),
+						drive
+				)
+		);
+	}
+
+	public Action strafeToBase() {
+		return teleOpUnlocalizedStrafeTo(GameConstants.DECODE.BASE_PARKING_POSE(onBlueTeam));
+	}
+
+	public Action localizationEnabledAlignToGoal() {
+		return requireLimelightRelocalization(
+				new LockedUsageAction(
+						new LazyAction(() -> {
+							Pose2d currentPose = drive.localizer.getPose();
+							Vector2d currentPos = currentPose.position;
+
+							Vector2d goalPos = GameConstants.DECODE.GOAL_POSITION(onBlueTeam);
+
+							Vector2d deltaVector = goalPos.minus(currentPos);
+
+							Rotation2d desiredOrientation = deltaVector.angleCast(); // direction of deltaVector is the desired angle to be exactly goal-facing
+
+							return drive.actionBuilder(currentPose)
+									.turnTo(desiredOrientation)
+									.build();
+						}),
+						drive
+				)
+		);
 	}
 }

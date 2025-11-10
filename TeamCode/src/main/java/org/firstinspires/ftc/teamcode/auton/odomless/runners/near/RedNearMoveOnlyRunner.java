@@ -9,7 +9,7 @@ import lib8812.common.robot.IRobot;
 import lib8812.common.teleop.ITeleOpRunner;
 
 public class RedNearMoveOnlyRunner extends ITeleOpRunner {
-	public ActionableRaptorRobot bot = new ActionableRaptorRobot();
+	ActionableRaptorRobot bot = new ActionableRaptorRobot(false);
 
 	@Override
 	protected void internalRun() {
