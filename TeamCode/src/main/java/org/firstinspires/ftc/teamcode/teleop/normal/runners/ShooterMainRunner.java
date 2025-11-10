@@ -9,10 +9,10 @@ import lib8812.common.teleop.ITeleOpRunner;
 public class ShooterMainRunner extends ITeleOpRunner {
     PlaneShooterBot bot = new PlaneShooterBot();
 
-    protected void internalRun(){
+    protected void internalRun() {
         keybinder.bind("right_trigger").of(gamepad1).to(bot.planeShooter::toggle);
 
-        while(opModeIsActive()){
+        while (opModeIsActive()) {
             bot.drive.setDrivePowers(
                     new PoseVelocity2d(
                             new Vector2d(
@@ -24,10 +24,9 @@ public class ShooterMainRunner extends ITeleOpRunner {
             );
 
             keybinder.executeActions();
-            telemetry.addData("Plane Shooter State", bot.planeShooter.getStatus());
-            telemetry.update();
         }
     }
+
     @Override
     protected IRobot getBot() { return bot; }
 }
