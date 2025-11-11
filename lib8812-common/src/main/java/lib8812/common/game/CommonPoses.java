@@ -43,4 +43,9 @@ public class CommonPoses {
 	public static final Pose2d RED_THIRD_SPIKE_END_POSE = new Pose2d(FieldConstants.TILE_LENGTH_IN*1.5, FieldConstants.TILE_LENGTH_IN*2, Math.toRadians(360 - BASE_DEGREES_FOR_SPIKE_INTAKE));
 	public static final Vector2d RED_FAR_PARK_POS = new Vector2d(FieldConstants.TILE_LENGTH_IN*2, FieldConstants.TILE_LENGTH_IN);
 
+	public static final Pose2d BLUE_BASE_PARKING_POSE = new Pose2d(0, 0, 0);
+	public static final Pose2d RED_BASE_PARKING_POSE = new Pose2d(0, 0, 0);
+
+	public static final Vector2d BLUE_GOAL_CORNER = new Vector2d(0, 0);
+	public static final Vector2d RED_GOAL_CORNER = new Vector2d(0, 0);
 }

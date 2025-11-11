@@ -14,7 +14,7 @@ import lib8812.common.rr.MecanumDrive;
 import lib8812.common.teleop.ITeleOpRunner;
 
 public class BlueNearNineArtifactRunner extends ITeleOpRunner {
-	ActionableRaptorRobot bot = new ActionableRaptorRobot();
+	ActionableRaptorRobot bot = new ActionableRaptorRobot(true);
 
 	Action main;
 

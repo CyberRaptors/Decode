@@ -6,7 +6,7 @@ import lib8812.common.robot.IRobot;
 import lib8812.common.teleop.ITeleOpRunner;
 
 public class WheelDebuggerRunner extends ITeleOpRunner {
-	RaptorRobot bot = new RaptorRobot();
+	RaptorRobot bot = new RaptorRobot(true);
 
 	@Override
 	protected void internalRun() {
