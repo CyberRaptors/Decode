@@ -57,8 +57,11 @@ public class RaptorRobot extends IMecanumRobot {
 	@Override
 	protected void postInit(HardwareMap hardwareMap) {
 		drive = new MecanumDrive(hardwareMap, new Pose2d(0, 0, 0));
-		intakeLeft.setDirection(DcMotorSimple.Direction.REVERSE);
+		intakeRight.setDirection(DcMotorSimple.Direction.REVERSE);
 		shooterRight.setDirection(DcMotorSimple.Direction.REVERSE);
+
+		railDriveOne.setDirection(DcMotorSimple.Direction.REVERSE);
+
 		railDriveThree.setPosition(FEEDER_READY_POS);
 
 		shooterLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
