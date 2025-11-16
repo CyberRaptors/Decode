@@ -40,11 +40,9 @@ public class RaptorRobot extends IMecanumRobot {
 	public ArtifactConfiguration artifactConfiguration = ArtifactConfiguration.PPG.copySelf(); // default auto starting config
 	public ArtifactConfiguration storedMotif = null;
 
-	public CRServo intakeLeft;
-	public CRServo intakeRight;
 	public MecanumDrive drive;
 
-	public DcMotor railDriveOne;
+	public DcMotor intakeAndRailDriveOne;
 	public CRServo railDriveTwo;
 	public Servo railDriveThree; // feeder
 
@@ -57,10 +55,9 @@ public class RaptorRobot extends IMecanumRobot {
 	@Override
 	protected void postInit(HardwareMap hardwareMap) {
 		drive = new MecanumDrive(hardwareMap, new Pose2d(0, 0, 0));
-		intakeRight.setDirection(DcMotorSimple.Direction.REVERSE);
 		shooterRight.setDirection(DcMotorSimple.Direction.REVERSE);
 
-		railDriveOne.setDirection(DcMotorSimple.Direction.REVERSE);
+//		intakeAndRailDriveOne.setDirection(DcMotorSimple.Direction.REVERSE);
 
 		railDriveThree.setPosition(FEEDER_READY_POS);
 
@@ -84,13 +81,8 @@ public class RaptorRobot extends IMecanumRobot {
 			)));
 		}
 
-		public void setIntakePower(double power) {
-			if (use(intakeLeft, intakeRight)) {
-				intakeLeft.setPower(power);
-				intakeRight.setPower(power);
-
-				release(intakeLeft, intakeRight);
-			}
+		public void setIntakeGroupPower(double power) {
+			useAndRelease(intakeAndRailDriveOne, () -> intakeAndRailDriveOne.setPower(power));
 		}
 
 		public void setShooterPower(double power) {
@@ -111,10 +103,6 @@ public class RaptorRobot extends IMecanumRobot {
 			}
 		}
 
-		public void setRailDriveOnePower(double power) {
-			useAndRelease(railDriveOne, () -> railDriveOne.setPower(power));
-		}
-
 		public void setRailDriveTwoPower(double power) {
 			useAndRelease(railDriveTwo, () -> railDriveTwo.setPower(power));
 		}
@@ -128,9 +116,7 @@ public class RaptorRobot extends IMecanumRobot {
 					)
 			);
 
-			useAndRelease(railDriveThree, () -> {
-				railDriveThree.setPosition(boundedPosition);
-			});
+			useAndRelease(railDriveThree, () -> railDriveThree.setPosition(boundedPosition));
 		}
 	}
 }

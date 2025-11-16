@@ -36,21 +36,15 @@ public class ActionableRaptorRobot extends RaptorRobot {
 
 	public Action setRailDriveTwoPower(double power) {
 		return new LockedUsageAction(
-				new InstantAction(() -> {
-					railDriveTwo.setPower(power);
-				}),
+				new InstantAction(() -> railDriveTwo.setPower(power)),
 				railDriveTwo
 		);
 	}	
 
 	public Action setIntakeGroupPower(double power) {
 		return new LockedUsageAction(
-				new InstantAction(() -> {
-					intakeRight.setPower(power);
-					intakeLeft.setPower(power);
-					railDriveOne.setPower(power);
-				}),
-				intakeRight, intakeLeft, railDriveOne
+				new InstantAction(() -> intakeAndRailDriveOne.setPower(power)),
+				intakeAndRailDriveOne
 		);
 	}
 
@@ -75,9 +69,7 @@ public class ActionableRaptorRobot extends RaptorRobot {
 								() -> railDriveThree.setPosition(FEEDER_SHOOT_POS)
 						),
 						new SleepAction(0.7),
-						new InstantAction(() -> {
-							railDriveThree.setPosition(FEEDER_READY_POS);
-						})
+						new InstantAction(() -> railDriveThree.setPosition(FEEDER_READY_POS))
 				),
 				shooterLeft, shooterRight, railDriveThree
 		);
@@ -103,9 +95,7 @@ public class ActionableRaptorRobot extends RaptorRobot {
 		for (int i = 0; i < ammunition; i++) {
 			actionSequence[i+1] = new SequentialAction(
 					// load
-					new InstantAction(() -> {
-						railDriveTwo.setPower(-1.0);
-					}),
+					new InstantAction(() -> railDriveTwo.setPower(-1.0)),
 					new SleepAction(1.7),
 					new InstantAction(() -> railDriveTwo.setPower(0)),
 
@@ -114,9 +104,7 @@ public class ActionableRaptorRobot extends RaptorRobot {
 							() -> railDriveThree.setPosition(FEEDER_SHOOT_POS)
 					),
 					new SleepAction(0.6),
-					new InstantAction(() -> {
-						railDriveThree.setPosition(FEEDER_READY_POS);
-					}),
+					new InstantAction(() -> railDriveThree.setPosition(FEEDER_READY_POS)),
 					new SleepAction(0.2)
 			);
 		}
@@ -150,20 +138,18 @@ public class ActionableRaptorRobot extends RaptorRobot {
 					new InstantAction(() -> {
 						shooterRight.setVelocity(SHOOTER_VELO_FOR_REJECT);
 						shooterLeft.setVelocity(SHOOTER_VELO_FOR_REJECT);
-						railDriveOne.setPower(-1);
+						intakeAndRailDriveOne.setPower(-1);
 					}),
 					new SleepAction(0.4),
-					new InstantAction(() -> {
-						railDriveThree.setPosition(FEEDER_READY_POS);
-					}),
+					new InstantAction(() -> railDriveThree.setPosition(FEEDER_READY_POS)),
 					new SleepAction(1),
 					new InstantAction(() -> {
-						railDriveOne.setPower(0);
+						intakeAndRailDriveOne.setPower(0);
 						shooterRight.setVelocity(0);
 						shooterLeft.setVelocity(0);
 					})
 				),
-				railDriveOne, railDriveThree, shooterLeft, shooterRight
+				intakeAndRailDriveOne, railDriveThree, shooterLeft, shooterRight
 		);
 	}
 
@@ -281,9 +267,7 @@ public class ActionableRaptorRobot extends RaptorRobot {
 	}
 
 	public Action setInternalArtifactConfig(ArtifactConfiguration config) {
-		return new InstantAction(() -> {
-			artifactConfiguration = config.copySelf();
-		});
+		return new InstantAction(() -> artifactConfiguration = config.copySelf());
 	}
 
 	public Action requireLimelightRelocalization(Action action) {

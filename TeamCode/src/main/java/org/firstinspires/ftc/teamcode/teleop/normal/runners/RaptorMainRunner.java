@@ -50,11 +50,6 @@ public class RaptorMainRunner extends ITeleOpRunner {
 
 	double shooterMaxVelo;
 
-	void setRailGroupOnePower(double power) {
-		bot.driverControl.setIntakePower(power);
-		bot.driverControl.setRailDriveOnePower(power);
-	}
-
 	void toggleShooterEnabled() {
 		if (shooterMaxVelo < 0) {
 			shooterMaxVelo = bot.SHOOTER_VELO_FOR_MID_SHOT;
@@ -74,10 +69,6 @@ public class RaptorMainRunner extends ITeleOpRunner {
 		bot.driverControl.setShooterVelocity(shooterMaxVelo);
 	}
 
-	void toggleShooterEat() {
-
-	}
-
 	@Override
 	protected void internalRun() {
 		Runnable cancelMacros = () -> {
@@ -94,8 +85,8 @@ public class RaptorMainRunner extends ITeleOpRunner {
 		// shooter power : 0.175
 		// move feeder to 0.65, then min
 
-		keybinder.bind("right_trigger").of(gamepad2).to(this::setRailGroupOnePower);
-		keybinder.bind("left_trigger").of(gamepad2).to((power) -> setRailGroupOnePower(-power));
+		keybinder.bind("right_trigger").of(gamepad2).to(bot.driverControl::setIntakeGroupPower);
+		keybinder.bind("left_trigger").of(gamepad2).to((power) -> bot.driverControl.setIntakeGroupPower(-power));
 		keybinder.bind("left_stick_y").of(gamepad2).to(bot.driverControl::setRailDriveTwoPower);
 		keybinder.bind("right_stick_y").of(gamepad2).to((value) -> bot.driverControl.setRailDriveThreePosition(
 				bot.railDriveThree.getPosition()+(value/100)
@@ -155,15 +146,9 @@ public class RaptorMainRunner extends ITeleOpRunner {
 			}
 
 			telemetry.addData(
-					"intake",
-					"left power (%.2f) right power (%.2f)",
-					bot.intakeLeft.getPower(), bot.intakeRight.getPower()
-			);
-
-			telemetry.addData(
-					"rail drive one",
+					"intake group",
 					"power (%.2f)",
-					bot.railDriveOne.getPower()
+					bot.intakeAndRailDriveOne.getPower()
 			);
 
 			telemetry.addData(

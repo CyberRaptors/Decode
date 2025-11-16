@@ -41,17 +41,15 @@ public class RaptorComponentTestRunner {
 
     private void activateComponents() {
         robot.driverControl.applyDrivePower(0.5, 0.5, 0.5);
-        robot.driverControl.setIntakePower(1.0);
+        robot.driverControl.setIntakeGroupPower(1.0);
         robot.driverControl.setShooterVelocity(robot.SHOOTER_VELO_FOR_CLOSE_SHOT);
-        robot.driverControl.setRailDriveOnePower(0.5);
         robot.driverControl.setRailDriveTwoPower(1.0);
         robot.driverControl.setRailDriveThreePosition(robot.FEEDER_SHOOT_POS);
     }
     private void deactivateComponents() {
         robot.driverControl.applyDrivePower(0, 0, 0);
-        robot.driverControl.setIntakePower(0);
+        robot.driverControl.setIntakeGroupPower(0);
         robot.driverControl.setShooterVelocity(0);
-        robot.driverControl.setRailDriveOnePower(0);
         robot.driverControl.setRailDriveTwoPower(0);
         robot.driverControl.setRailDriveThreePosition(robot.FEEDER_READY_POS);
         if (robot.limelight != null) {
