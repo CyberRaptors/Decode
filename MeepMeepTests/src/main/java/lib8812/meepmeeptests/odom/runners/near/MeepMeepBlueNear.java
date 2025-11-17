@@ -10,6 +10,7 @@ import lib8812.meepmeeptests.stubs.game.CommonPoses;
 
 public class MeepMeepBlueNear {
 	static ActionableRaptorRobotStub bot = new ActionableRaptorRobotStub();
+	static Action main;
 
 	public static Action run(DriveShim drive) {
 		drive.setPoseEstimate(CommonPoses.INITIAL_BLUE_NEAR_POSE);
@@ -75,7 +76,7 @@ public class MeepMeepBlueNear {
 				)
 				.build();
 
-		Action main = new SequentialAction(
+		main = new SequentialAction(
 				initialMoveToShoot,
 				bot.shootWithVelo(bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
 				bot.feedNext(1.5),

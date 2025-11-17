@@ -11,6 +11,7 @@ import lib8812.meepmeeptests.stubs.game.CommonPoses;
 
 public class MeepMeepBlueNearWithMotif {
 	static ActionableRaptorRobotStub bot = new ActionableRaptorRobotStub();
+	static Action main;
 
 	public static Action run(DriveShim drive) {
 		drive.setPoseEstimate(CommonPoses.INITIAL_BLUE_NEAR_POSE_FOR_MOTIF_AUTO);
@@ -88,7 +89,7 @@ public class MeepMeepBlueNearWithMotif {
 				.strafeToSplineHeading(CommonPoses.BLUE_NEAR_PARK_POSE.position, CommonPoses.BLUE_NEAR_PARK_POSE.heading)
 				.build();
 
-		Action main = new SequentialAction(
+		main = new SequentialAction(
 				initialMoveToShoot,
 				bot.successiveShootWithVelo(2, bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
 				pickupFirstSpike,
