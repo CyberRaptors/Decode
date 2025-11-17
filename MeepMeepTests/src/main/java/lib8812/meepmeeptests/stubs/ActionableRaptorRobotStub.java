@@ -12,12 +12,18 @@ public class ActionableRaptorRobotStub {
 
 	public final double SHOOTER_TICKS_PER_REV = 28;
 
-	public final double MAX_ROBOT_VELO_FOR_SPIKE_PICKUP = 7;
+	public final double MAX_ROBOT_VELO_FOR_SPIKE_PICKUP = 10;
 	public final VelConstraint SPIKE_PICKUP_VEL_CONSTRAINT = (pose2dDual, posePath, v) -> MAX_ROBOT_VELO_FOR_SPIKE_PICKUP;
 
+	public final double MAX_ROBOT_VELO_FOR_FAST_SPIKE_PICKUP = 100;
+	public final VelConstraint FAST_SPIKE_PICKUP_VEL_CONSTRAINT = (pose2dDual, posePath, v) -> MAX_ROBOT_VELO_FOR_FAST_SPIKE_PICKUP;
+
+
 	public final double SHOOTER_VELO_FOR_CLOSE_SHOT = 1180;
-	public final double SHOOTER_VELO_FOR_MID_SHOT = 1300;
-	public final double SHOOTER_VELO_FOR_FAR_SHOT = 0;
+	public final double SHOOTER_VELO_FOR_MID_SHOT = 1375;
+	public final double SHOOTER_VELO_FOR_FAR_SHOT = 1565;
+	public final double SHOOTER_VELO_FOR_CLOSE_PARALLEL_SHOT = 1280;
+
 
 	public final double SHOOTER_VELO_FOR_REJECT = 400;
 
@@ -43,7 +49,7 @@ public class ActionableRaptorRobotStub {
 		return new NullAction();
 	}
 
-	public Action feedNext() {
+	public Action feedNext(double runTime) {
 		return new NullAction();
 	}
 
@@ -76,4 +82,6 @@ public class ActionableRaptorRobotStub {
 			artifactConfiguration = config.copySelf();
 		});
 	}
+
+	public Action disableShootersAsync() { return new NullAction(); }
 }

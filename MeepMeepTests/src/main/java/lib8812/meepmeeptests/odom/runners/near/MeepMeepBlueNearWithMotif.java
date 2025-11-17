@@ -6,8 +6,8 @@ import com.acmerobotics.roadrunner.SleepAction;
 import com.noahbres.meepmeep.roadrunner.DriveShim;
 
 import lib8812.meepmeeptests.stubs.ActionableRaptorRobotStub;
-import lib8812.meepmeeptests.stubs.CommonPoses;
 import lib8812.meepmeeptests.stubs.game.ArtifactConfiguration;
+import lib8812.meepmeeptests.stubs.game.CommonPoses;
 
 public class MeepMeepBlueNearWithMotif {
 	static ActionableRaptorRobotStub bot = new ActionableRaptorRobotStub();
@@ -85,7 +85,7 @@ public class MeepMeepBlueNearWithMotif {
 				.build();
 
 		Action park = drive.actionBuilder(CommonPoses.BLUE_NEAR_SHOT_POSE)
-				.strafeTo(CommonPoses.BLUE_NEAR_PARK_POS)
+				.strafeToSplineHeading(CommonPoses.BLUE_NEAR_PARK_POSE.position, CommonPoses.BLUE_NEAR_PARK_POSE.heading)
 				.build();
 
 		Action main = new SequentialAction(

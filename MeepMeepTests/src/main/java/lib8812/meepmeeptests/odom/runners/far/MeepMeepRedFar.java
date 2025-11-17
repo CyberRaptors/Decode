@@ -6,7 +6,7 @@ import com.acmerobotics.roadrunner.SleepAction;
 import com.noahbres.meepmeep.roadrunner.DriveShim;
 
 import lib8812.meepmeeptests.stubs.ActionableRaptorRobotStub;
-import lib8812.meepmeeptests.stubs.CommonPoses;
+import lib8812.meepmeeptests.stubs.game.CommonPoses;
 
 public class MeepMeepRedFar {
 	static ActionableRaptorRobotStub bot = new ActionableRaptorRobotStub();
