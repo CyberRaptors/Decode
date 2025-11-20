@@ -10,6 +10,7 @@ import lib8812.meepmeeptests.stubs.game.CommonPoses;
 
 public class MeepMeepRedFar {
 	static ActionableRaptorRobotStub bot = new ActionableRaptorRobotStub();
+	static Action main;
 
 	public static Action run(DriveShim drive) {
 		drive.setPoseEstimate(CommonPoses.INITIAL_RED_FAR_POSE);
@@ -82,15 +83,22 @@ public class MeepMeepRedFar {
 				.strafeTo(CommonPoses.RED_FAR_PARK_POS)
 				.build();
 
-		Action main = new SequentialAction(
+		main = new SequentialAction(
 				initialMoveToShoot,
-				bot.successiveShootWithVelo(2, bot.SHOOTER_VELO_FOR_FAR_SHOT),
+				bot.shootWithVelo(bot.SHOOTER_VELO_FOR_FAR_SHOT),
+				bot.feedNext(1.5),
+				bot.shootWithVelo(bot.SHOOTER_VELO_FOR_FAR_SHOT),
+				bot.disableShootersAsync(),
 				pickupFirstSpike,
+				bot.setRailDriveTwoPower(-1.0),
 				secondMoveToShoot,
-				bot.successiveShootWithVelo(3, bot.SHOOTER_VELO_FOR_FAR_SHOT),
+				new SleepAction(0.7),
+				bot.successiveShootWithVelo(2, bot.SHOOTER_VELO_FOR_FAR_SHOT),
 				pickupSecondSpike,
+				bot.setRailDriveTwoPower(-1.0),
 				thirdMoveToShoot,
-				bot.successiveShootWithVelo(3, bot.SHOOTER_VELO_FOR_FAR_SHOT),
+				new SleepAction(0.7),
+				bot.successiveShootWithVelo(2, bot.SHOOTER_VELO_FOR_FAR_SHOT),
 				park
 		);
 

@@ -1,7 +1,6 @@
 package lib8812.meepmeeptests.odom.runners.near;
 
 import com.acmerobotics.roadrunner.Action;
-import com.acmerobotics.roadrunner.ParallelAction;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.SleepAction;
 import com.noahbres.meepmeep.roadrunner.DriveShim;
@@ -31,19 +30,13 @@ public class MeepMeepRedNear {
 						)
 						.build(),
 				bot.setIntakeGroupPower(1),
-				new ParallelAction(
-						new SequentialAction(
-								new SleepAction(3),
-								bot.setRailDriveTwoPower(-0.5)
-						),
-						drive.actionBuilder(CommonPoses.RED_FIRST_SPIKE_START_POSE)
-								.strafeToSplineHeading(
-										CommonPoses.RED_FIRST_SPIKE_END_POSE.position,
-										CommonPoses.RED_FIRST_SPIKE_END_POSE.heading,
-										bot.SPIKE_PICKUP_VEL_CONSTRAINT
-								)
-								.build()
-				)
+				drive.actionBuilder(CommonPoses.RED_FIRST_SPIKE_START_POSE)
+						.strafeToSplineHeading(
+								CommonPoses.RED_FIRST_SPIKE_END_POSE.position,
+								CommonPoses.RED_FIRST_SPIKE_END_POSE.heading,
+								bot.FAST_SPIKE_PICKUP_VEL_CONSTRAINT
+						)
+						.build()
 		);
 
 		Action secondMoveToShoot = drive.actionBuilder(CommonPoses.RED_FIRST_SPIKE_END_POSE)
@@ -60,18 +53,23 @@ public class MeepMeepRedNear {
 								CommonPoses.RED_SECOND_SPIKE_START_POSE.heading
 						)
 						.build(),
-				new ParallelAction(
-						drive.actionBuilder(CommonPoses.RED_SECOND_SPIKE_START_POSE)
-								.strafeToSplineHeading(
-										CommonPoses.RED_SECOND_SPIKE_END_POSE.position,
-										CommonPoses.RED_SECOND_SPIKE_END_POSE.heading,
-										bot.SPIKE_PICKUP_VEL_CONSTRAINT
-								)
-								.build()
-				)
+				drive.actionBuilder(CommonPoses.RED_SECOND_SPIKE_START_POSE)
+						.strafeToSplineHeading(
+								CommonPoses.RED_SECOND_SPIKE_END_POSE.position,
+								CommonPoses.RED_SECOND_SPIKE_END_POSE.heading,
+								bot.SPIKE_PICKUP_VEL_CONSTRAINT
+						)
+						.build()
 		);
 
-		Action thirdMoveToShootAndPark = drive.actionBuilder(CommonPoses.RED_SECOND_SPIKE_END_POSE)
+		Action thirdMoveToShoot = drive.actionBuilder(CommonPoses.RED_SECOND_SPIKE_END_POSE)
+				.strafeToSplineHeading(
+						CommonPoses.RED_NEAR_SHOT_POSE.position,
+						CommonPoses.RED_NEAR_SHOT_POSE.heading
+				)
+				.build();
+
+		Action park = drive.actionBuilder(CommonPoses.RED_NEAR_SHOT_POSE)
 				.strafeToSplineHeading(
 						CommonPoses.RED_NEAR_PARK_POSE.position,
 						CommonPoses.RED_NEAR_PARK_POSE.heading
@@ -87,12 +85,14 @@ public class MeepMeepRedNear {
 				pickupFirstSpike,
 				bot.setRailDriveTwoPower(-1.0),
 				secondMoveToShoot,
-				new SleepAction(1.7),
+				new SleepAction(0.7),
 				bot.successiveShootWithVelo(2, bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
 				pickupSecondSpike,
 				bot.setRailDriveTwoPower(-1.0),
-				thirdMoveToShootAndPark,
-				bot.shootWithVelo(bot.SHOOTER_VELO_FOR_CLOSE_PARALLEL_SHOT)
+				thirdMoveToShoot,
+				new SleepAction(0.7),
+				bot.successiveShootWithVelo(2, bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
+				park
 		);
 
 		return main;

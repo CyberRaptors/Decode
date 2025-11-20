@@ -91,7 +91,7 @@ public class MeepMeepBlueNear {
 				bot.setRailDriveTwoPower(-1.0),
 				thirdMoveToShoot,
 				new SleepAction(0.7),
-				bot.successiveShootWithVelo(2, bot.SHOOTER_VELO_FOR_CLOSE_PARALLEL_SHOT),
+				bot.successiveShootWithVelo(2, bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
 				park
 		);
 
