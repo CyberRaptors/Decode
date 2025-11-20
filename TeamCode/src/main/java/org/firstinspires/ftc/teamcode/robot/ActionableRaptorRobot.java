@@ -31,8 +31,12 @@ public class ActionableRaptorRobot extends RaptorRobot {
 		super(blueTeam);
 	}
 
-	public final double MAX_ROBOT_VELO_FOR_SPIKE_PICKUP = 3.5;
+
+	public final double MAX_ROBOT_VELO_FOR_SPIKE_PICKUP = 10;
 	public final VelConstraint SPIKE_PICKUP_VEL_CONSTRAINT = (pose2dDual, posePath, v) -> MAX_ROBOT_VELO_FOR_SPIKE_PICKUP;
+
+	public final double MAX_ROBOT_VELO_FOR_FAST_SPIKE_PICKUP = 100;
+	public final VelConstraint FAST_SPIKE_PICKUP_VEL_CONSTRAINT = (pose2dDual, posePath, v) -> MAX_ROBOT_VELO_FOR_FAST_SPIKE_PICKUP;
 
 	public Action setRailDriveTwoPower(double power) {
 		return new LockedUsageAction(
