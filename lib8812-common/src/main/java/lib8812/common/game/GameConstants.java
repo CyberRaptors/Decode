@@ -12,6 +12,8 @@ public class GameConstants {
 		public static final int MOTIF_PGP_APRILTAG_ID = 22;
 		public static final int MOTIF_PPG_APRILTAG_ID = 23;
 
+		public static final double GOAL_APRILTAG_HEIGHT_IN = 38.75;
+
 		public static int GOAL_APRILTAG_ID(boolean blue) {
 			if (blue) return BLUE_GOAL_APRILTAG_ID;
 

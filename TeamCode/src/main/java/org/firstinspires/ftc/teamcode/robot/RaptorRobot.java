@@ -13,6 +13,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import lib8812.common.game.ArtifactConfiguration;
 import lib8812.common.robot.IMecanumRobot;
+import lib8812.common.robot.SimpleLimelightInfo;
 import lib8812.common.rr.MecanumDrive;
 
 public class RaptorRobot extends IMecanumRobot {
@@ -49,6 +50,7 @@ public class RaptorRobot extends IMecanumRobot {
 	public DcMotorEx shooterLeft;
 	public DcMotorEx shooterRight;
 	public Limelight3A limelight;
+	public SimpleLimelightInfo limelightMountInfo = new SimpleLimelightInfo(0, 13);
 
 	public final boolean onBlueTeam;
 
@@ -57,8 +59,6 @@ public class RaptorRobot extends IMecanumRobot {
 		drive = new MecanumDrive(hardwareMap, new Pose2d(0, 0, 0));
 		shooterRight.setDirection(DcMotorSimple.Direction.REVERSE);
 
-//		intakeAndRailDriveOne.setDirection(DcMotorSimple.Direction.REVERSE);
-
 		railDriveThree.setPosition(FEEDER_READY_POS);
 
 		shooterLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -66,6 +66,15 @@ public class RaptorRobot extends IMecanumRobot {
 
 		limelight.setPollRateHz(50);
 		limelight.start();
+	}
+
+	public final double calculateV0ForV2Shooter(double dist) { // uses linear regression to calculate optimal shot velocity from distance
+		// fitted to RaptorRobot v2 shooter, see regression plot for details (may use quadratic fit in the future)
+
+		double m = 3.49901;
+		double b = 978.55903;
+
+		return m*dist + b;
 	}
 
 	public final LockingControl driverControl = new LockingControl();

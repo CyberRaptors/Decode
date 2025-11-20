@@ -12,12 +12,16 @@ DRIVER A
 	Y - Dispatch Limelight-enabled goal alignment macro
 
 DRIVER B
-	RIGHT TRIGGER - Run intake & rail drive one (collectively rail group one)
-	LEFT TRIGGER - Reverse intake group one
-	LEFT STICK (Y) - Run rail drive two counterclockwise (+) and clockwise (-)
+	RIGHT TRIGGER - Run intake & rail group forwards
+	LEFT TRIGGER - Run intake group in reverse
+	LEFT STICK (Y) - Run rail drive two counterclockwise [towards shooter] (+) and clockwise [towards intake] (-)
 	RIGHT STICK (Y) - Move rail drive three (feeder) forwards (+) and backwards (-)
 
 	RIGHT BUMPER - Run shooter to intake from human
+	LEFT BUMPER - Enable automatic shooter velocity control
+		- Shooter velocity control starts as manual; the driver can set velocity presets using their designated controls
+		- In automatic control, the optimal velocity is automatically calculated based on the robot's localization
+			- Pressing any of the manual velocity setting controls will return the velocity control to manual mode
 
 	DPAD UP - Increase shooter preset velocity
 	DPAD DOWN - Decrease shooter preset velocity
@@ -32,8 +36,17 @@ DRIVER B
 
 package org.firstinspires.ftc.teamcode.teleop.normal.runners;
 
+import com.acmerobotics.roadrunner.InstantAction;
+import com.acmerobotics.roadrunner.SequentialAction;
+import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.limelightvision.LLResultTypes;
+
 import org.firstinspires.ftc.teamcode.robot.ActionableRaptorRobot;
 
+import java.util.List;
+
+import lib8812.common.actions.OnceAction;
+import lib8812.common.game.GameConstants;
 import lib8812.common.robot.IRobot;
 import lib8812.common.teleop.ITeleOpRunner;
 
@@ -46,6 +59,7 @@ public class RaptorMainRunner extends ITeleOpRunner {
 	final ActionableRaptorRobot bot;
 
 	boolean shooterEnabled = false;
+	boolean autoVelocityMode = false;
 	boolean verbose = false;
 
 	double shooterMaxVelo;
@@ -69,6 +83,50 @@ public class RaptorMainRunner extends ITeleOpRunner {
 		bot.driverControl.setShooterVelocity(shooterMaxVelo);
 	}
 
+	void autoAdjustShooterMaxVelo() {
+		actions.scheduleAll(
+				bot.new LockedUsageAction(
+						new SequentialAction(
+								new InstantAction(() -> bot.limelight.pipelineSwitch(bot.LIMELIGHT_APRILTAG_INDEX)),
+								(telemetryPacket) -> {
+									LLResult res = bot.limelight.getLatestResult();
+
+									return res.getPipelineIndex() != bot.LIMELIGHT_APRILTAG_INDEX;
+								},
+								new OnceAction(
+										() -> {
+											LLResult res = bot.limelight.getLatestResult();
+
+											return res.isValid();
+										},
+										new InstantAction(() -> {
+											LLResult res = bot.limelight.getLatestResult();
+
+											if (!res.isValid()) return;
+
+											List<LLResultTypes.FiducialResult> fiducials = res.getFiducialResults();
+
+											for (LLResultTypes.FiducialResult fiducial : fiducials) {
+												if (fiducial.getFiducialId() == GameConstants.DECODE.GOAL_APRILTAG_ID(bot.onBlueTeam)) {
+													double targetVerticalDegreesOffset = fiducial.getTargetYDegrees();
+
+													double angleToGoal = Math.toRadians(bot.limelightMountInfo.mountDegreesFromVertical + targetVerticalDegreesOffset);
+
+													double approxDistanceFromGoalToShooter = (
+															GameConstants.DECODE.GOAL_APRILTAG_HEIGHT_IN - bot.limelightMountInfo.lensInchesFromGround
+													) / Math.tan(angleToGoal);
+
+													shooterMaxVelo = bot.calculateV0ForV2Shooter(approxDistanceFromGoalToShooter);
+												}
+											}
+										})
+								)
+						),
+						bot.limelight
+				)
+		);
+	}
+
 	@Override
 	protected void internalRun() {
 		Runnable cancelMacros = () -> {
@@ -81,18 +139,18 @@ public class RaptorMainRunner extends ITeleOpRunner {
 		keybinder.bind("y").of(gamepad1).to(() -> actions.scheduleAll(bot.localizationEnabledAlignToGoal()));
 		keybinder.bind("a").of(gamepad1).to(() -> actions.scheduleAll(bot.strafeToBase()));
 
-		// for reject
-		// shooter power : 0.175
-		// move feeder to 0.65, then min
 
 		keybinder.bind("right_trigger").of(gamepad2).to(bot.driverControl::setIntakeGroupPower);
 		keybinder.bind("left_trigger").of(gamepad2).to((power) -> bot.driverControl.setIntakeGroupPower(-power));
+
 		keybinder.bind("left_stick_y").of(gamepad2).to(bot.driverControl::setRailDriveTwoPower);
 		keybinder.bind("right_stick_y").of(gamepad2).to((value) -> bot.driverControl.setRailDriveThreePosition(
 				bot.railDriveThree.getPosition()+(value/100)
 		));
 
 		keybinder.bind("dpad_up").of(gamepad2).to(() -> {
+			autoVelocityMode = false;
+
 			if (shooterMaxVelo <= bot.SHOOTER_VELO_FOR_CLOSE_SHOT) {
 				shooterMaxVelo = bot.SHOOTER_VELO_FOR_MID_SHOT;
 			} else {
@@ -100,6 +158,8 @@ public class RaptorMainRunner extends ITeleOpRunner {
 			}
 		});
 		keybinder.bind("dpad_down").of(gamepad2).to(() -> {
+			autoVelocityMode = false;
+
 			if (shooterMaxVelo >= bot.SHOOTER_VELO_FOR_FAR_SHOT) {
 				shooterMaxVelo = bot.SHOOTER_VELO_FOR_MID_SHOT;
 			} else {
@@ -108,6 +168,8 @@ public class RaptorMainRunner extends ITeleOpRunner {
 		});
 
 		keybinder.bind("right_bumper").of(gamepad2).to(() -> {
+			autoVelocityMode = false;
+
 			if (shooterMaxVelo < 0) {
 				shooterMaxVelo = bot.SHOOTER_VELO_FOR_MID_SHOT;
 				shooterEnabled = false;
@@ -117,18 +179,30 @@ public class RaptorMainRunner extends ITeleOpRunner {
 			}
 
 		});
+		keybinder.bind("left_bumper").of(gamepad2).to(() -> autoVelocityMode = true);
 
 		keybinder.bind("a").of(gamepad2).to(this::toggleShooterEnabled);
 		keybinder.bind("b").of(gamepad2).to(cancelMacros);
 		keybinder.bind("x").of(gamepad2).to(() -> actions.scheduleAll(bot.shootWithVelo(shooterMaxVelo)));
-//		keybinder.bind("y").of(gamepad2).to(() -> actions.scheduleAll(bot.reject()));
 
+		keybinder.bind("dpad_left").of(gamepad2).to(() -> {
+			autoVelocityMode = false;
 
-		keybinder.bind("dpad_left").of(gamepad2).to(() -> shooterMaxVelo = Math.max(0, shooterMaxVelo-30));
-		keybinder.bind("dpad_right").of(gamepad2).to(() -> shooterMaxVelo+=30);
+			shooterMaxVelo = Math.max(0, shooterMaxVelo-30);
+		});
+		keybinder.bind("dpad_right").of(gamepad2).to(() -> {
+			autoVelocityMode = false;
+
+			shooterMaxVelo+=30;
+		});
 
 		while (opModeIsActive()) {
 			bot.driverControl.applyDrivePower(-gamepad1.inner.left_stick_y, -gamepad1.inner.left_stick_x, -gamepad1.inner.right_stick_x);
+
+			if (autoVelocityMode) {
+				autoAdjustShooterMaxVelo();
+			}
+
 			runShooter();
 
 			keybinder.executeActions();
