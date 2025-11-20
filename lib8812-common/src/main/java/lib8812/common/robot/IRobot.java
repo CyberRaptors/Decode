@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Action;
+import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.hardware.HardwareDevice;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
@@ -115,6 +116,11 @@ public abstract class IRobot {
             } catch (IllegalAccessException e) {
                 throw new RuntimeException("unable to initialize hardware device", e);
             }
+        }
+
+        // enable auto bulk caching
+        for (LynxModule hub : hardwareMap.getAll(LynxModule.class)) {
+            hub.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
         }
 
         postInit(hardwareMap);
