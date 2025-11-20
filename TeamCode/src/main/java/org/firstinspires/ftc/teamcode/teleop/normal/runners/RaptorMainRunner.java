@@ -37,15 +37,11 @@ DRIVER B
 package org.firstinspires.ftc.teamcode.teleop.normal.runners;
 
 import com.acmerobotics.roadrunner.InstantAction;
-import com.acmerobotics.roadrunner.SequentialAction;
-import com.qualcomm.hardware.limelightvision.LLResult;
-import com.qualcomm.hardware.limelightvision.LLResultTypes;
+import com.acmerobotics.roadrunner.Pose2d;
+import com.acmerobotics.roadrunner.Vector2d;
 
 import org.firstinspires.ftc.teamcode.robot.ActionableRaptorRobot;
 
-import java.util.List;
-
-import lib8812.common.actions.OnceAction;
 import lib8812.common.game.GameConstants;
 import lib8812.common.robot.IRobot;
 import lib8812.common.teleop.ITeleOpRunner;
@@ -61,6 +57,8 @@ public class RaptorMainRunner extends ITeleOpRunner {
 	boolean shooterEnabled = false;
 	boolean autoVelocityMode = false;
 	boolean verbose = false;
+
+	boolean autoVeloActionStillRunning = false;
 
 	double shooterMaxVelo;
 
@@ -84,46 +82,20 @@ public class RaptorMainRunner extends ITeleOpRunner {
 	}
 
 	void autoAdjustShooterMaxVelo() {
+		if (autoVeloActionStillRunning) return; // ensure that only one velocity update action is dispatched at a time
+
+		autoVeloActionStillRunning = true;
+
 		actions.scheduleAll(
-				bot.new LockedUsageAction(
-						new SequentialAction(
-								new InstantAction(() -> bot.limelight.pipelineSwitch(bot.LIMELIGHT_APRILTAG_INDEX)),
-								(telemetryPacket) -> {
-									LLResult res = bot.limelight.getLatestResult();
+				bot.requireLimelightRelocalization(new InstantAction(() -> {
+					Vector2d botPos = bot.drive.localizer.getPose().position;
 
-									return res.getPipelineIndex() != bot.LIMELIGHT_APRILTAG_INDEX;
-								},
-								new OnceAction(
-										() -> {
-											LLResult res = bot.limelight.getLatestResult();
+					double distanceFromBotCenterToGoalCorner = GameConstants.DECODE.GOAL_POSITION(bot.onBlueTeam).minus(botPos).norm();
 
-											return res.isValid();
-										},
-										new InstantAction(() -> {
-											LLResult res = bot.limelight.getLatestResult();
+					shooterMaxVelo = bot.calculateV0ForV2Shooter(distanceFromBotCenterToGoalCorner);
 
-											if (!res.isValid()) return;
-
-											List<LLResultTypes.FiducialResult> fiducials = res.getFiducialResults();
-
-											for (LLResultTypes.FiducialResult fiducial : fiducials) {
-												if (fiducial.getFiducialId() == GameConstants.DECODE.GOAL_APRILTAG_ID(bot.onBlueTeam)) {
-													double targetVerticalDegreesOffset = fiducial.getTargetYDegrees();
-
-													double angleToGoal = Math.toRadians(bot.limelightMountInfo.mountDegreesFromVertical + targetVerticalDegreesOffset);
-
-													double approxDistanceFromGoalToShooter = (
-															GameConstants.DECODE.GOAL_APRILTAG_HEIGHT_IN - bot.limelightMountInfo.lensInchesFromGround
-													) / Math.tan(angleToGoal);
-
-													shooterMaxVelo = bot.calculateV0ForV2Shooter(approxDistanceFromGoalToShooter);
-												}
-											}
-										})
-								)
-						),
-						bot.limelight
-				)
+					autoVeloActionStillRunning = false;
+				}), 20)
 		);
 	}
 
@@ -254,6 +226,10 @@ public class RaptorMainRunner extends ITeleOpRunner {
 						shooterMaxVelo
 				);
 			}
+
+			Pose2d botPose = bot.drive.localizer.getPose();
+
+			telemetry.addData("current position", "x: %.2f, y: %.2f, heading: %.2f", botPose.position.x, botPose.position.y, botPose.heading);
 
 			telemetry.update();
 		}

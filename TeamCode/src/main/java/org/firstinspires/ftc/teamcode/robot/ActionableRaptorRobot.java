@@ -270,16 +270,12 @@ public class ActionableRaptorRobot extends RaptorRobot {
 		return new InstantAction(() -> artifactConfiguration = config.copySelf());
 	}
 
-	public Action requireLimelightRelocalization(Action action) {
+	public Action requireLimelightRelocalization(Action action, int maxTries) {
 		return new LockedUsageAction(
 				new SequentialAction(
 						new InstantAction(() -> limelight.pipelineSwitch(LIMELIGHT_APRILTAG_INDEX)),
 						new OnceAction(
 								() -> {
-									double yawDegrees = Math.toDegrees(drive.localizer.getPose().heading.toDouble());
-
-									limelight.updateRobotOrientation(yawDegrees);
-
 									LLResult res = limelight.getLatestResult();
 
 									if (!(res.isValid() && res.getPipelineIndex() == LIMELIGHT_APRILTAG_INDEX)) {
@@ -290,8 +286,19 @@ public class ActionableRaptorRobot extends RaptorRobot {
 
 									if (fiducials.isEmpty()) return false;
 
-									// relocalize bot
-									Pose3D botPose = res.getBotpose_MT2();
+									Pose3D botPose;
+
+									if (fiducials.size() > 1) { // use MegaTag to get robot pose (multiple tags allow zero-ambiguity localization)
+										botPose = res.getBotpose();
+									} else { // we can only see one tag, use MegaTag2 with the orientation from the OTOS to get an unambiguous pose
+										double otosYawDegrees = Math.toDegrees(drive.localizer.getPose().heading.toDouble());
+
+										limelight.updateRobotOrientation(otosYawDegrees);
+
+										botPose = res.getBotpose_MT2();
+									}
+
+									// update RR localizer with MT bot pose
 									Position botPos = botPose.getPosition();
 									YawPitchRollAngles botOrientation = botPose.getOrientation();
 
@@ -310,12 +317,12 @@ public class ActionableRaptorRobot extends RaptorRobot {
 	}
 
 	public Action teleOpUnlocalizedStrafeTo(Pose2d pose) {
-		// requireLimelightRelocalization auto-lockslimelight
+		// requireLimelightRelocalization auto-locks limelight
 		return requireLimelightRelocalization(
 				new LockedUsageAction(
 						new LazyAction(() -> drive.actionBuilder(drive.localizer.getPose()).strafeToSplineHeading(pose.position, pose.heading).build()),
 						drive
-				)
+				), -1
 		);
 	}
 
@@ -341,7 +348,7 @@ public class ActionableRaptorRobot extends RaptorRobot {
 									.build();
 						}),
 						drive
-				)
+				), 100
 		);
 	}
 }
