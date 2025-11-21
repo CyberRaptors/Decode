@@ -14,6 +14,7 @@ import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
@@ -280,6 +281,10 @@ public class ActionableRaptorRobot extends RaptorRobot {
 						new InstantAction(() -> limelight.pipelineSwitch(LIMELIGHT_APRILTAG_INDEX)),
 						new OnceAction(
 								() -> {
+									// in case we can use MT2
+									double otosYawDegrees = Math.toDegrees(drive.localizer.getPose().heading.toDouble());
+									limelight.updateRobotOrientation(otosYawDegrees);
+
 									LLResult res = limelight.getLatestResult();
 
 									if (!(res.isValid() && res.getPipelineIndex() == LIMELIGHT_APRILTAG_INDEX)) {
@@ -295,15 +300,11 @@ public class ActionableRaptorRobot extends RaptorRobot {
 									if (fiducials.size() > 1) { // use MegaTag to get robot pose (multiple tags allow zero-ambiguity localization)
 										botPose = res.getBotpose();
 									} else { // we can only see one tag, use MegaTag2 with the orientation from the OTOS to get an unambiguous pose
-										double otosYawDegrees = Math.toDegrees(drive.localizer.getPose().heading.toDouble());
-
-										limelight.updateRobotOrientation(otosYawDegrees);
-
 										botPose = res.getBotpose_MT2();
 									}
 
 									// update RR localizer with MT bot pose
-									Position botPos = botPose.getPosition();
+									Position botPos = botPose.getPosition().toUnit(DistanceUnit.INCH);
 									YawPitchRollAngles botOrientation = botPose.getOrientation();
 
 									drive.localizer.setPose(new Pose2d(
@@ -313,7 +314,9 @@ public class ActionableRaptorRobot extends RaptorRobot {
 									));
 
 									return true;
-								}, action
+								},
+								action,
+								maxTries
 						)
 				),
 				limelight, drive.localizer
