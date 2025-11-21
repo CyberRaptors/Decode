@@ -62,6 +62,7 @@ public class RedNearNineArtifactRunner extends ITeleOpRunner {
 								CommonPoses.RED_SECOND_SPIKE_START_POSE.heading
 						)
 						.build(),
+				bot.setIntakeGroupPower(1),
 				drive.actionBuilder(CommonPoses.RED_SECOND_SPIKE_START_POSE)
 						.strafeToSplineHeading(
 								CommonPoses.RED_SECOND_SPIKE_END_POSE.position,
@@ -93,11 +94,13 @@ public class RedNearNineArtifactRunner extends ITeleOpRunner {
 				bot.disableShootersAsync(),
 				pickupFirstSpike,
 				bot.setRailDriveTwoPower(-1.0),
+				bot.setIntakeGroupPower(0),
 				secondMoveToShoot,
 				new SleepAction(0.7),
 				bot.successiveShootWithVelo(2, bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
 				pickupSecondSpike,
 				bot.setRailDriveTwoPower(-1.0),
+				bot.setIntakeGroupPower(0),
 				thirdMoveToShoot,
 				new SleepAction(0.7),
 				bot.successiveShootWithVelo(2, bot.SHOOTER_VELO_FOR_CLOSE_SHOT),

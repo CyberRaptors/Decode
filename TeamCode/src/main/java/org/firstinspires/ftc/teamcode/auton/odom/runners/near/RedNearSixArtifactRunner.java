@@ -1,19 +1,28 @@
-package lib8812.meepmeeptests.odom.runners.near;
+package org.firstinspires.ftc.teamcode.auton.odom.runners.near;
 
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.SleepAction;
-import com.noahbres.meepmeep.roadrunner.DriveShim;
+import com.acmerobotics.roadrunner.ftc.Actions;
 
-import lib8812.meepmeeptests.stubs.ActionableRaptorRobotStub;
-import lib8812.meepmeeptests.stubs.game.CommonPoses;
+import org.firstinspires.ftc.teamcode.InteropFields;
+import org.firstinspires.ftc.teamcode.robot.ActionableRaptorRobot;
 
-public class MeepMeepRedNear {
-	static ActionableRaptorRobotStub bot = new ActionableRaptorRobotStub();
-	static Action main;
+import lib8812.common.game.CommonPoses;
+import lib8812.common.robot.IRobot;
+import lib8812.common.rr.MecanumDrive;
+import lib8812.common.teleop.ITeleOpRunner;
 
-	public static Action run(DriveShim drive) {
-		drive.setPoseEstimate(CommonPoses.INITIAL_RED_NEAR_POSE);
+public class RedNearSixArtifactRunner extends ITeleOpRunner {
+	ActionableRaptorRobot bot = new ActionableRaptorRobot(true);
+
+	Action main;
+
+	@Override
+	protected void customInit() {
+		MecanumDrive drive = bot.drive;
+
+		drive.localizer.setPose(CommonPoses.INITIAL_RED_NEAR_POSE);
 
 		Action initialMoveToShoot = drive.actionBuilder(CommonPoses.INITIAL_RED_NEAR_POSE)
 				.strafeToSplineHeading(
@@ -46,34 +55,10 @@ public class MeepMeepRedNear {
 				)
 				.build();
 
-		Action pickupSecondSpike = new SequentialAction(
-				drive.actionBuilder(CommonPoses.RED_NEAR_SHOT_POSE)
-						.strafeToSplineHeading(
-								CommonPoses.RED_SECOND_SPIKE_START_POSE.position,
-								CommonPoses.RED_SECOND_SPIKE_START_POSE.heading
-						)
-						.build(),
-				bot.setIntakeGroupPower(1),
-				drive.actionBuilder(CommonPoses.RED_SECOND_SPIKE_START_POSE)
-						.strafeToSplineHeading(
-								CommonPoses.RED_SECOND_SPIKE_END_POSE.position,
-								CommonPoses.RED_SECOND_SPIKE_END_POSE.heading,
-								bot.SPIKE_PICKUP_VEL_CONSTRAINT
-						)
-						.build()
-		);
-
-		Action thirdMoveToShoot = drive.actionBuilder(CommonPoses.RED_SECOND_SPIKE_END_POSE)
-				.strafeToSplineHeading(
-						CommonPoses.RED_NEAR_SHOT_POSE.position,
-						CommonPoses.RED_NEAR_SHOT_POSE.heading
-				)
-				.build();
-
 		Action park = drive.actionBuilder(CommonPoses.RED_NEAR_SHOT_POSE)
 				.strafeToSplineHeading(
-						CommonPoses.RED_NEAR_PARK_POSE.position,
-						CommonPoses.RED_NEAR_PARK_POSE.heading
+						CommonPoses.RED_NEAR_SHORT_PARK_POSE.position,
+						CommonPoses.RED_NEAR_SHORT_PARK_POSE.heading
 				)
 				.build();
 
@@ -85,19 +70,21 @@ public class MeepMeepRedNear {
 				bot.disableShootersAsync(),
 				pickupFirstSpike,
 				bot.setRailDriveTwoPower(-1.0),
-				bot.setIntakeGroupPower(0),
 				secondMoveToShoot,
-				new SleepAction(0.7),
-				bot.successiveShootWithVelo(2, bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
-				pickupSecondSpike,
-				bot.setRailDriveTwoPower(-1.0),
-				bot.setIntakeGroupPower(0),
-				thirdMoveToShoot,
 				new SleepAction(0.7),
 				bot.successiveShootWithVelo(2, bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
 				park
 		);
+	}
 
-		return main;
+	@Override
+	protected void internalRun() {
+		Actions.runBlocking(main);
+		InteropFields.lastKnownPose = bot.drive.localizer.getPose();
+	}
+
+	@Override
+	protected IRobot getBot() {
+		return bot;
 	}
 }

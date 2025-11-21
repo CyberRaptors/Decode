@@ -8,7 +8,7 @@ import com.noahbres.meepmeep.roadrunner.DriveShim;
 import lib8812.meepmeeptests.stubs.ActionableRaptorRobotStub;
 import lib8812.meepmeeptests.stubs.game.CommonPoses;
 
-public class MeepMeepBlueNear {
+public class MeepMeepBlueNearShort {
 	static ActionableRaptorRobotStub bot = new ActionableRaptorRobotStub();
 	static Action main;
 
@@ -46,34 +46,10 @@ public class MeepMeepBlueNear {
 				)
 				.build();
 
-		Action pickupSecondSpike = new SequentialAction(
-				drive.actionBuilder(CommonPoses.BLUE_NEAR_SHOT_POSE)
-						.strafeToSplineHeading(
-								CommonPoses.BLUE_SECOND_SPIKE_START_POSE.position,
-								CommonPoses.BLUE_SECOND_SPIKE_START_POSE.heading
-						)
-						.build(),
-				bot.setIntakeGroupPower(1),
-				drive.actionBuilder(CommonPoses.BLUE_SECOND_SPIKE_START_POSE)
-						.strafeToSplineHeading(
-								CommonPoses.BLUE_SECOND_SPIKE_END_POSE.position,
-								CommonPoses.BLUE_SECOND_SPIKE_END_POSE.heading,
-								bot.SPIKE_PICKUP_VEL_CONSTRAINT
-						)
-						.build()
-		);
-
-		Action thirdMoveToShoot = drive.actionBuilder(CommonPoses.BLUE_SECOND_SPIKE_END_POSE)
-				.strafeToSplineHeading(
-						CommonPoses.BLUE_NEAR_SHOT_POSE.position,
-						CommonPoses.BLUE_NEAR_SHOT_POSE.heading
-				)
-				.build();
-
 		Action park = drive.actionBuilder(CommonPoses.BLUE_NEAR_SHOT_POSE)
 				.strafeToSplineHeading(
-						CommonPoses.BLUE_NEAR_PARK_POSE.position,
-						CommonPoses.BLUE_NEAR_PARK_POSE.heading
+						CommonPoses.BLUE_NEAR_SHORT_PARK_POSE.position,
+						CommonPoses.BLUE_NEAR_SHORT_PARK_POSE.heading
 				)
 				.build();
 
@@ -85,14 +61,7 @@ public class MeepMeepBlueNear {
 				bot.disableShootersAsync(),
 				pickupFirstSpike,
 				bot.setRailDriveTwoPower(-1.0),
-				bot.setIntakeGroupPower(0),
 				secondMoveToShoot,
-				new SleepAction(0.7),
-				bot.successiveShootWithVelo(2, bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
-				pickupSecondSpike,
-				bot.setRailDriveTwoPower(-1.0),
-				bot.setIntakeGroupPower(0),
-				thirdMoveToShoot,
 				new SleepAction(0.7),
 				bot.successiveShootWithVelo(2, bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
 				park

@@ -31,6 +31,7 @@ public class CommonPoses {
 	public static final Pose2d BLUE_SECOND_SPIKE_START_POSE = new Pose2d(FieldConstants.TILE_LENGTH_IN*0.5, -FieldConstants.TILE_LENGTH_IN - 4, Math.toRadians(BASE_DEGREES_FOR_SPIKE_INTAKE));
 	public static final Pose2d BLUE_SECOND_SPIKE_END_POSE = new Pose2d(FieldConstants.TILE_LENGTH_IN*0.5, -FieldConstants.TILE_LENGTH_IN*2 - 1, Math.toRadians(BASE_DEGREES_FOR_SPIKE_INTAKE));
 	public static final Pose2d BLUE_NEAR_PARK_POSE = new Pose2d(0, -FieldConstants.TILE_LENGTH_IN*2 - 3, Math.toRadians(BASE_DEGREES_FOR_NEAR_PARK));
+	public static final Pose2d BLUE_NEAR_SHORT_PARK_POSE = new Pose2d(-FieldConstants.TILE_LENGTH_IN*2, -FieldConstants.TILE_LENGTH_IN*1, Math.toRadians(BASE_DEGREES_FOR_NEAR_SHOT));
 
 	public static final Pose2d INITIAL_BLUE_NEAR_POSE_FOR_MOTIF_AUTO = new Pose2d(-FieldConstants.TILE_LENGTH_IN*2 - 0.2, -FieldConstants.TILE_LENGTH_IN*2 - 3.5, Math.toRadians(BASE_DEGREES_FOR_NEAR_MOTIF_READ));
 	public static final Pose2d BLUE_NEAR_MOTIF_READ_POS = new Pose2d(-FieldConstants.TILE_LENGTH_IN*1.2, -FieldConstants.TILE_LENGTH_IN*1.2, Math.toRadians(BASE_DEGREES_FOR_NEAR_MOTIF_READ));
@@ -48,6 +49,7 @@ public class CommonPoses {
 	public static final Pose2d RED_SECOND_SPIKE_START_POSE = allianceReflect(BLUE_SECOND_SPIKE_START_POSE);
 	public static final Pose2d RED_SECOND_SPIKE_END_POSE = allianceReflect(BLUE_SECOND_SPIKE_END_POSE);
 	public static final Pose2d RED_NEAR_PARK_POSE = allianceReflect(BLUE_NEAR_PARK_POSE);
+	public static final Pose2d RED_NEAR_SHORT_PARK_POSE = allianceReflect(BLUE_NEAR_SHORT_PARK_POSE);
 
 	public static final Pose2d INITIAL_RED_FAR_POSE = allianceReflect(INITIAL_BLUE_FAR_POSE);
 	public static final Pose2d RED_FAR_SHOT_POSE = allianceReflect(BLUE_FAR_SHOT_POSE);

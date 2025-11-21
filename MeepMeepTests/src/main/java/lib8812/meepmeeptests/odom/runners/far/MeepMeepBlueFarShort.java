@@ -8,7 +8,7 @@ import com.noahbres.meepmeep.roadrunner.DriveShim;
 import lib8812.meepmeeptests.stubs.ActionableRaptorRobotStub;
 import lib8812.meepmeeptests.stubs.game.CommonPoses;
 
-public class MeepMeepBlueFar {
+public class MeepMeepBlueFarShort {
 	static ActionableRaptorRobotStub bot = new ActionableRaptorRobotStub();
 	static Action main;
 
@@ -46,31 +46,6 @@ public class MeepMeepBlueFar {
 				)
 				.build();
 
-		Action pickupSecondSpike = new SequentialAction(
-				drive.actionBuilder(CommonPoses.BLUE_FAR_SHOT_POSE
-						)
-						.strafeToSplineHeading(
-								CommonPoses.BLUE_SECOND_SPIKE_START_POSE.position,
-								CommonPoses.BLUE_SECOND_SPIKE_START_POSE.heading
-						)
-						.build(),
-				bot.setIntakeGroupPower(1),
-				drive.actionBuilder(CommonPoses.BLUE_SECOND_SPIKE_START_POSE)
-						.strafeToSplineHeading(
-								CommonPoses.BLUE_SECOND_SPIKE_END_POSE.position,
-								CommonPoses.BLUE_SECOND_SPIKE_END_POSE.heading,
-								bot.SPIKE_PICKUP_VEL_CONSTRAINT
-						)
-						.build()
-		);
-
-		Action thirdMoveToShoot = drive.actionBuilder(CommonPoses.BLUE_SECOND_SPIKE_END_POSE)
-				.strafeToSplineHeading(
-						CommonPoses.BLUE_FAR_SHOT_POSE.position,
-						CommonPoses.BLUE_FAR_SHOT_POSE.heading
-				)
-				.build();
-
 		Action park = drive.actionBuilder(CommonPoses.BLUE_FAR_SHOT_POSE)
 				.strafeTo(CommonPoses.BLUE_FAR_PARK_POS)
 				.build();
@@ -85,12 +60,6 @@ public class MeepMeepBlueFar {
 				bot.setRailDriveTwoPower(-1.0),
 				bot.setIntakeGroupPower(0),
 				secondMoveToShoot,
-				new SleepAction(0.7),
-				bot.successiveShootWithVelo(2, bot.SHOOTER_VELO_FOR_FAR_SHOT),
-				pickupSecondSpike,
-				bot.setRailDriveTwoPower(-1.0),
-				bot.setIntakeGroupPower(0),
-				thirdMoveToShoot,
 				new SleepAction(0.7),
 				bot.successiveShootWithVelo(2, bot.SHOOTER_VELO_FOR_FAR_SHOT),
 				park
