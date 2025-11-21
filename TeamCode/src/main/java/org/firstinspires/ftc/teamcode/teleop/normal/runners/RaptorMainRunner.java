@@ -99,6 +99,32 @@ public class RaptorMainRunner extends ITeleOpRunner {
 		);
 	}
 
+	void incrementVeloPreset() {
+		autoVelocityMode = false;
+
+		for (int i = 0; i < bot.SHOOTER_VELO_PRESETS.length-1; i++) {
+			if (shooterMaxVelo <= bot.SHOOTER_VELO_PRESETS[i]) {
+				shooterMaxVelo = bot.SHOOTER_VELO_PRESETS[i+1];
+				return;
+			}
+		}
+
+		shooterMaxVelo = bot.SHOOTER_VELO_PRESETS[bot.SHOOTER_VELO_PRESETS.length-1];
+	}
+
+	void decrementVeloPreset() {
+		autoVelocityMode = false;
+
+		for (int i = bot.SHOOTER_VELO_PRESETS.length-2; i >= 0; i--) {
+			if (shooterMaxVelo >= bot.SHOOTER_VELO_PRESETS[i+1]) {
+				shooterMaxVelo = bot.SHOOTER_VELO_PRESETS[i];
+				return;
+			}
+		}
+
+		shooterMaxVelo = bot.SHOOTER_VELO_PRESETS[0];
+	}
+
 	@Override
 	protected void internalRun() {
 		Runnable cancelMacros = () -> {
@@ -120,24 +146,8 @@ public class RaptorMainRunner extends ITeleOpRunner {
 				bot.railDriveThree.getPosition()+(value/100)
 		));
 
-		keybinder.bind("dpad_up").of(gamepad2).to(() -> {
-			autoVelocityMode = false;
-
-			if (shooterMaxVelo <= bot.SHOOTER_VELO_FOR_CLOSE_SHOT) {
-				shooterMaxVelo = bot.SHOOTER_VELO_FOR_MID_SHOT;
-			} else {
-				shooterMaxVelo = bot.SHOOTER_VELO_FOR_FAR_SHOT;
-			}
-		});
-		keybinder.bind("dpad_down").of(gamepad2).to(() -> {
-			autoVelocityMode = false;
-
-			if (shooterMaxVelo >= bot.SHOOTER_VELO_FOR_FAR_SHOT) {
-				shooterMaxVelo = bot.SHOOTER_VELO_FOR_MID_SHOT;
-			} else {
-				shooterMaxVelo = bot.SHOOTER_VELO_FOR_CLOSE_SHOT;
-			}
-		});
+		keybinder.bind("dpad_up").of(gamepad2).to(this::incrementVeloPreset);
+		keybinder.bind("dpad_down").of(gamepad2).to(this::decrementVeloPreset);
 
 		keybinder.bind("right_bumper").of(gamepad2).to(() -> {
 			autoVelocityMode = false;
@@ -214,16 +224,18 @@ public class RaptorMainRunner extends ITeleOpRunner {
 			if (shooterEnabled) {
 				telemetry.addData(
 						"shooter",
-						"velo limit (%.2f) left velo (%.2f) right velo (%.2f)",
+						"velo limit (%.2f) left velo (%.2f) right velo (%.2f) shot type (%s)",
 						shooterMaxVelo,
 						bot.shooterLeft.getVelocity(),
-						bot.shooterRight.getVelocity()
+						bot.shooterRight.getVelocity(),
+						bot.getShooterVelocityPresetLabel(shooterMaxVelo)
 				);
 			} else {
 				telemetry.addData(
 						"shooter",
-						"disabled, velo limit (%.2f)",
-						shooterMaxVelo
+						"disabled, velo limit (%.2f) shot type (%s)",
+						shooterMaxVelo,
+						bot.getShooterVelocityPresetLabel(shooterMaxVelo)
 				);
 			}
 

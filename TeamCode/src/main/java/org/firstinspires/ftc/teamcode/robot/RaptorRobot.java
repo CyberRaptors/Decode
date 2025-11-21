@@ -27,6 +27,18 @@ public class RaptorRobot extends IMecanumRobot {
 	public final double SHOOTER_VELO_FOR_FAR_SHOT = 1565;
 	public final double SHOOTER_VELO_FOR_CLOSE_PARALLEL_SHOT = 1280;
 
+	public final double[] SHOOTER_VELO_PRESETS = {
+			SHOOTER_VELO_FOR_CLOSE_SHOT,
+			SHOOTER_VELO_FOR_MID_SHOT,
+			SHOOTER_VELO_FOR_FAR_SHOT
+	};
+
+	public final String[] SHOOTER_VELO_PRESET_LABELS = {
+			"close",
+			"mid",
+			"far"
+	};
+
 	public final double SHOOTER_VELO_FOR_REJECT = 400;
 
 	public final double RAIL_DRIVE_THREE_MIN_POS = 0.450;
@@ -64,13 +76,25 @@ public class RaptorRobot extends IMecanumRobot {
 		limelight.start();
 	}
 
-	public final double calculateV0ForV2Shooter(double dist) { // uses linear regression to calculate optimal shot velocity from distance
+	public double calculateV0ForV2Shooter(double dist) { // uses linear regression to calculate optimal shot velocity from distance
 		// fitted to RaptorRobot v2 shooter, see regression plot for details (may use quadratic fit in the future)
 
 		double m = 3.10947;
 		double b = 1042.12244;
 
 		return m*dist + b;
+	}
+
+	public String getShooterVelocityPresetLabel(double exactVelocity) {
+		for (int i = 0; i < SHOOTER_VELO_PRESETS.length; i++) {
+			if (SHOOTER_VELO_PRESETS[i] == exactVelocity) {
+				return SHOOTER_VELO_PRESET_LABELS[i];
+			}
+		}
+
+		// exactVelocity does not match any preset
+
+		return "custom";
 	}
 
 	public final LockingControl driverControl = new LockingControl();
