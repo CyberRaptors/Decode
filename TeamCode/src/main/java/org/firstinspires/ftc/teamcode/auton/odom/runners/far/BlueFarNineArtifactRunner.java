@@ -5,6 +5,7 @@ import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.SleepAction;
 import com.acmerobotics.roadrunner.ftc.Actions;
 
+import org.firstinspires.ftc.teamcode.InteropFields;
 import org.firstinspires.ftc.teamcode.robot.ActionableRaptorRobot;
 
 import lib8812.common.game.CommonPoses;
@@ -114,6 +115,7 @@ public class BlueFarNineArtifactRunner extends ITeleOpRunner {
 	@Override
 	protected void internalRun() {
 		Actions.runBlocking(main);
+		InteropFields.lastKnownPose = bot.drive.localizer.getPose();
 	}
 
 	@Override

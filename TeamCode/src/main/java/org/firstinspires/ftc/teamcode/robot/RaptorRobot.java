@@ -11,6 +11,8 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.teamcode.InteropFields;
+
 import lib8812.common.game.ArtifactConfiguration;
 import lib8812.common.robot.IMecanumRobot;
 import lib8812.common.rr.MecanumDrive;
@@ -64,7 +66,14 @@ public class RaptorRobot extends IMecanumRobot {
 
 	@Override
 	protected void postInit(HardwareMap hardwareMap) {
-		drive = new MecanumDrive(hardwareMap, new Pose2d(0, 0, 0));
+		if (InteropFields.lastKnownPose != null) {
+			drive = new MecanumDrive(hardwareMap, InteropFields.lastKnownPose);
+
+			InteropFields.lastKnownPose = null;
+		} else {
+			drive = new MecanumDrive(hardwareMap, new Pose2d(0, 0, 0));
+		}
+
 		shooterRight.setDirection(DcMotorSimple.Direction.REVERSE);
 
 		railDriveThree.setPosition(FEEDER_READY_POS);
