@@ -20,13 +20,19 @@ import lib8812.common.rr.MecanumDrive;
 public class RaptorRobot extends IMecanumRobot {
 	public RaptorRobot(boolean blueTeam) {
 		onBlueTeam = blueTeam;
+
+		if (blueTeam) {
+			LIMELIGHT_APRILTAG_INDEX = 1; // has blue goal point-of-interest tracking
+		} else {
+			LIMELIGHT_APRILTAG_INDEX = 2; // has red goal point-of-interest tracking
+		}
 	}
 
-	public final int LIMELIGHT_APRILTAG_INDEX = 1;
+	public final int LIMELIGHT_APRILTAG_INDEX;
 
-	public final double SHOOTER_VELO_FOR_CLOSE_SHOT = 1180;
-	public final double SHOOTER_VELO_FOR_MID_SHOT = 1375;
-	public final double SHOOTER_VELO_FOR_FAR_SHOT = 1565;
+	public final double SHOOTER_VELO_FOR_CLOSE_SHOT = 1375;
+	public final double SHOOTER_VELO_FOR_MID_SHOT = 1700;
+	public final double SHOOTER_VELO_FOR_FAR_SHOT = 2200;
 	public final double SHOOTER_VELO_FOR_CLOSE_PARALLEL_SHOT = 1280;
 
 	public final double[] SHOOTER_VELO_PRESETS = {

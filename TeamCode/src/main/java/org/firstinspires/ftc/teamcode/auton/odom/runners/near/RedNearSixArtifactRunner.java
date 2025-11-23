@@ -63,6 +63,7 @@ public class RedNearSixArtifactRunner extends ITeleOpRunner {
 				.build();
 
 		main = new SequentialAction(
+				bot.setShooterVelocityAsync(bot.SHOOTER_VELO_FOR_CLOSE_SHOT), // spin up shooter in advance
 				initialMoveToShoot,
 				bot.shootWithVelo(bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
 				bot.feedNext(1.5),
@@ -71,7 +72,10 @@ public class RedNearSixArtifactRunner extends ITeleOpRunner {
 				pickupFirstSpike,
 				bot.setRailDriveTwoPower(-1.0),
 				secondMoveToShoot,
-				new SleepAction(0.7),
+				new SleepAction(0.3),
+				bot.setIntakeGroupPower(0),
+				bot.setShooterVelocityAsync(bot.SHOOTER_VELO_FOR_CLOSE_SHOT), // spin up shooter in advance
+				new SleepAction(0.4),
 				bot.successiveShootWithVelo(2, bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
 				park
 		);

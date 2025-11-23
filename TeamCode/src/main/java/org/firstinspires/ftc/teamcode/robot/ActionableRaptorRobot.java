@@ -14,7 +14,6 @@ import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
@@ -33,7 +32,7 @@ public class ActionableRaptorRobot extends RaptorRobot {
 	}
 
 
-	public final double MAX_ROBOT_VELO_FOR_SPIKE_PICKUP = 10;
+	public final double MAX_ROBOT_VELO_FOR_SPIKE_PICKUP = 100;
 	public final VelConstraint SPIKE_PICKUP_VEL_CONSTRAINT = (pose2dDual, posePath, v) -> MAX_ROBOT_VELO_FOR_SPIKE_PICKUP;
 
 	public final double MAX_ROBOT_VELO_FOR_FAST_SPIKE_PICKUP = 100;
@@ -77,6 +76,16 @@ public class ActionableRaptorRobot extends RaptorRobot {
 						new InstantAction(() -> railDriveThree.setPosition(FEEDER_READY_POS))
 				),
 				shooterLeft, shooterRight, railDriveThree
+		);
+	}
+
+	public Action setShooterVelocityAsync(double velo) {
+		return new LockedUsageAction(
+				new InstantAction(() -> {
+					shooterLeft.setVelocity(velo);
+					shooterRight.setVelocity(velo);
+				}),
+				shooterLeft, shooterRight
 		);
 	}
 
@@ -182,7 +191,7 @@ public class ActionableRaptorRobot extends RaptorRobot {
 
 								for (LLResultTypes.FiducialResult fiducial : fiducials) {
 									if (fiducial.getFiducialId() == GameConstants.DECODE.GOAL_APRILTAG_ID(onBlueTeam)) {
-										double delX = (fiducial.getTargetXDegrees()-1);
+										double delX = res.getTx(); // use res.getTx for 3D point-of-interest tracking
 
 										if (Math.abs(delX) < 1) {
 											drive.setDrivePowers(
@@ -287,30 +296,30 @@ public class ActionableRaptorRobot extends RaptorRobot {
 
 									LLResult res = limelight.getLatestResult();
 
-									if (!(res.isValid() && res.getPipelineIndex() == LIMELIGHT_APRILTAG_INDEX)) {
+									if (!(res.isValid() && res.getPipelineIndex() == LIMELIGHT_APRILTAG_INDEX) || res.getStaleness() > 100) {
 										return false;
 									}
 
-									List<LLResultTypes.FiducialResult> fiducials = res.getFiducialResults();
-
-									if (fiducials.isEmpty()) return false;
-
 									Pose3D botPose;
 
-									if (fiducials.size() > 1) { // use MegaTag to get robot pose (multiple tags allow zero-ambiguity localization)
+									int tagsUsedForLocalization = res.getBotposeTagCount();
+
+									if (tagsUsedForLocalization > 1) { // use MegaTag to get robot pose (multiple tags allow zero-ambiguity localization)
 										botPose = res.getBotpose();
-									} else { // we can only see one tag, use MegaTag2 with the orientation from the OTOS to get an unambiguous pose
+									} else if (tagsUsedForLocalization == 1) { // we can only see one tag, use MegaTag2 with the orientation from the OTOS to get an unambiguous pose
 										botPose = res.getBotpose_MT2();
+									} else { // no tags, can't localize
+										return false;
 									}
 
 									// update RR localizer with MT bot pose
-									Position botPos = botPose.getPosition().toUnit(DistanceUnit.INCH);
+									Position botPos = botPose.getPosition();
 									YawPitchRollAngles botOrientation = botPose.getOrientation();
 
 									drive.localizer.setPose(new Pose2d(
 											botPos.x,
 											botPos.y,
-											botOrientation.getYaw(AngleUnit.RADIANS)
+											botOrientation.getYaw(AngleUnit.RADIANS)+Math.PI // limelight coordinate system offset
 									));
 
 									return true;
@@ -355,7 +364,7 @@ public class ActionableRaptorRobot extends RaptorRobot {
 									.build();
 						}),
 						drive
-				), 100
+				), 20
 		);
 	}
 }

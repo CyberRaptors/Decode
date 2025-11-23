@@ -14,7 +14,7 @@ import lib8812.common.rr.MecanumDrive;
 import lib8812.common.teleop.ITeleOpRunner;
 
 public class RedNearNineArtifactRunner extends ITeleOpRunner {
-	ActionableRaptorRobot bot = new ActionableRaptorRobot(false);
+	ActionableRaptorRobot bot = new ActionableRaptorRobot(true);
 
 	Action main;
 
@@ -42,8 +42,7 @@ public class RedNearNineArtifactRunner extends ITeleOpRunner {
 				drive.actionBuilder(CommonPoses.RED_FIRST_SPIKE_START_POSE)
 						.strafeToSplineHeading(
 								CommonPoses.RED_FIRST_SPIKE_END_POSE.position,
-								CommonPoses.RED_FIRST_SPIKE_END_POSE.heading,
-								bot.FAST_SPIKE_PICKUP_VEL_CONSTRAINT
+								CommonPoses.RED_FIRST_SPIKE_END_POSE.heading
 						)
 						.build()
 		);
@@ -66,13 +65,16 @@ public class RedNearNineArtifactRunner extends ITeleOpRunner {
 				drive.actionBuilder(CommonPoses.RED_SECOND_SPIKE_START_POSE)
 						.strafeToSplineHeading(
 								CommonPoses.RED_SECOND_SPIKE_END_POSE.position,
-								CommonPoses.RED_SECOND_SPIKE_END_POSE.heading,
-								bot.SPIKE_PICKUP_VEL_CONSTRAINT
+								CommonPoses.RED_SECOND_SPIKE_END_POSE.heading
+						)
+						.strafeToSplineHeading(
+								CommonPoses.RED_SECOND_SPIKE_BACKUP_POSE.position,
+								CommonPoses.RED_SECOND_SPIKE_BACKUP_POSE.heading
 						)
 						.build()
 		);
 
-		Action thirdMoveToShoot = drive.actionBuilder(CommonPoses.RED_SECOND_SPIKE_END_POSE)
+		Action thirdMoveToShoot = drive.actionBuilder(CommonPoses.RED_SECOND_SPIKE_BACKUP_POSE)
 				.strafeToSplineHeading(
 						CommonPoses.RED_NEAR_SHOT_POSE.position,
 						CommonPoses.RED_NEAR_SHOT_POSE.heading
@@ -87,6 +89,7 @@ public class RedNearNineArtifactRunner extends ITeleOpRunner {
 				.build();
 
 		main = new SequentialAction(
+				bot.setShooterVelocityAsync(bot.SHOOTER_VELO_FOR_CLOSE_SHOT), // spin up shooter in advance
 				initialMoveToShoot,
 				bot.shootWithVelo(bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
 				bot.feedNext(1.5),
@@ -94,15 +97,19 @@ public class RedNearNineArtifactRunner extends ITeleOpRunner {
 				bot.disableShootersAsync(),
 				pickupFirstSpike,
 				bot.setRailDriveTwoPower(-1.0),
-				bot.setIntakeGroupPower(0),
 				secondMoveToShoot,
-				new SleepAction(0.7),
+				new SleepAction(0.3),
+				bot.setIntakeGroupPower(0),
+				bot.setShooterVelocityAsync(bot.SHOOTER_VELO_FOR_CLOSE_SHOT), // spin up shooter in advance
+				new SleepAction(0.4),
 				bot.successiveShootWithVelo(2, bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
 				pickupSecondSpike,
 				bot.setRailDriveTwoPower(-1.0),
-				bot.setIntakeGroupPower(0),
 				thirdMoveToShoot,
-				new SleepAction(0.7),
+				new SleepAction(0.3),
+				bot.setIntakeGroupPower(0),
+				bot.setShooterVelocityAsync(bot.SHOOTER_VELO_FOR_CLOSE_SHOT), // spin up shooter in advance
+				new SleepAction(0.4),
 				bot.successiveShootWithVelo(2, bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
 				park
 		);

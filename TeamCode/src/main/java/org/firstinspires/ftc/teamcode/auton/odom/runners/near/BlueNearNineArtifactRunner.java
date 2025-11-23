@@ -42,8 +42,7 @@ public class BlueNearNineArtifactRunner extends ITeleOpRunner {
 				drive.actionBuilder(CommonPoses.BLUE_FIRST_SPIKE_START_POSE)
 						.strafeToSplineHeading(
 								CommonPoses.BLUE_FIRST_SPIKE_END_POSE.position,
-								CommonPoses.BLUE_FIRST_SPIKE_END_POSE.heading,
-								bot.FAST_SPIKE_PICKUP_VEL_CONSTRAINT
+								CommonPoses.BLUE_FIRST_SPIKE_END_POSE.heading
 						)
 						.build()
 		);
@@ -66,13 +65,16 @@ public class BlueNearNineArtifactRunner extends ITeleOpRunner {
 				drive.actionBuilder(CommonPoses.BLUE_SECOND_SPIKE_START_POSE)
 						.strafeToSplineHeading(
 								CommonPoses.BLUE_SECOND_SPIKE_END_POSE.position,
-								CommonPoses.BLUE_SECOND_SPIKE_END_POSE.heading,
-								bot.SPIKE_PICKUP_VEL_CONSTRAINT
+								CommonPoses.BLUE_SECOND_SPIKE_END_POSE.heading
+						)
+						.strafeToSplineHeading(
+								CommonPoses.BLUE_SECOND_SPIKE_BACKUP_POSE.position,
+								CommonPoses.BLUE_SECOND_SPIKE_BACKUP_POSE.heading
 						)
 						.build()
 		);
 
-		Action thirdMoveToShoot = drive.actionBuilder(CommonPoses.BLUE_SECOND_SPIKE_END_POSE)
+		Action thirdMoveToShoot = drive.actionBuilder(CommonPoses.BLUE_SECOND_SPIKE_BACKUP_POSE)
 				.strafeToSplineHeading(
 						CommonPoses.BLUE_NEAR_SHOT_POSE.position,
 						CommonPoses.BLUE_NEAR_SHOT_POSE.heading
@@ -87,6 +89,7 @@ public class BlueNearNineArtifactRunner extends ITeleOpRunner {
 				.build();
 
 		main = new SequentialAction(
+				bot.setShooterVelocityAsync(bot.SHOOTER_VELO_FOR_CLOSE_SHOT), // spin up shooter in advance
 				initialMoveToShoot,
 				bot.shootWithVelo(bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
 				bot.feedNext(1.5),
@@ -94,15 +97,19 @@ public class BlueNearNineArtifactRunner extends ITeleOpRunner {
 				bot.disableShootersAsync(),
 				pickupFirstSpike,
 				bot.setRailDriveTwoPower(-1.0),
-				bot.setIntakeGroupPower(0),
 				secondMoveToShoot,
-				new SleepAction(0.7),
+				new SleepAction(0.3),
+				bot.setIntakeGroupPower(0),
+				bot.setShooterVelocityAsync(bot.SHOOTER_VELO_FOR_CLOSE_SHOT), // spin up shooter in advance
+				new SleepAction(0.4),
 				bot.successiveShootWithVelo(2, bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
 				pickupSecondSpike,
 				bot.setRailDriveTwoPower(-1.0),
-				bot.setIntakeGroupPower(0),
 				thirdMoveToShoot,
-				new SleepAction(0.7),
+				new SleepAction(0.3),
+				bot.setIntakeGroupPower(0),
+				bot.setShooterVelocityAsync(bot.SHOOTER_VELO_FOR_CLOSE_SHOT), // spin up shooter in advance
+				new SleepAction(0.4),
 				bot.successiveShootWithVelo(2, bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
 				park
 		);

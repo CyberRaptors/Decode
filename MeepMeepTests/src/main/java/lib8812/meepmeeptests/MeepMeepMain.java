@@ -5,7 +5,7 @@ import com.noahbres.meepmeep.roadrunner.DefaultBotBuilder;
 import com.noahbres.meepmeep.roadrunner.DriveShim;
 import com.noahbres.meepmeep.roadrunner.entity.RoadRunnerBotEntity;
 
-import lib8812.meepmeeptests.odom.runners.far.MeepMeepRedFarShort;
+import lib8812.meepmeeptests.odom.runners.near.MeepMeepBlueNear;
 
 public class MeepMeepMain {
 	public static void main(String[] args) {
@@ -18,7 +18,7 @@ public class MeepMeepMain {
 
 		DriveShim drive = myBot.getDrive();
 
-		myBot.runAction(MeepMeepRedFarShort.run(drive));
+		myBot.runAction(MeepMeepBlueNear.run(drive));
 
 		meepMeep
 				.setBackground(MeepMeep.Background.FIELD_DECODE_JUICE_DARK)

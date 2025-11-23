@@ -38,6 +38,7 @@ package org.firstinspires.ftc.teamcode.teleop.normal.runners;
 
 import com.acmerobotics.roadrunner.InstantAction;
 import com.acmerobotics.roadrunner.Pose2d;
+import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.Vector2d;
 
 import org.firstinspires.ftc.teamcode.robot.ActionableRaptorRobot;
@@ -87,20 +88,27 @@ public class RaptorMainRunner extends ITeleOpRunner {
 		autoVeloActionStillRunning = true;
 
 		actions.scheduleAll(
-				bot.requireLimelightRelocalization(new InstantAction(() -> {
-					Vector2d botPos = bot.drive.localizer.getPose().position;
+				new SequentialAction(
+						bot.requireLimelightRelocalization(new InstantAction(() -> {
+							Vector2d botPos = bot.drive.localizer.getPose().position;
 
-					double distanceFromBotCenterToGoalCorner = GameConstants.DECODE.GOAL_POSITION(bot.onBlueTeam).minus(botPos).norm();
+							double distanceFromBotCenterToGoalCorner = GameConstants.DECODE.GOAL_POSITION(bot.onBlueTeam).minus(botPos).norm();
 
-					shooterMaxVelo = bot.calculateV0ForV2Shooter(distanceFromBotCenterToGoalCorner);
-
-					autoVeloActionStillRunning = false;
-				}), 20)
+							shooterMaxVelo = bot.calculateV0ForV2Shooter(distanceFromBotCenterToGoalCorner);
+						}), 20),
+						new InstantAction(() -> autoVeloActionStillRunning = false) // we need a SequentialAction to reset this flag in case the requireLimelightRelocalization gives up and never dispatches the velo update InstantAction
+				)
 		);
 	}
 
 	void incrementVeloPreset() {
 		autoVelocityMode = false;
+//
+//		if (shooterMaxVelo <= bot.SHOOTER_VELO_FOR_CLOSE_SHOT) {
+//			shooterMaxVelo = bot.SHOOTER_VELO_FOR_MID_SHOT;
+//		} else {
+//			shooterMaxVelo = bot.SHOOTER_VELO_FOR_FAR_SHOT;
+//		}
 
 		for (int i = 0; i < bot.SHOOTER_VELO_PRESETS.length-1; i++) {
 			if (shooterMaxVelo <= bot.SHOOTER_VELO_PRESETS[i]) {
@@ -114,6 +122,12 @@ public class RaptorMainRunner extends ITeleOpRunner {
 
 	void decrementVeloPreset() {
 		autoVelocityMode = false;
+//		if (shooterMaxVelo >= bot.SHOOTER_VELO_FOR_FAR_SHOT) {
+//			shooterMaxVelo = bot.SHOOTER_VELO_FOR_MID_SHOT;
+//		} else {
+//			shooterMaxVelo = bot.SHOOTER_VELO_FOR_CLOSE_SHOT;
+//		}
+
 
 		for (int i = bot.SHOOTER_VELO_PRESETS.length-2; i >= 0; i--) {
 			if (shooterMaxVelo >= bot.SHOOTER_VELO_PRESETS[i+1]) {
@@ -134,12 +148,9 @@ public class RaptorMainRunner extends ITeleOpRunner {
 
 		keybinder.bind("b").of(gamepad1).to(cancelMacros);
 		keybinder.bind("x").of(gamepad1).to(() -> verbose = !verbose);
-		keybinder.bind("y").of(gamepad1).to(() -> actions.scheduleAll(bot.localizationEnabledAlignToGoal()));
-		keybinder.bind("a").of(gamepad1).to(() -> actions.scheduleAll(bot.strafeToBase()));
+		keybinder.bind("y").of(gamepad1).to(() -> actions.scheduleAll(bot.limelightAlignToGoal()));
+//		keybinder.bind("a").of(gamepad1).to(() -> actions.scheduleAll(bot.strafeToBase()));
 
-
-		keybinder.bind("right_trigger").of(gamepad2).to(bot.driverControl::setIntakeGroupPower);
-		keybinder.bind("left_trigger").of(gamepad2).to((power) -> bot.driverControl.setIntakeGroupPower(-power));
 
 		keybinder.bind("left_stick_y").of(gamepad2).to(bot.driverControl::setRailDriveTwoPower);
 		keybinder.bind("right_stick_y").of(gamepad2).to((value) -> bot.driverControl.setRailDriveThreePosition(
@@ -180,12 +191,15 @@ public class RaptorMainRunner extends ITeleOpRunner {
 
 		while (opModeIsActive()) {
 			bot.driverControl.applyDrivePower(-gamepad1.inner.left_stick_y, -gamepad1.inner.left_stick_x, -gamepad1.inner.right_stick_x);
+			bot.driverControl.setIntakeGroupPower(gamepad2.inner.right_trigger-gamepad2.inner.left_trigger); // use a direct call instead of two separate keybind patterns for this to avoid overwrites
 
 			if (autoVelocityMode) {
 				autoAdjustShooterMaxVelo();
 			}
 
 			runShooter();
+
+			bot.drive.localizer.update();
 
 			keybinder.executeActions();
 			actions.execute();
@@ -241,7 +255,33 @@ public class RaptorMainRunner extends ITeleOpRunner {
 
 			Pose2d botPose = bot.drive.localizer.getPose();
 
-			telemetry.addData("current position", "x: %.2f, y: %.2f, heading: %.2f", botPose.position.x, botPose.position.y, botPose.heading);
+			telemetry.addData("current position", "x: %.2f in, y: %.2f in, heading: %.2f deg", botPose.position.x, botPose.position.y, Math.toDegrees(botPose.heading.toDouble()));
+//
+//			bot.limelight.pipelineSwitch(bot.LIMELIGHT_APRILTAG_INDEX);
+//			// in case we can use MT2
+//			double otosYawDegrees = Math.toDegrees(bot.drive.localizer.getPose().heading.toDouble());
+//			bot.limelight.updateRobotOrientation(otosYawDegrees);
+//
+//			LLResult res = bot.limelight.getLatestResult();
+//
+//			if (!(res.isValid() && res.getPipelineIndex() == bot.LIMELIGHT_APRILTAG_INDEX)) continue;
+//
+//			List<LLResultTypes.FiducialResult> fiducials = res.getFiducialResults();
+//
+//			if (fiducials.isEmpty()) continue;
+//
+//			Pose3D botPoseLL;
+//
+//			if (fiducials.size() > 1) { // use MegaTag to get robot pose (multiple tags allow zero-ambiguity localization)
+//				botPoseLL = res.getBotpose();
+//			} else { // we can only see one tag, use MegaTag2 with the orientation from the OTOS to get an unambiguous pose
+//				botPoseLL = res.getBotpose_MT2();
+//			}
+//
+//			Position botPosLL = botPoseLL.getPosition().toUnit(DistanceUnit.INCH);
+//			YawPitchRollAngles botOrientationLL = botPoseLL.getOrientation();
+//
+//			telemetry.addData("current position (LL)", "x: %.2f in, y: %.2f in, heading: %.2f deg", botPosLL.x, botPosLL.y, botOrientationLL.getYaw(AngleUnit.RADIANS));
 
 			telemetry.update();
 		}
