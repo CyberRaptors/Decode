@@ -76,13 +76,6 @@ public class BlueNearNineArtifactRunner extends ITeleOpRunner {
 
 		Action thirdMoveToShoot = drive.actionBuilder(CommonPoses.BLUE_SECOND_SPIKE_BACKUP_POSE)
 				.strafeToSplineHeading(
-						CommonPoses.BLUE_NEAR_SHOT_POSE.position,
-						CommonPoses.BLUE_NEAR_SHOT_POSE.heading
-				)
-				.build();
-
-		Action park = drive.actionBuilder(CommonPoses.BLUE_NEAR_SHOT_POSE)
-				.strafeToSplineHeading(
 						CommonPoses.BLUE_NEAR_PARK_POSE.position,
 						CommonPoses.BLUE_NEAR_PARK_POSE.heading
 				)
@@ -100,18 +93,13 @@ public class BlueNearNineArtifactRunner extends ITeleOpRunner {
 				secondMoveToShoot,
 				new SleepAction(0.3),
 				bot.setIntakeGroupPower(0),
-				bot.setShooterVelocityAsync(bot.SHOOTER_VELO_FOR_CLOSE_SHOT), // spin up shooter in advance
-				new SleepAction(0.4),
-				bot.successiveShootWithVelo(2, bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
+				bot.successiveShootWithVelo(3, bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
 				pickupSecondSpike,
 				bot.setRailDriveTwoPower(-1.0),
 				thirdMoveToShoot,
 				new SleepAction(0.3),
 				bot.setIntakeGroupPower(0),
-				bot.setShooterVelocityAsync(bot.SHOOTER_VELO_FOR_CLOSE_SHOT), // spin up shooter in advance
-				new SleepAction(0.4),
-				bot.successiveShootWithVelo(2, bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
-				park
+				bot.successiveShootWithVelo(3, bot.SHOOTER_VELO_FOR_CLOSE_SHOT)
 		);
 	}
 

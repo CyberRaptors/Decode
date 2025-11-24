@@ -38,6 +38,19 @@ public class ActionableRaptorRobot extends RaptorRobot {
 	public final double MAX_ROBOT_VELO_FOR_FAST_SPIKE_PICKUP = 100;
 	public final VelConstraint FAST_SPIKE_PICKUP_VEL_CONSTRAINT = (pose2dDual, posePath, v) -> MAX_ROBOT_VELO_FOR_FAST_SPIKE_PICKUP;
 
+	public Action wiggleFeeder(int iterations) {
+		Action[] actions = new Action[iterations*4];
+
+		for (int i = 0; i < actions.length; i+=4) {
+			actions[i] = new InstantAction(() -> railDriveThree.setPosition(FEEDER_READY_POS));
+			actions[i+1] = new SleepAction(0.2);
+			actions[i+2] = new InstantAction(() -> railDriveThree.setPosition(FEEDER_READY_POS-FEEDER_WIGGLE_DISTANCE));
+			actions[i+3] = new SleepAction(0.2);
+		}
+
+		return new SequentialAction(actions);
+	}
+
 	public Action setRailDriveTwoPower(double power) {
 		return new LockedUsageAction(
 				new InstantAction(() -> railDriveTwo.setPower(power)),
@@ -189,29 +202,25 @@ public class ActionableRaptorRobot extends RaptorRobot {
 
 								List<LLResultTypes.FiducialResult> fiducials = res.getFiducialResults();
 
-								for (LLResultTypes.FiducialResult fiducial : fiducials) {
-									if (fiducial.getFiducialId() == GameConstants.DECODE.GOAL_APRILTAG_ID(onBlueTeam)) {
-										double delX = res.getTx(); // use res.getTx for 3D point-of-interest tracking
+								if (fiducials.isEmpty()) return false;
 
-										if (Math.abs(delX) < 1) {
-											drive.setDrivePowers(
-													new PoseVelocity2d(new Vector2d(0, 0), 0)
-											);
-											return false;
-										}
+								double delX = res.getTx(); // use res.getTx for 3D point-of-interest tracking
 
-										drive.setDrivePowers(
-												new PoseVelocity2d(
-														new Vector2d(0, 0),
-													 	- delX / 20 // pure proportional controller
-												)
-										);
-
-										return true;
-									}
+								if (Math.abs(delX) < 1) {
+									drive.setDrivePowers(
+											new PoseVelocity2d(new Vector2d(0, 0), 0)
+									);
+									return false;
 								}
 
-								return false;
+								drive.setDrivePowers(
+										new PoseVelocity2d(
+												new Vector2d(0, 0),
+												- delX / 20 // pure proportional controller
+										)
+								);
+
+								return true;
 							},
 							10
 					)

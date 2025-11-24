@@ -63,20 +63,20 @@ public class RedFarSixArtifactMidShotRunner extends ITeleOpRunner {
 				.build();
 
 		main = new SequentialAction(
-				bot.setShooterVelocityAsync(bot.SHOOTER_VELO_FOR_CLOSE_SHOT), // spin up shooter in advance
+				bot.setShooterVelocityAsync(bot.SHOOTER_VELO_FOR_MID_SHOT), // spin up shooter in advance
 				initialMoveToShoot,
-				bot.shootWithVelo(bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
+				bot.shootWithVelo(bot.SHOOTER_VELO_FOR_MID_SHOT),
 				bot.feedNext(1.5),
-				bot.shootWithVelo(bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
+				bot.shootWithVelo(bot.SHOOTER_VELO_FOR_MID_SHOT),
 				bot.disableShootersAsync(),
 				pickupFirstSpike,
 				bot.setRailDriveTwoPower(-1.0),
 				secondMoveToShoot,
 				new SleepAction(0.3),
 				bot.setIntakeGroupPower(0),
-				bot.setShooterVelocityAsync(bot.SHOOTER_VELO_FOR_CLOSE_SHOT), // spin up shooter in advance
+				bot.setShooterVelocityAsync(bot.SHOOTER_VELO_FOR_MID_SHOT), // spin up shooter in advance
 				new SleepAction(0.4),
-				bot.successiveShootWithVelo(2, bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
+				bot.successiveShootWithVelo(3, bot.SHOOTER_VELO_FOR_MID_SHOT),
 				park
 		);
 	}
