@@ -29,47 +29,47 @@ public class ActionableRaptorRobot extends RaptorRobot {
 	public Action limelightAlignToGoal() {
 		return new LockedUsageAction(
 				new SequentialAction(
-					new InstantAction(() -> limelight.pipelineSwitch(LIMELIGHT_APRILTAG_INDEX)),
-					(telemetryPacket) -> {
-						LLResult res = limelight.getLatestResult();
+						new InstantAction(() -> limelight.pipelineSwitch(LIMELIGHT_APRILTAG_INDEX)),
+						(telemetryPacket) -> {
+							LLResult res = limelight.getLatestResult();
 
-						return res.getPipelineIndex() != LIMELIGHT_APRILTAG_INDEX;
-					},
-					new OnceAction(
-							() -> {
-								LLResult res = limelight.getLatestResult();
+							return res.getPipelineIndex() != LIMELIGHT_APRILTAG_INDEX;
+						},
+						new OnceAction(
+								() -> {
+									LLResult res = limelight.getLatestResult();
 
-								return res.isValid();
-							},
-							(telemetryPacket) -> {
-								LLResult res = limelight.getLatestResult();
+									return res.isValid();
+								},
+								(telemetryPacket) -> {
+									LLResult res = limelight.getLatestResult();
 
-								if (!res.isValid()) return false;
+									if (!res.isValid()) return false;
 
-								List<LLResultTypes.FiducialResult> fiducials = res.getFiducialResults();
+									List<LLResultTypes.FiducialResult> fiducials = res.getFiducialResults();
 
-								if (fiducials.isEmpty()) return false;
+									if (fiducials.isEmpty()) return false;
 
-								double delX = res.getTx(); // use res.getTx for 3D point-of-interest tracking
+									double delX = res.getTx(); // use res.getTx for 3D point-of-interest tracking
 
-								if (Math.abs(delX) < 1) {
+									if (Math.abs(delX) < 1) {
+										drive.setDrivePowers(
+												new PoseVelocity2d(new Vector2d(0, 0), 0)
+										);
+										return false;
+									}
+
 									drive.setDrivePowers(
-											new PoseVelocity2d(new Vector2d(0, 0), 0)
+											new PoseVelocity2d(
+													new Vector2d(0, 0),
+													- delX / 20 // pure proportional controller
+											)
 									);
-									return false;
-								}
 
-								drive.setDrivePowers(
-										new PoseVelocity2d(
-												new Vector2d(0, 0),
-												- delX / 20 // pure proportional controller
-										)
-								);
-
-								return true;
-							},
-							10
-					)
+									return true;
+								},
+								10
+						)
 				),
 				limelight, drive
 		);
@@ -81,27 +81,13 @@ public class ActionableRaptorRobot extends RaptorRobot {
 						new InstantAction(() -> limelight.pipelineSwitch(LIMELIGHT_APRILTAG_INDEX)),
 						new OnceAction(
 								() -> {
-									// in case we can use MT2
-									double otosYawDegrees = Math.toDegrees(drive.localizer.getPose().heading.toDouble());
-									limelight.updateRobotOrientation(otosYawDegrees);
-
 									LLResult res = limelight.getLatestResult();
 
 									if (!(res.isValid() && res.getPipelineIndex() == LIMELIGHT_APRILTAG_INDEX) || res.getStaleness() > 100) {
 										return false;
 									}
 
-									Pose3D botPose;
-
-									int tagsUsedForLocalization = res.getBotposeTagCount();
-
-									if (tagsUsedForLocalization > 1) { // use MegaTag to get robot pose (multiple tags allow zero-ambiguity localization)
-										botPose = res.getBotpose();
-									} else if (tagsUsedForLocalization == 1) { // we can only see one tag, use MegaTag2 with the orientation from the OTOS to get an unambiguous pose
-										botPose = res.getBotpose_MT2();
-									} else { // no tags, can't localize
-										return false;
-									}
+									Pose3D botPose = res.getBotpose(); // always use MegaTag to get robot pose (we cannot rely on the OTOS heading to give us a correct MT2 pose)
 
 									// update RR localizer with MT bot pose
 									Position botPos = botPose.getPosition();
