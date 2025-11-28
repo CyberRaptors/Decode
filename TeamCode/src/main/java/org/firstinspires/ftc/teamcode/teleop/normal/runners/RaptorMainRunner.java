@@ -14,8 +14,8 @@ DRIVER A
 DRIVER B
 	RIGHT TRIGGER - Run intake & rail group forwards
 	LEFT TRIGGER - Run intake group in reverse
-	LEFT STICK (Y) - Run rail drive two counterclockwise [towards shooter] (+) and clockwise [towards intake] (-)
-	RIGHT STICK (Y) - Move rail drive three (feeder) forwards (+) and backwards (-)
+	LEFT STICK (Y) - Run transfer forwards (+) and backwards (-)
+	RIGHT STICK (Y) - Run transfer forwards (+) and backwards (-)
 
 	RIGHT BUMPER - Run shooter to intake from human
 	LEFT BUMPER - Enable automatic shooter velocity control
@@ -30,8 +30,6 @@ DRIVER B
 
 	A - Enable/disable shooter
 	B - Globally cancel all macros
-	X - Dispatch auto-shoot macro
-	Y - Dispatch successive auto-shoot macro (3 shots)
  */
 
 package org.firstinspires.ftc.teamcode.teleop.normal.runners;
@@ -70,12 +68,12 @@ public class RaptorMainRunner extends ITeleOpRunner {
 			shooterEnabled = !shooterEnabled;
 		}
 
-		bot.driverControl.setShooterPower(0);
+		bot.driverControl.setShooterOff();
 	}
 
 	void runShooter() {
 		if (!shooterEnabled) {
-			bot.driverControl.setShooterPower(0);
+			bot.driverControl.setShooterOff();
 			return;
 		}
 
@@ -103,12 +101,6 @@ public class RaptorMainRunner extends ITeleOpRunner {
 
 	void incrementVeloPreset() {
 		autoVelocityMode = false;
-//
-//		if (shooterMaxVelo <= bot.SHOOTER_VELO_FOR_CLOSE_SHOT) {
-//			shooterMaxVelo = bot.SHOOTER_VELO_FOR_MID_SHOT;
-//		} else {
-//			shooterMaxVelo = bot.SHOOTER_VELO_FOR_FAR_SHOT;
-//		}
 
 		for (int i = 0; i < bot.SHOOTER_VELO_PRESETS.length-1; i++) {
 			if (shooterMaxVelo <= bot.SHOOTER_VELO_PRESETS[i]) {
@@ -122,12 +114,6 @@ public class RaptorMainRunner extends ITeleOpRunner {
 
 	void decrementVeloPreset() {
 		autoVelocityMode = false;
-//		if (shooterMaxVelo >= bot.SHOOTER_VELO_FOR_FAR_SHOT) {
-//			shooterMaxVelo = bot.SHOOTER_VELO_FOR_MID_SHOT;
-//		} else {
-//			shooterMaxVelo = bot.SHOOTER_VELO_FOR_CLOSE_SHOT;
-//		}
-
 
 		for (int i = bot.SHOOTER_VELO_PRESETS.length-2; i >= 0; i--) {
 			if (shooterMaxVelo >= bot.SHOOTER_VELO_PRESETS[i+1]) {
@@ -151,11 +137,8 @@ public class RaptorMainRunner extends ITeleOpRunner {
 		keybinder.bind("y").of(gamepad1).to(() -> actions.scheduleAll(bot.limelightAlignToGoal()));
 //		keybinder.bind("a").of(gamepad1).to(() -> actions.scheduleAll(bot.strafeToBase()));
 
-
-		keybinder.bind("left_stick_y").of(gamepad2).to(bot.driverControl::setRailDriveTwoPower);
-		keybinder.bind("right_stick_y").of(gamepad2).to((value) -> bot.driverControl.setRailDriveThreePosition(
-				bot.railDriveThree.getPosition()+(value/100)
-		));
+		keybinder.bind("left_stick_y").of(gamepad2).to(bot.driverControl::setTransferPower);
+		keybinder.bind("right_stick_y").of(gamepad2).to(bot.driverControl::setTransferPower);
 
 		keybinder.bind("dpad_up").of(gamepad2).to(this::incrementVeloPreset);
 		keybinder.bind("dpad_down").of(gamepad2).to(this::decrementVeloPreset);
@@ -176,7 +159,6 @@ public class RaptorMainRunner extends ITeleOpRunner {
 
 		keybinder.bind("a").of(gamepad2).to(this::toggleShooterEnabled);
 		keybinder.bind("b").of(gamepad2).to(cancelMacros);
-		keybinder.bind("x").of(gamepad2).to(() -> actions.scheduleAll(bot.shootWithVelo(shooterMaxVelo)));
 
 		keybinder.bind("dpad_left").of(gamepad2).to(() -> {
 			autoVelocityMode = false;
@@ -191,7 +173,7 @@ public class RaptorMainRunner extends ITeleOpRunner {
 
 		while (opModeIsActive()) {
 			bot.driverControl.applyDrivePower(-gamepad1.inner.left_stick_y, -gamepad1.inner.left_stick_x, -gamepad1.inner.right_stick_x);
-			bot.driverControl.setIntakeGroupPower(gamepad2.inner.right_trigger-gamepad2.inner.left_trigger); // use a direct call instead of two separate keybind patterns for this to avoid overwrites
+			bot.driverControl.setIntakePower(gamepad2.inner.right_trigger-gamepad2.inner.left_trigger); // use a direct call instead of two separate keybind patterns for this to avoid overwrites
 
 			if (autoVelocityMode) {
 				autoAdjustShooterMaxVelo();
@@ -218,21 +200,15 @@ public class RaptorMainRunner extends ITeleOpRunner {
 			telemetry.addData(
 					"intake group",
 					"power (%.2f)",
-					bot.intakeAndRailDriveOne.getPower()
+					bot.intake.getPower()
 			);
 
 			telemetry.addData(
-					"rail drive two",
-					"power (%.2f)",
-					bot.railDriveTwo.getPower()
-			);
-
-			telemetry.addData(
-					"rail drive three (feeder)",
-					"position (%.2f) min (%.2f) max (%.2f)",
-					bot.railDriveThree.getPosition(),
-					bot.RAIL_DRIVE_THREE_MIN_POS,
-					bot.RAIL_DRIVE_THREE_MAX_POS
+					"transfer",
+					"main power (%.2f), helper one power (%.2f), helper two power (%.2f)",
+					bot.transfer.getPower(),
+					bot.transferHelperOne.getPower(),
+					bot.transferHelperTwo.getPower()
 			);
 
 			if (shooterEnabled) {
@@ -254,34 +230,7 @@ public class RaptorMainRunner extends ITeleOpRunner {
 			}
 
 			Pose2d botPose = bot.drive.localizer.getPose();
-
 			telemetry.addData("current position", "x: %.2f in, y: %.2f in, heading: %.2f deg", botPose.position.x, botPose.position.y, Math.toDegrees(botPose.heading.toDouble()));
-//
-//			bot.limelight.pipelineSwitch(bot.LIMELIGHT_APRILTAG_INDEX);
-//			// in case we can use MT2
-//			double otosYawDegrees = Math.toDegrees(bot.drive.localizer.getPose().heading.toDouble());
-//			bot.limelight.updateRobotOrientation(otosYawDegrees);
-//
-//			LLResult res = bot.limelight.getLatestResult();
-//
-//			if (!(res.isValid() && res.getPipelineIndex() == bot.LIMELIGHT_APRILTAG_INDEX)) continue;
-//
-//			List<LLResultTypes.FiducialResult> fiducials = res.getFiducialResults();
-//
-//			if (fiducials.isEmpty()) continue;
-//
-//			Pose3D botPoseLL;
-//
-//			if (fiducials.size() > 1) { // use MegaTag to get robot pose (multiple tags allow zero-ambiguity localization)
-//				botPoseLL = res.getBotpose();
-//			} else { // we can only see one tag, use MegaTag2 with the orientation from the OTOS to get an unambiguous pose
-//				botPoseLL = res.getBotpose_MT2();
-//			}
-//
-//			Position botPosLL = botPoseLL.getPosition().toUnit(DistanceUnit.INCH);
-//			YawPitchRollAngles botOrientationLL = botPoseLL.getOrientation();
-//
-//			telemetry.addData("current position (LL)", "x: %.2f in, y: %.2f in, heading: %.2f deg", botPosLL.x, botPosLL.y, botOrientationLL.getYaw(AngleUnit.RADIANS));
 
 			telemetry.update();
 		}

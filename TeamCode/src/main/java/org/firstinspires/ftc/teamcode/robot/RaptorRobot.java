@@ -9,11 +9,9 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.InteropFields;
 
-import lib8812.common.game.ArtifactConfiguration;
 import lib8812.common.robot.IMecanumRobot;
 import lib8812.common.rr.MecanumDrive;
 
@@ -30,10 +28,9 @@ public class RaptorRobot extends IMecanumRobot {
 
 	public final int LIMELIGHT_APRILTAG_INDEX;
 
-	public final double SHOOTER_VELO_FOR_CLOSE_SHOT = 1375;
-	public final double SHOOTER_VELO_FOR_MID_SHOT = 1700;
-	public final double SHOOTER_VELO_FOR_FAR_SHOT = 2200;
-	public final double SHOOTER_VELO_FOR_CLOSE_PARALLEL_SHOT = 1280;
+	public final double SHOOTER_VELO_FOR_CLOSE_SHOT = 0;
+	public final double SHOOTER_VELO_FOR_MID_SHOT = 1;
+	public final double SHOOTER_VELO_FOR_FAR_SHOT = 2;
 
 	public final double[] SHOOTER_VELO_PRESETS = {
 			SHOOTER_VELO_FOR_CLOSE_SHOT,
@@ -41,29 +38,12 @@ public class RaptorRobot extends IMecanumRobot {
 			SHOOTER_VELO_FOR_FAR_SHOT
 	};
 
-	public final String[] SHOOTER_VELO_PRESET_LABELS = {
-			"close",
-			"mid",
-			"far"
-	};
-
-	public final double SHOOTER_VELO_FOR_REJECT = 400;
-
-	public final double RAIL_DRIVE_THREE_MIN_POS = 0.450;
-	public final double RAIL_DRIVE_THREE_MAX_POS = 0.842;
-
-	public final double FEEDER_READY_POS = RAIL_DRIVE_THREE_MAX_POS;
-	public final double FEEDER_SHOOT_POS = RAIL_DRIVE_THREE_MIN_POS;
-	public final double FEEDER_WIGGLE_DISTANCE = 0.15;
-
-	public ArtifactConfiguration artifactConfiguration = ArtifactConfiguration.PPG.copySelf(); // default auto starting config
-	public ArtifactConfiguration storedMotif = null;
-
 	public MecanumDrive drive;
 
-	public DcMotor intakeAndRailDriveOne;
-	public CRServo railDriveTwo;
-	public Servo railDriveThree; // feeder
+	public DcMotor intake;
+	public DcMotor transfer;
+	public CRServo transferHelperOne;
+	public CRServo transferHelperTwo;
 
 	public DcMotorEx shooterLeft;
 	public DcMotorEx shooterRight;
@@ -83,8 +63,6 @@ public class RaptorRobot extends IMecanumRobot {
 
 		shooterRight.setDirection(DcMotorSimple.Direction.REVERSE);
 
-		railDriveThree.setPosition(FEEDER_READY_POS);
-
 		shooterLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 		shooterRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
@@ -92,28 +70,20 @@ public class RaptorRobot extends IMecanumRobot {
 		limelight.start();
 	}
 
-	public double calculateV0ForV2Shooter(double dist) { // uses linear regression to calculate optimal shot velocity from distance
-		// fitted to RaptorRobot v2 shooter, see regression plot for details (may use quadratic fit in the future)
-
-		double m = 3.10947;
-		double b = 1042.12244;
-
-		return m*dist + b;
+	// calculates optimal shooter velocity from distance using linear regression
+	public double calculateV0ForV2Shooter(double distance) {
+		return SHOOTER_VELO_FOR_MID_SHOT;
 	}
 
-	public String getShooterVelocityPresetLabel(double exactVelocity) {
-		for (int i = 0; i < SHOOTER_VELO_PRESETS.length; i++) {
-			if (SHOOTER_VELO_PRESETS[i] == exactVelocity) {
-				return SHOOTER_VELO_PRESET_LABELS[i];
-			}
-		}
-
-		// exactVelocity does not match any preset
+	public String getShooterVelocityPresetLabel(double velo) {
+		if (velo == SHOOTER_VELO_FOR_CLOSE_SHOT) return "close";
+		if (velo == SHOOTER_VELO_FOR_MID_SHOT) return "mid";
+		if (velo == SHOOTER_VELO_FOR_FAR_SHOT) return "far";
 
 		return "custom";
 	}
 
-	public final LockingControl driverControl = new LockingControl();
+	public final RaptorRobot.LockingControl driverControl = new RaptorRobot.LockingControl();
 
 	public class LockingControl {
 		public void applyDrivePower(double forwardPower, double strafePower, double angularPower) {
@@ -126,17 +96,23 @@ public class RaptorRobot extends IMecanumRobot {
 			)));
 		}
 
-		public void setIntakeGroupPower(double power) {
-			useAndRelease(intakeAndRailDriveOne, () -> intakeAndRailDriveOne.setPower(power));
+		public void setIntakePower(double power) {
+			useAndRelease(intake, () -> intake.setPower(power));
 		}
 
-		public void setShooterPower(double power) {
-			if (use(shooterLeft, shooterRight)) {
-				shooterLeft.setPower(power);
-				shooterRight.setPower(power);
+		public void setTransferPower(double mainPower, double assistPower) {
+			if (use(transfer, transferHelperOne, transferHelperTwo)) {
+				transfer.setPower(mainPower);
 
-				release(shooterLeft, shooterRight);
+				transferHelperOne.setPower(assistPower);
+				transferHelperOne.setPower(assistPower);
+
+				release(transfer, transferHelperOne, transferHelperTwo);
 			}
+		}
+
+		public void setTransferPower(double power) {
+			setTransferPower(power, power);
 		}
 
 		public void setShooterVelocity(double velo) {
@@ -148,20 +124,14 @@ public class RaptorRobot extends IMecanumRobot {
 			}
 		}
 
-		public void setRailDriveTwoPower(double power) {
-			useAndRelease(railDriveTwo, () -> railDriveTwo.setPower(power));
-		}
+		public void setShooterOff() {
+			if (use(shooterLeft, shooterRight)) {
+				// use setPower because setVelocity may cause the shooter to exhibit brake behavior, which draws more power (we want the shooter to coast to a stop)
+				shooterLeft.setPower(0);
+				shooterRight.setPower(0);
 
-		public void setRailDriveThreePosition(double position) {
-			double boundedPosition = Math.max(
-					RAIL_DRIVE_THREE_MIN_POS,
-					Math.min(
-							RAIL_DRIVE_THREE_MAX_POS,
-							position
-					)
-			);
-
-			useAndRelease(railDriveThree, () -> railDriveThree.setPosition(boundedPosition));
+				release(shooterLeft, shooterRight);
+			}
 		}
 	}
 }
