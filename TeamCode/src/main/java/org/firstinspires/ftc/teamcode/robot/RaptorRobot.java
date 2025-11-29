@@ -28,9 +28,9 @@ public class RaptorRobot extends IMecanumRobot {
 
 	public final int LIMELIGHT_APRILTAG_INDEX;
 
-	public final double SHOOTER_VELO_FOR_CLOSE_SHOT = 0;
-	public final double SHOOTER_VELO_FOR_MID_SHOT = 1;
-	public final double SHOOTER_VELO_FOR_FAR_SHOT = 2;
+	public final double SHOOTER_VELO_FOR_CLOSE_SHOT = 1700;
+	public final double SHOOTER_VELO_FOR_MID_SHOT = 1800;
+	public final double SHOOTER_VELO_FOR_FAR_SHOT = 2200;
 
 	public final double[] SHOOTER_VELO_PRESETS = {
 			SHOOTER_VELO_FOR_CLOSE_SHOT,
@@ -61,7 +61,7 @@ public class RaptorRobot extends IMecanumRobot {
 			drive = new MecanumDrive(hardwareMap, new Pose2d(0, 0, 0));
 		}
 
-		shooterRight.setDirection(DcMotorSimple.Direction.REVERSE);
+		shooterLeft.setDirection(DcMotorSimple.Direction.REVERSE);
 
 		shooterLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 		shooterRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
