@@ -4,15 +4,16 @@ import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.PoseVelocity2d;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
-import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.InteropFields;
 
 import lib8812.common.robot.IMecanumRobot;
+import lib8812.common.robot.hardwarewrappers.BinaryClaw;
 import lib8812.common.rr.MecanumDrive;
 
 public class RaptorRobot extends IMecanumRobot {
@@ -28,9 +29,9 @@ public class RaptorRobot extends IMecanumRobot {
 
 	public final int LIMELIGHT_APRILTAG_INDEX;
 
-	public final double SHOOTER_VELO_FOR_CLOSE_SHOT = 1700;
-	public final double SHOOTER_VELO_FOR_MID_SHOT = 1800;
-	public final double SHOOTER_VELO_FOR_FAR_SHOT = 2200;
+	public final double SHOOTER_VELO_FOR_CLOSE_SHOT = 1440;
+	public final double SHOOTER_VELO_FOR_MID_SHOT = 1530;
+	public final double SHOOTER_VELO_FOR_FAR_SHOT = 1850;
 
 	public final double[] SHOOTER_VELO_PRESETS = {
 			SHOOTER_VELO_FOR_CLOSE_SHOT,
@@ -38,12 +39,13 @@ public class RaptorRobot extends IMecanumRobot {
 			SHOOTER_VELO_FOR_FAR_SHOT
 	};
 
+	public final double SHOOTER_GATE_OPEN_POS = 0.0;
+	public final double SHOOTER_GATE_CLOSED_POS = 0.218;
+
 	public MecanumDrive drive;
 
-	public DcMotor intake;
-	public DcMotor transfer;
-	public CRServo transferHelperOne;
-	public CRServo transferHelperTwo;
+	public DcMotor intakeAndTransfer;
+	public BinaryClaw shooterGate;
 
 	public DcMotorEx shooterLeft;
 	public DcMotorEx shooterRight;
@@ -68,6 +70,15 @@ public class RaptorRobot extends IMecanumRobot {
 
 		limelight.setPollRateHz(50);
 		limelight.start();
+
+		shooterGate = new BinaryClaw(
+				hardwareMap.get(Servo.class, "shooterGate"),
+				SHOOTER_GATE_OPEN_POS,
+				SHOOTER_GATE_CLOSED_POS
+		);
+
+		shooterGate.inner.setDirection(Servo.Direction.REVERSE);
+		shooterGate.open();
 	}
 
 	// calculates optimal shooter velocity from distance using linear regression
@@ -83,6 +94,8 @@ public class RaptorRobot extends IMecanumRobot {
 		return "custom";
 	}
 
+	public boolean isInsideShootingZone() { return false; }
+
 	public final RaptorRobot.LockingControl driverControl = new RaptorRobot.LockingControl();
 
 	public class LockingControl {
@@ -96,23 +109,12 @@ public class RaptorRobot extends IMecanumRobot {
 			)));
 		}
 
-		public void setIntakePower(double power) {
-			useAndRelease(intake, () -> intake.setPower(power));
+		public void setIntakeAndTransferPower(double power) {
+			useAndRelease(intakeAndTransfer, () -> intakeAndTransfer.setPower(power));
 		}
 
-		public void setTransferPower(double mainPower, double assistPower) {
-			if (use(transfer, transferHelperOne, transferHelperTwo)) {
-				transfer.setPower(mainPower);
-
-				transferHelperOne.setPower(assistPower);
-				transferHelperOne.setPower(assistPower);
-
-				release(transfer, transferHelperOne, transferHelperTwo);
-			}
-		}
-
-		public void setTransferPower(double power) {
-			setTransferPower(power, power);
+		public void toggleShooterGate() {
+			useAndRelease(shooterGate, () -> shooterGate.toggle());
 		}
 
 		public void setShooterVelocity(double velo) {

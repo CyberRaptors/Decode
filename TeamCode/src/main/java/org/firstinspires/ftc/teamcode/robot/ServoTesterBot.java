@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import lib8812.common.robot.IRobot;
 
 public class ServoTesterBot extends IRobot {
-	final static String SERVO_NAME = "railDriveThree";
+	final static String SERVO_NAME = "shooterGate";
 
 	public Servo servo;
 

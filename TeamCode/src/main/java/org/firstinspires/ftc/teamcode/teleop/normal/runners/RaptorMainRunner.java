@@ -137,9 +137,6 @@ public class RaptorMainRunner extends ITeleOpRunner {
 		keybinder.bind("y").of(gamepad1).to(() -> actions.scheduleAll(bot.limelightAlignToGoal()));
 //		keybinder.bind("a").of(gamepad1).to(() -> actions.scheduleAll(bot.strafeToBase()));
 
-		keybinder.bind("left_stick_y").of(gamepad2).to(bot.driverControl::setTransferPower);
-		keybinder.bind("right_stick_y").of(gamepad2).to(bot.driverControl::setTransferPower);
-
 		keybinder.bind("dpad_up").of(gamepad2).to(this::incrementVeloPreset);
 		keybinder.bind("dpad_down").of(gamepad2).to(this::decrementVeloPreset);
 
@@ -159,6 +156,7 @@ public class RaptorMainRunner extends ITeleOpRunner {
 
 		keybinder.bind("a").of(gamepad2).to(this::toggleShooterEnabled);
 		keybinder.bind("b").of(gamepad2).to(cancelMacros);
+		keybinder.bind("y").of(gamepad2).to(bot.driverControl::toggleShooterGate);
 
 		keybinder.bind("dpad_left").of(gamepad2).to(() -> {
 			autoVelocityMode = false;
@@ -173,7 +171,7 @@ public class RaptorMainRunner extends ITeleOpRunner {
 
 		while (opModeIsActive()) {
 			bot.driverControl.applyDrivePower(-gamepad1.inner.left_stick_y, -gamepad1.inner.left_stick_x, -gamepad1.inner.right_stick_x);
-			bot.driverControl.setIntakePower(gamepad2.inner.right_trigger-gamepad2.inner.left_trigger); // use a direct call instead of two separate keybind patterns for this to avoid overwrites
+			bot.driverControl.setIntakeAndTransferPower(gamepad2.inner.right_trigger-gamepad2.inner.left_trigger); // use a direct call instead of two separate keybind patterns for this to avoid overwrites
 
 			if (autoVelocityMode) {
 				autoAdjustShooterMaxVelo();
@@ -200,15 +198,13 @@ public class RaptorMainRunner extends ITeleOpRunner {
 			telemetry.addData(
 					"intake group",
 					"power (%.2f)",
-					bot.intake.getPower()
+					bot.intakeAndTransfer.getPower()
 			);
 
 			telemetry.addData(
-					"transfer",
-					"main power (%.2f), helper one power (%.2f), helper two power (%.2f)",
-					bot.transfer.getPower(),
-					bot.transferHelperOne.getPower(),
-					bot.transferHelperTwo.getPower()
+					"shooter gate",
+					"%s",
+					bot.shooterGate.inner.getPositionLabel()
 			);
 
 			if (shooterEnabled) {
