@@ -83,7 +83,10 @@ public class RaptorRobot extends IMecanumRobot {
 
 	// calculates optimal shooter velocity from distance using linear regression
 	public double calculateV0ForV2Shooter(double distance) {
-		return SHOOTER_VELO_FOR_MID_SHOT;
+		double m = 6.25541;
+		double b = 933.44041;
+
+		return m*distance + b;
 	}
 
 	public String getShooterVelocityPresetLabel(double velo) {
