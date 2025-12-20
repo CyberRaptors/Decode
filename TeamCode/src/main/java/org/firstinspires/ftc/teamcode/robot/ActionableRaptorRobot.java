@@ -19,11 +19,43 @@ import java.util.List;
 
 import lib8812.common.actions.LazyAction;
 import lib8812.common.actions.OnceAction;
+import lib8812.common.actions.WaitForMotorVeloDropAction;
 import lib8812.common.game.GameConstants;
 
 public class ActionableRaptorRobot extends RaptorRobot {
 	public ActionableRaptorRobot(boolean blueTeam) {
 		super(blueTeam);
+	}
+
+	public Action shootThree(double velo) {
+		double secondShotVelo = velo*(5.0/6);
+		double thirdShotVelo = velo*(3.0/4);
+
+		return new LockedUsageAction(
+				new SequentialAction(
+						new InstantAction(() -> {
+							shooterGate.open();
+							shooterRight.setVelocity(velo);
+							shooterLeft.setVelocity(velo);
+							intakeAndTransfer.setPower(0.5);
+						}),
+						new WaitForMotorVeloDropAction(shooterRight, velo),
+						new InstantAction(() -> {
+							shooterRight.setVelocity(secondShotVelo);
+							shooterLeft.setVelocity(secondShotVelo);
+						}),
+						new WaitForMotorVeloDropAction(shooterRight, secondShotVelo),
+						new InstantAction(() -> {
+							shooterRight.setVelocity(thirdShotVelo);
+							shooterLeft.setVelocity(thirdShotVelo);
+						}),
+						new WaitForMotorVeloDropAction(shooterRight, thirdShotVelo),
+						new InstantAction(() -> {
+							intakeAndTransfer.setPower(0);
+						})
+				),
+				intakeAndTransfer, shooterLeft, shooterRight, shooterGate
+		);
 	}
 
 	public Action limelightAlignToGoal() {

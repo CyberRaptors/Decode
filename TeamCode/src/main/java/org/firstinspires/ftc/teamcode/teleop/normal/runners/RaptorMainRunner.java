@@ -157,6 +157,7 @@ public class RaptorMainRunner extends ITeleOpRunner {
 		keybinder.bind("a").of(gamepad2).to(this::toggleShooterEnabled);
 		keybinder.bind("b").of(gamepad2).to(cancelMacros);
 		keybinder.bind("y").of(gamepad2).to(bot.driverControl::toggleShooterGate);
+		keybinder.bind("x").of(gamepad2).to(() -> actions.scheduleAll(bot.shootThree(shooterMaxVelo)));
 
 		keybinder.bind("dpad_left").of(gamepad2).to(() -> {
 			autoVelocityMode = false;
