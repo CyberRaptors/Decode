@@ -9,7 +9,7 @@ DRIVER A
 
 	B - Globally cancel all macros
 	X - Enable/disable verbose mode
-	Y - Dispatch Limelight-enabled goal alignment macro
+	Y (HOLD) - Limelight-enabled goal alignment
 
 DRIVER B
 	RIGHT TRIGGER - Run intake & rail group forwards
@@ -36,10 +36,15 @@ package org.firstinspires.ftc.teamcode.teleop.normal.runners;
 
 import com.acmerobotics.roadrunner.InstantAction;
 import com.acmerobotics.roadrunner.Pose2d;
+import com.acmerobotics.roadrunner.PoseVelocity2d;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.Vector2d;
+import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.limelightvision.LLResultTypes;
 
 import org.firstinspires.ftc.teamcode.robot.ActionableRaptorRobot;
+
+import java.util.List;
 
 import lib8812.common.game.GameConstants;
 import lib8812.common.robot.IRobot;
@@ -125,6 +130,31 @@ public class RaptorMainRunner extends ITeleOpRunner {
 		shooterMaxVelo = bot.SHOOTER_VELO_PRESETS[0];
 	}
 
+	void limelightAlignToGoalSyncIteration() {
+		if (bot.use(bot.limelight, bot.drive)) {
+			bot.limelight.pipelineSwitch(bot.LIMELIGHT_APRILTAG_INDEX);
+
+			LLResult res = bot.limelight.getLatestResult();
+
+			if (res.getPipelineIndex() != bot.LIMELIGHT_APRILTAG_INDEX) return; // we will get there in a future iteration
+
+			if (!res.isValid()) return;
+
+			List<LLResultTypes.FiducialResult> fiducials = res.getFiducialResults();
+
+			if (fiducials.isEmpty()) return;
+
+			double delX = res.getTx(); // use res.getTx for 3D point-of-interest tracking
+
+			bot.drive.setDrivePowers(
+					new PoseVelocity2d(
+							new Vector2d(0, 0),
+							- delX / 20 // pure proportional controller
+					)
+			);
+		}
+	}
+
 	@Override
 	protected void internalRun() {
 		Runnable cancelMacros = () -> {
@@ -134,7 +164,7 @@ public class RaptorMainRunner extends ITeleOpRunner {
 
 		keybinder.bind("b").of(gamepad1).to(cancelMacros);
 		keybinder.bind("x").of(gamepad1).to(() -> verbose = !verbose);
-		keybinder.bind("y").of(gamepad1).to(() -> actions.scheduleAll(bot.limelightAlignToGoal()));
+		keybinder.bind("y").of(gamepad1).to(this::limelightAlignToGoalSyncIteration);
 //		keybinder.bind("a").of(gamepad1).to(() -> actions.scheduleAll(bot.strafeToBase()));
 
 		keybinder.bind("dpad_up").of(gamepad2).to(this::incrementVeloPreset);
