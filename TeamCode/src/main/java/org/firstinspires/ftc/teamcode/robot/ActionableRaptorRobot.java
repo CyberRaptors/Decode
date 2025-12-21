@@ -33,9 +33,9 @@ public class ActionableRaptorRobot extends RaptorRobot {
 		super(blueTeam);
 	}
 
-	public Action setIntakeAndTransferPower(double velo) {
+	public Action setIntakeAndTransferPower(double power) {
 		return new LockedUsageAction(
-				new InstantAction(() -> intakeAndTransfer.setPower(velo)),
+				new InstantAction(() -> intakeAndTransfer.setPower(power)),
 				intakeAndTransfer
 		);
 	}

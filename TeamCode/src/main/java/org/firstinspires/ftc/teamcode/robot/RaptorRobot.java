@@ -14,6 +14,7 @@ import org.firstinspires.ftc.teamcode.InteropFields;
 
 import lib8812.common.robot.IMecanumRobot;
 import lib8812.common.robot.hardwarewrappers.BinaryClaw;
+import lib8812.common.robot.hardwarewrappers.SoftwareGangedMotors;
 import lib8812.common.rr.MecanumDrive;
 
 public class RaptorRobot extends IMecanumRobot {
@@ -46,7 +47,9 @@ public class RaptorRobot extends IMecanumRobot {
 
 	public MecanumDrive drive;
 
-	public DcMotor intakeAndTransfer;
+	public DcMotor intakeAndTransferOne;
+	public DcMotor intakeAndTransferTwo;
+	public SoftwareGangedMotors intakeAndTransfer;
 	public BinaryClaw shooterGate;
 
 	public DcMotorEx shooterLeft;
@@ -81,6 +84,8 @@ public class RaptorRobot extends IMecanumRobot {
 
 		shooterGate.inner.setDirection(Servo.Direction.REVERSE);
 		shooterGate.open();
+
+		intakeAndTransfer = new SoftwareGangedMotors(intakeAndTransferOne, intakeAndTransferTwo);
 	}
 
 	// calculates optimal shooter velocity from distance using linear regression
