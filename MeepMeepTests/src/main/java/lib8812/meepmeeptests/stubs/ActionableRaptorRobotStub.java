@@ -1,67 +1,17 @@
 package lib8812.meepmeeptests.stubs;
 
 import com.acmerobotics.roadrunner.Action;
-import com.acmerobotics.roadrunner.InstantAction;
 import com.acmerobotics.roadrunner.NullAction;
-import com.acmerobotics.roadrunner.VelConstraint;
-
-import lib8812.meepmeeptests.stubs.game.ArtifactConfiguration;
+import com.acmerobotics.roadrunner.Pose2d;
 
 public class ActionableRaptorRobotStub {
-	public final int LIMELIGHT_APRILTAG_INDEX = 1;
+	public final double SHOOTER_VELO_FOR_CLOSE_SHOT = 1440;
 
-	public final double SHOOTER_TICKS_PER_REV = 28;
-
-	public final double MAX_ROBOT_VELO_FOR_SPIKE_PICKUP = 10;
-	public final VelConstraint SPIKE_PICKUP_VEL_CONSTRAINT = (pose2dDual, posePath, v) -> MAX_ROBOT_VELO_FOR_SPIKE_PICKUP;
-
-	public final double MAX_ROBOT_VELO_FOR_FAST_SPIKE_PICKUP = 100;
-	public final VelConstraint FAST_SPIKE_PICKUP_VEL_CONSTRAINT = (pose2dDual, posePath, v) -> MAX_ROBOT_VELO_FOR_FAST_SPIKE_PICKUP;
-
-
-	public final double SHOOTER_VELO_FOR_CLOSE_SHOT = 1180;
-	public final double SHOOTER_VELO_FOR_MID_SHOT = 1375;
-	public final double SHOOTER_VELO_FOR_FAR_SHOT = 1565;
-	public final double SHOOTER_VELO_FOR_CLOSE_PARALLEL_SHOT = 1280;
-
-
-	public final double SHOOTER_VELO_FOR_REJECT = 400;
-
-	public final double RAIL_DRIVE_THREE_MIN_POS = 0.551;
-	public final double RAIL_DRIVE_THREE_MAX_POS = 0.89;
-
-	public final double FEEDER_READY_POS = RAIL_DRIVE_THREE_MAX_POS;
-	public final double FEEDER_SHOOT_POS = RAIL_DRIVE_THREE_MIN_POS;
-
-	public ArtifactConfiguration artifactConfiguration = ArtifactConfiguration.PPG.copySelf();
-
-	public ArtifactConfiguration storedMotif;
-
-	public Action setRailDriveTwoPower(double power) { return new NullAction(); }
-
-	public Action setIntakeGroupPower(double power) { return new NullAction(); }
-
-	public Action shootWithVelo(double velo) {
+	public Action setIntakeAndTransferPower(double velo) {
 		return new NullAction();
 	}
 
-	public Action _shootWithVelo(double velo) {
-		return new NullAction();
-	}
-
-	public Action feedNext(double runTime) {
-		return new NullAction();
-	}
-
-	public Action _feedNext() {
-		return new NullAction();
-	}
-
-	public Action successiveShootWithVelo(int ammunition, double velo) {
-		return new NullAction();
-	}
-
-	public Action reject() {
+	public Action shootThree(double velo) {
 		return new NullAction();
 	}
 
@@ -69,19 +19,19 @@ public class ActionableRaptorRobotStub {
 		return new NullAction();
 	}
 
-	public Action storeMotif() {
+	public Action requireLimelightRelocalization(Action action, int maxTries) {
 		return new NullAction();
 	}
 
-	public Action sortToMotif() {
-		return new NullAction(); // return a OnceAction waiting for the motif to be stored with reasonable maxTries
+	public Action teleOpUnlocalizedStrafeTo(Pose2d pose) {
+		return new NullAction();
 	}
 
-	public Action setInternalArtifactConfig(ArtifactConfiguration config) {
-		return new InstantAction(() -> {
-			artifactConfiguration = config.copySelf();
-		});
+	public Action strafeToBase() {
+		return new NullAction();
 	}
 
-	public Action disableShootersAsync() { return new NullAction(); }
+	public Action localizationEnabledAlignToGoal() {
+		return new NullAction();
+	}
 }

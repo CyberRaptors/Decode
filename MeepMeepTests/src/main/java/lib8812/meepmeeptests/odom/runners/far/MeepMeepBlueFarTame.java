@@ -2,13 +2,12 @@ package lib8812.meepmeeptests.odom.runners.far;
 
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.SequentialAction;
-import com.acmerobotics.roadrunner.SleepAction;
 import com.noahbres.meepmeep.roadrunner.DriveShim;
 
 import lib8812.meepmeeptests.stubs.ActionableRaptorRobotStub;
 import lib8812.meepmeeptests.stubs.game.CommonPoses;
 
-public class MeepMeepBlueFarShort {
+public class MeepMeepBlueFarTame {
 	static ActionableRaptorRobotStub bot = new ActionableRaptorRobotStub();
 	static Action main;
 
@@ -29,12 +28,11 @@ public class MeepMeepBlueFarShort {
 								CommonPoses.BLUE_THIRD_SPIKE_START_POSE.heading
 						)
 						.build(),
-				bot.setIntakeGroupPower(1),
+				bot.setIntakeAndTransferPower(1),
 				drive.actionBuilder(CommonPoses.BLUE_THIRD_SPIKE_START_POSE)
 						.strafeToSplineHeading(
 								CommonPoses.BLUE_THIRD_SPIKE_END_POSE.position,
-								CommonPoses.BLUE_THIRD_SPIKE_END_POSE.heading,
-								bot.SPIKE_PICKUP_VEL_CONSTRAINT
+								CommonPoses.BLUE_THIRD_SPIKE_END_POSE.heading
 						)
 						.build()
 		);
@@ -52,16 +50,8 @@ public class MeepMeepBlueFarShort {
 
 		main = new SequentialAction(
 				initialMoveToShoot,
-				bot.shootWithVelo(bot.SHOOTER_VELO_FOR_FAR_SHOT),
-				bot.feedNext(1.5),
-				bot.shootWithVelo(bot.SHOOTER_VELO_FOR_FAR_SHOT),
-				bot.disableShootersAsync(),
 				pickupFirstSpike,
-				bot.setRailDriveTwoPower(-1.0),
-				bot.setIntakeGroupPower(0),
 				secondMoveToShoot,
-				new SleepAction(0.7),
-				bot.successiveShootWithVelo(2, bot.SHOOTER_VELO_FOR_FAR_SHOT),
 				park
 		);
 

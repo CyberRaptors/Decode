@@ -29,6 +29,8 @@ public class RaptorRobot extends IMecanumRobot {
 
 	public final int LIMELIGHT_APRILTAG_INDEX;
 
+	public final double SHOOTER_VELO_FOR_CLOSE_AUTO_SHOT = 1420;
+
 	public final double SHOOTER_VELO_FOR_CLOSE_SHOT = 1440;
 	public final double SHOOTER_VELO_FOR_MID_SHOT = 1530;
 	public final double SHOOTER_VELO_FOR_FAR_SHOT = 1850;

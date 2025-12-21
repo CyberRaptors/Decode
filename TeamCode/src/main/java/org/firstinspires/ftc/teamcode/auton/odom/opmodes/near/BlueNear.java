@@ -3,12 +3,12 @@ package org.firstinspires.ftc.teamcode.auton.odom.opmodes.near;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
-import org.firstinspires.ftc.teamcode.auton.odom.runners.near.BlueNearNineArtifactRunner;
+import org.firstinspires.ftc.teamcode.auton.odom.runners.near.BlueNearRunner;
 
-@Autonomous(name = "Blue Near NineArtifact Move")
-public class BlueNearNineArtifact extends LinearOpMode {
+@Autonomous(name = "Blue Near [Reg]")
+public class BlueNear extends LinearOpMode {
 	@Override
 	public void runOpMode() throws InterruptedException {
-		new BlueNearNineArtifactRunner().run(this);
+		new BlueNearRunner().run(this);
 	}
 }

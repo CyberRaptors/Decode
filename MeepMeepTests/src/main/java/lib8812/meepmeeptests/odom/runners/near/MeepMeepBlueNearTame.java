@@ -2,13 +2,12 @@ package lib8812.meepmeeptests.odom.runners.near;
 
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.SequentialAction;
-import com.acmerobotics.roadrunner.SleepAction;
 import com.noahbres.meepmeep.roadrunner.DriveShim;
 
 import lib8812.meepmeeptests.stubs.ActionableRaptorRobotStub;
 import lib8812.meepmeeptests.stubs.game.CommonPoses;
 
-public class MeepMeepBlueNearShort {
+public class MeepMeepBlueNearTame {
 	static ActionableRaptorRobotStub bot = new ActionableRaptorRobotStub();
 	static Action main;
 
@@ -29,12 +28,11 @@ public class MeepMeepBlueNearShort {
 								CommonPoses.BLUE_FIRST_SPIKE_START_POSE.heading
 						)
 						.build(),
-				bot.setIntakeGroupPower(1),
+				bot.setIntakeAndTransferPower(1),
 				drive.actionBuilder(CommonPoses.BLUE_FIRST_SPIKE_START_POSE)
 						.strafeToSplineHeading(
 								CommonPoses.BLUE_FIRST_SPIKE_END_POSE.position,
-								CommonPoses.BLUE_FIRST_SPIKE_END_POSE.heading,
-								bot.FAST_SPIKE_PICKUP_VEL_CONSTRAINT
+								CommonPoses.BLUE_FIRST_SPIKE_END_POSE.heading
 						)
 						.build()
 		);
@@ -55,15 +53,8 @@ public class MeepMeepBlueNearShort {
 
 		main = new SequentialAction(
 				initialMoveToShoot,
-				bot.shootWithVelo(bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
-				bot.feedNext(1.5),
-				bot.shootWithVelo(bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
-				bot.disableShootersAsync(),
 				pickupFirstSpike,
-				bot.setRailDriveTwoPower(-1.0),
 				secondMoveToShoot,
-				new SleepAction(0.7),
-				bot.successiveShootWithVelo(2, bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
 				park
 		);
 

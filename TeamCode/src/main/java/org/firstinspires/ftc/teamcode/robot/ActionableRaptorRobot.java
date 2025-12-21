@@ -6,7 +6,9 @@ import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.PoseVelocity2d;
 import com.acmerobotics.roadrunner.Rotation2d;
 import com.acmerobotics.roadrunner.SequentialAction;
+import com.acmerobotics.roadrunner.SleepAction;
 import com.acmerobotics.roadrunner.Vector2d;
+import com.acmerobotics.roadrunner.VelConstraint;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 
@@ -18,13 +20,44 @@ import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import java.util.List;
 
 import lib8812.common.actions.LazyAction;
+import lib8812.common.actions.MotorSetVelocityAction;
 import lib8812.common.actions.OnceAction;
-import lib8812.common.actions.WaitForMotorVeloDropAction;
 import lib8812.common.game.GameConstants;
 
 public class ActionableRaptorRobot extends RaptorRobot {
+
+	public final double MAX_VELO_FOR_SPIKE_PICKUP = 10;
+	public final VelConstraint SPIKE_PICKUP_VEL_CONSTRAINT = (a, b, c) -> MAX_VELO_FOR_SPIKE_PICKUP;
+
 	public ActionableRaptorRobot(boolean blueTeam) {
 		super(blueTeam);
+	}
+
+	public Action setIntakeAndTransferPower(double velo) {
+		return new LockedUsageAction(
+				new InstantAction(() -> intakeAndTransfer.setPower(velo)),
+				intakeAndTransfer
+		);
+	}
+
+	public Action startShootersAsync(double velo) {
+		return new LockedUsageAction(
+				new InstantAction(() -> {
+					shooterRight.setVelocity(velo);
+					shooterLeft.setVelocity(velo);
+				}),
+				shooterRight, shooterLeft
+		);
+	}
+
+	public Action disableShootersAsync() {
+		return new LockedUsageAction(
+				new InstantAction(() -> {
+					shooterRight.setPower(0);
+					shooterLeft.setPower(0);
+				}),
+				shooterRight, shooterLeft
+		);
 	}
 
 	public Action shootThree(double velo) {
@@ -33,26 +66,23 @@ public class ActionableRaptorRobot extends RaptorRobot {
 
 		return new LockedUsageAction(
 				new SequentialAction(
+						new MotorSetVelocityAction(shooterRight, velo),
+						new MotorSetVelocityAction(shooterLeft, velo),
+
 						new InstantAction(() -> {
 							shooterGate.open();
-							shooterRight.setVelocity(velo);
-							shooterLeft.setVelocity(velo);
-							intakeAndTransfer.setPower(0.5);
+							intakeAndTransfer.setPower(1);
 						}),
-						new WaitForMotorVeloDropAction(shooterRight, velo),
-						new InstantAction(() -> {
-							shooterRight.setVelocity(secondShotVelo);
-							shooterLeft.setVelocity(secondShotVelo);
-						}),
-						new WaitForMotorVeloDropAction(shooterRight, secondShotVelo),
-						new InstantAction(() -> {
-							shooterRight.setVelocity(thirdShotVelo);
-							shooterLeft.setVelocity(thirdShotVelo);
-						}),
-						new WaitForMotorVeloDropAction(shooterRight, thirdShotVelo),
-						new InstantAction(() -> {
-							intakeAndTransfer.setPower(0);
-						})
+						new SleepAction(0.3),
+						new InstantAction(() -> intakeAndTransfer.setPower(0)),
+						new SleepAction(0.2),
+						new InstantAction(() -> intakeAndTransfer.setPower(1)),
+						new SleepAction(0.3),
+						new InstantAction(() -> intakeAndTransfer.setPower(0)),
+						new SleepAction(0.2),
+						new InstantAction(() -> intakeAndTransfer.setPower(1)),
+						new SleepAction(0.3),
+						new InstantAction(() -> intakeAndTransfer.setPower(0))
 				),
 				intakeAndTransfer, shooterLeft, shooterRight, shooterGate
 		);

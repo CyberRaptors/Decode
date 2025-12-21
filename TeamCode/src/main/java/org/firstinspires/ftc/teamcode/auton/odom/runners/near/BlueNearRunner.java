@@ -1,29 +1,32 @@
-package lib8812.meepmeeptests.odom.runners.near;
+package org.firstinspires.ftc.teamcode.auton.odom.runners.near;
 
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.SequentialAction;
-import com.acmerobotics.roadrunner.SleepAction;
-import com.noahbres.meepmeep.roadrunner.DriveShim;
+import com.acmerobotics.roadrunner.ftc.Actions;
 
-import lib8812.meepmeeptests.stubs.ActionableRaptorRobotStub;
-import lib8812.meepmeeptests.stubs.game.ArtifactConfiguration;
-import lib8812.meepmeeptests.stubs.game.CommonPoses;
+import org.firstinspires.ftc.teamcode.InteropFields;
+import org.firstinspires.ftc.teamcode.robot.ActionableRaptorRobot;
 
-public class MeepMeepBlueNearWithMotif {
-	static ActionableRaptorRobotStub bot = new ActionableRaptorRobotStub();
-	static Action main;
+import lib8812.common.game.CommonPoses;
+import lib8812.common.robot.IRobot;
+import lib8812.common.rr.MecanumDrive;
+import lib8812.common.teleop.ITeleOpRunner;
 
-	public static Action run(DriveShim drive) {
-		drive.setPoseEstimate(CommonPoses.INITIAL_BLUE_NEAR_POSE_FOR_MOTIF_AUTO);
+public class BlueNearRunner extends ITeleOpRunner {
+	ActionableRaptorRobot bot = new ActionableRaptorRobot(true);
 
-		Action initialMoveToShoot = drive.actionBuilder(CommonPoses.INITIAL_BLUE_NEAR_POSE_FOR_MOTIF_AUTO)
-				.strafeToConstantHeading(
-						CommonPoses.BLUE_NEAR_MOTIF_READ_POS.position
-				)
-				.afterDisp(5, bot.storeMotif())
-				.afterDisp(5, bot.sortToMotif())
-				.splineToSplineHeading(
-						CommonPoses.BLUE_NEAR_SHOT_POSE, CommonPoses.BLUE_NEAR_SHOT_POSE.heading
+	Action main;
+
+	@Override
+	protected void customInit() {
+		MecanumDrive drive = bot.drive;
+
+		drive.localizer.setPose(CommonPoses.INITIAL_BLUE_NEAR_POSE);
+
+		Action initialMoveToShoot = drive.actionBuilder(CommonPoses.INITIAL_BLUE_NEAR_POSE)
+				.strafeToSplineHeading(
+						CommonPoses.BLUE_NEAR_SHOT_POSE.position,
+						CommonPoses.BLUE_NEAR_SHOT_POSE.heading
 				)
 				.build();
 
@@ -34,26 +37,21 @@ public class MeepMeepBlueNearWithMotif {
 								CommonPoses.BLUE_FIRST_SPIKE_START_POSE.heading
 						)
 						.build(),
-				bot.setIntakeGroupPower(1),
 				drive.actionBuilder(CommonPoses.BLUE_FIRST_SPIKE_START_POSE)
-						.afterDisp(5, bot.setRailDriveTwoPower(1))
 						.strafeToSplineHeading(
 								CommonPoses.BLUE_FIRST_SPIKE_END_POSE.position,
 								CommonPoses.BLUE_FIRST_SPIKE_END_POSE.heading,
 								bot.SPIKE_PICKUP_VEL_CONSTRAINT
 						)
-						.build(),
-				bot.setIntakeGroupPower(0),
-				new SleepAction(0.5),
-				bot.setRailDriveTwoPower(0)
+						.build()
 		);
 
 		Action secondMoveToShoot = drive.actionBuilder(CommonPoses.BLUE_FIRST_SPIKE_END_POSE)
+				.afterTime(2, bot.setIntakeAndTransferPower(0))
 				.strafeToSplineHeading(
 						CommonPoses.BLUE_NEAR_SHOT_POSE.position,
 						CommonPoses.BLUE_NEAR_SHOT_POSE.heading
 				)
-				.afterDisp(0, bot.sortToMotif())
 				.build();
 
 		Action pickupSecondSpike = new SequentialAction(
@@ -63,46 +61,56 @@ public class MeepMeepBlueNearWithMotif {
 								CommonPoses.BLUE_SECOND_SPIKE_START_POSE.heading
 						)
 						.build(),
-				bot.setIntakeGroupPower(1),
 				drive.actionBuilder(CommonPoses.BLUE_SECOND_SPIKE_START_POSE)
-						.afterDisp(5, bot.setRailDriveTwoPower(1))
 						.strafeToSplineHeading(
 								CommonPoses.BLUE_SECOND_SPIKE_END_POSE.position,
 								CommonPoses.BLUE_SECOND_SPIKE_END_POSE.heading,
 								bot.SPIKE_PICKUP_VEL_CONSTRAINT
 						)
-						.build(),
-				bot.setIntakeGroupPower(0),
-				new SleepAction(0.5),
-				bot.setRailDriveTwoPower(0)
+						.build()
 		);
 
 		Action thirdMoveToShoot = drive.actionBuilder(CommonPoses.BLUE_SECOND_SPIKE_END_POSE)
+				.afterTime(2, bot.setIntakeAndTransferPower(0))
 				.strafeToSplineHeading(
 						CommonPoses.BLUE_NEAR_SHOT_POSE.position,
 						CommonPoses.BLUE_NEAR_SHOT_POSE.heading
 				)
-				.afterDisp(0, bot.sortToMotif())
 				.build();
 
 		Action park = drive.actionBuilder(CommonPoses.BLUE_NEAR_SHOT_POSE)
-				.strafeToSplineHeading(CommonPoses.BLUE_NEAR_PARK_POSE.position, CommonPoses.BLUE_NEAR_PARK_POSE.heading)
+				.strafeToSplineHeading(
+						CommonPoses.BLUE_NEAR_PARK_POSE.position,
+						CommonPoses.BLUE_NEAR_PARK_POSE.heading
+				)
 				.build();
 
 		main = new SequentialAction(
+				bot.startShootersAsync(bot.SHOOTER_VELO_FOR_CLOSE_AUTO_SHOT),
 				initialMoveToShoot,
-				bot.successiveShootWithVelo(2, bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
+				bot.shootThree(bot.SHOOTER_VELO_FOR_CLOSE_AUTO_SHOT),
+				bot.disableShootersAsync(),
+				bot.setIntakeAndTransferPower(1),
 				pickupFirstSpike,
-				bot.setInternalArtifactConfig(ArtifactConfiguration.PPG),
 				secondMoveToShoot,
-				bot.successiveShootWithVelo(3, bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
+				bot.shootThree(bot.SHOOTER_VELO_FOR_CLOSE_AUTO_SHOT),
+				bot.setIntakeAndTransferPower(1),
+				bot.disableShootersAsync(),
 				pickupSecondSpike,
-				bot.setInternalArtifactConfig(ArtifactConfiguration.PGP),
 				thirdMoveToShoot,
-				bot.successiveShootWithVelo(3, bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
+				bot.shootThree(bot.SHOOTER_VELO_FOR_CLOSE_AUTO_SHOT),
 				park
 		);
+	}
 
-		return main;
+	@Override
+	protected void internalRun() {
+		Actions.runBlocking(main);
+		InteropFields.lastKnownPose = bot.drive.localizer.getPose();
+	}
+
+	@Override
+	protected IRobot getBot() {
+		return bot;
 	}
 }

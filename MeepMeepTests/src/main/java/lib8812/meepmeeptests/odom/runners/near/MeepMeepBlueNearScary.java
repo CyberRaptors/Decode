@@ -7,7 +7,7 @@ import com.noahbres.meepmeep.roadrunner.DriveShim;
 import lib8812.meepmeeptests.stubs.ActionableRaptorRobotStub;
 import lib8812.meepmeeptests.stubs.game.CommonPoses;
 
-public class MeepMeepBlueNear {
+public class MeepMeepBlueNearScary {
 	static ActionableRaptorRobotStub bot = new ActionableRaptorRobotStub();
 	static Action main;
 
@@ -28,6 +28,7 @@ public class MeepMeepBlueNear {
 								CommonPoses.BLUE_FIRST_SPIKE_START_POSE.heading
 						)
 						.build(),
+				bot.setIntakeAndTransferPower(1),
 				drive.actionBuilder(CommonPoses.BLUE_FIRST_SPIKE_START_POSE)
 						.strafeToSplineHeading(
 								CommonPoses.BLUE_FIRST_SPIKE_END_POSE.position,
@@ -36,7 +37,18 @@ public class MeepMeepBlueNear {
 						.build()
 		);
 
-		Action secondMoveToShoot = drive.actionBuilder(CommonPoses.BLUE_FIRST_SPIKE_END_POSE)
+		Action clearGate = drive.actionBuilder(CommonPoses.BLUE_FIRST_SPIKE_END_POSE)
+				.strafeToSplineHeading(
+						CommonPoses.BLUE_CLEAR_GATE_START_POSE.position,
+						CommonPoses.BLUE_CLEAR_GATE_START_POSE.heading
+				)
+				.strafeToSplineHeading(
+						CommonPoses.BLUE_CLEAR_GATE_END_POSE.position,
+						CommonPoses.BLUE_CLEAR_GATE_END_POSE.heading
+				)
+				.build();
+
+		Action secondMoveToShoot = drive.actionBuilder(CommonPoses.BLUE_CLEAR_GATE_END_POSE)
 				.strafeToSplineHeading(
 						CommonPoses.BLUE_NEAR_SHOT_POSE.position,
 						CommonPoses.BLUE_NEAR_SHOT_POSE.heading
@@ -50,6 +62,7 @@ public class MeepMeepBlueNear {
 								CommonPoses.BLUE_SECOND_SPIKE_START_POSE.heading
 						)
 						.build(),
+				bot.setIntakeAndTransferPower(1),
 				drive.actionBuilder(CommonPoses.BLUE_SECOND_SPIKE_START_POSE)
 						.strafeToSplineHeading(
 								CommonPoses.BLUE_SECOND_SPIKE_END_POSE.position,
@@ -74,17 +87,11 @@ public class MeepMeepBlueNear {
 
 		main = new SequentialAction(
 				initialMoveToShoot,
-				bot.shootThree(bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
-				bot.setIntakeAndTransferPower(1),
 				pickupFirstSpike,
-				bot.setIntakeAndTransferPower(0),
+				clearGate,
 				secondMoveToShoot,
-				bot.shootThree(bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
-				bot.setIntakeAndTransferPower(1),
 				pickupSecondSpike,
-				bot.setIntakeAndTransferPower(0),
 				thirdMoveToShoot,
-				bot.shootThree(bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
 				park
 		);
 
