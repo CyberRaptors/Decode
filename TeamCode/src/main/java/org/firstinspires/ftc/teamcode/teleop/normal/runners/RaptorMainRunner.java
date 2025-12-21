@@ -131,27 +131,32 @@ public class RaptorMainRunner extends ITeleOpRunner {
 	}
 
 	void limelightAlignToGoalSyncIteration() {
-		if (bot.use(bot.limelight, bot.drive)) {
-			bot.limelight.pipelineSwitch(bot.LIMELIGHT_APRILTAG_INDEX);
+		try {
+			if (bot.use(bot.limelight, bot.drive)) {
+				bot.limelight.pipelineSwitch(bot.LIMELIGHT_APRILTAG_INDEX);
 
-			LLResult res = bot.limelight.getLatestResult();
+				LLResult res = bot.limelight.getLatestResult();
 
-			if (res.getPipelineIndex() != bot.LIMELIGHT_APRILTAG_INDEX) return; // we will get there in a future iteration
+				if (res.getPipelineIndex() != bot.LIMELIGHT_APRILTAG_INDEX)
+					return; // we will get there in a future iteration
 
-			if (!res.isValid()) return;
+				if (!res.isValid()) return;
 
-			List<LLResultTypes.FiducialResult> fiducials = res.getFiducialResults();
+				List<LLResultTypes.FiducialResult> fiducials = res.getFiducialResults();
 
-			if (fiducials.isEmpty()) return;
+				if (fiducials.isEmpty()) return;
 
-			double delX = res.getTx(); // use res.getTx for 3D point-of-interest tracking
+				double delX = res.getTx(); // use res.getTx for 3D point-of-interest tracking
 
-			bot.drive.setDrivePowers(
-					new PoseVelocity2d(
-							new Vector2d(0, 0),
-							- delX / 20 // pure proportional controller
-					)
-			);
+				bot.drive.setDrivePowers(
+						new PoseVelocity2d(
+								new Vector2d(0, 0),
+								-delX / 20 // pure proportional controller
+						)
+				);
+			}
+		} finally {
+			bot.release(bot.limelight, bot.drive);
 		}
 	}
 
