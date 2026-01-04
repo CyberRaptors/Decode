@@ -15,6 +15,7 @@ import org.firstinspires.ftc.teamcode.InteropFields;
 import lib8812.common.robot.IMecanumRobot;
 import lib8812.common.robot.hardwarewrappers.BinaryClaw;
 import lib8812.common.robot.hardwarewrappers.SoftwareGangedMotors;
+import lib8812.common.robot.hardwarewrappers.VirtualServo;
 import lib8812.common.rr.MecanumDrive;
 
 public class RaptorRobot extends IMecanumRobot {
@@ -32,9 +33,9 @@ public class RaptorRobot extends IMecanumRobot {
 
 	public final double SHOOTER_VELO_FOR_CLOSE_AUTO_SHOT = 1420;
 
-	public final double SHOOTER_VELO_FOR_CLOSE_SHOT = 1440;
-	public final double SHOOTER_VELO_FOR_MID_SHOT = 1530;
-	public final double SHOOTER_VELO_FOR_FAR_SHOT = 1850;
+	public final double SHOOTER_VELO_FOR_CLOSE_SHOT = 1660;
+	public final double SHOOTER_VELO_FOR_MID_SHOT = 1661;
+	public final double SHOOTER_VELO_FOR_FAR_SHOT = 1820;
 
 	public final double[] SHOOTER_VELO_PRESETS = {
 			SHOOTER_VELO_FOR_CLOSE_SHOT,
@@ -47,8 +48,8 @@ public class RaptorRobot extends IMecanumRobot {
 
 	public MecanumDrive drive;
 
-	public DcMotor intakeAndTransferOne;
-	public DcMotor intakeAndTransferTwo;
+	public DcMotor intake;
+	public DcMotor transfer;
 	public SoftwareGangedMotors intakeAndTransfer;
 	public BinaryClaw shooterGate;
 
@@ -77,7 +78,8 @@ public class RaptorRobot extends IMecanumRobot {
 		limelight.start();
 
 		shooterGate = new BinaryClaw(
-				hardwareMap.get(Servo.class, "shooterGate"),
+				new VirtualServo(), // disable shooterGate to reduce power draw
+//				hardwareMap.get(Servo.class, "shooterGate"),
 				SHOOTER_GATE_OPEN_POS,
 				SHOOTER_GATE_CLOSED_POS
 		);
@@ -85,13 +87,15 @@ public class RaptorRobot extends IMecanumRobot {
 		shooterGate.inner.setDirection(Servo.Direction.REVERSE);
 		shooterGate.open();
 
-		intakeAndTransfer = new SoftwareGangedMotors(intakeAndTransferOne, intakeAndTransferTwo);
+		transfer.setDirection(DcMotorSimple.Direction.REVERSE);
+
+		intakeAndTransfer = new SoftwareGangedMotors(intake, transfer);
 	}
 
 	// calculates optimal shooter velocity from distance using linear regression
 	public double calculateV0ForV2Shooter(double distance) {
-		double m = 6.25541;
-		double b = 933.44041;
+		double m = 3.5002;
+		double b = 1311.74128;
 
 		return m*distance + b;
 	}
@@ -119,8 +123,12 @@ public class RaptorRobot extends IMecanumRobot {
 			)));
 		}
 
-		public void setIntakeAndTransferPower(double power) {
-			useAndRelease(intakeAndTransfer, () -> intakeAndTransfer.setPower(power));
+		public void setIntakePower(double power) {
+			useAndRelease(intake, () -> intake.setPower(power));
+		}
+
+		public void setTransferPower(double power) {
+			useAndRelease(transfer, () -> transfer.setPower(power));
 		}
 
 		public void toggleShooterGate() {

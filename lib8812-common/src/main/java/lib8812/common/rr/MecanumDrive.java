@@ -107,6 +107,8 @@ public final class MecanumDrive {
         public double headingVelGain = 0; // shared with turn
     }
 
+	public boolean keepRunningFlag = false;
+
     public static Params PARAMS = new Params();
 
     public final MecanumKinematics kinematics = new MecanumKinematics(
@@ -316,7 +318,7 @@ public final class MecanumDrive {
                 t = Actions.now() - beginTs;
             }
 
-            if (t >= timeTrajectory.duration) {
+            if (t >= timeTrajectory.duration && !keepRunningFlag) {
                 leftFront.setPower(0);
                 leftBack.setPower(0);
                 rightBack.setPower(0);

@@ -13,6 +13,7 @@ import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
@@ -33,10 +34,24 @@ public class ActionableRaptorRobot extends RaptorRobot {
 		super(blueTeam);
 	}
 
-	public Action setIntakeAndTransferPower(double power) {
+	public Action setIntakePower(double power) {
 		return new LockedUsageAction(
-				new InstantAction(() -> intakeAndTransfer.setPower(power)),
-				intakeAndTransfer
+				new InstantAction(() -> intake.setPower(power)),
+				intake
+		);
+	}
+
+	public Action setTransferPower(double power) {
+		return new LockedUsageAction(
+				new InstantAction(() -> transfer.setPower(power)),
+				transfer
+		);
+	}
+
+	public Action setIntakeAndTransferPower(double power) {
+		return new SequentialAction(
+				setIntakePower(power),
+				setTransferPower(power)
 		);
 	}
 
@@ -73,18 +88,18 @@ public class ActionableRaptorRobot extends RaptorRobot {
 							shooterGate.open();
 							intakeAndTransfer.setPower(1);
 						}),
-						new SleepAction(0.3),
-						new InstantAction(() -> intakeAndTransfer.setPower(0)),
-						new SleepAction(0.2),
+						new SleepAction(0.5),
+						new InstantAction(() -> intakeAndTransfer.setPower(-0.15)),
+						new SleepAction(0.5),
 						new InstantAction(() -> intakeAndTransfer.setPower(1)),
-						new SleepAction(0.3),
-						new InstantAction(() -> intakeAndTransfer.setPower(0)),
-						new SleepAction(0.2),
+						new SleepAction(0.5),
+						new InstantAction(() -> intakeAndTransfer.setPower(-0.15)),
+						new SleepAction(0.5),
 						new InstantAction(() -> intakeAndTransfer.setPower(1)),
-						new SleepAction(0.3),
+						new SleepAction(1.5),
 						new InstantAction(() -> intakeAndTransfer.setPower(0))
 				),
-				intakeAndTransfer, shooterLeft, shooterRight, shooterGate
+				intake, transfer, shooterLeft, shooterRight, shooterGate
 		);
 	}
 
@@ -149,17 +164,21 @@ public class ActionableRaptorRobot extends RaptorRobot {
 										return false;
 									}
 
-									Pose3D botPose = res.getBotpose(); // always use MegaTag to get robot pose (we cannot rely on the OTOS heading to give us a correct MT2 pose)
+									if (res.getBotposeTagCount() == 0) return false;
+
+									Pose3D botPose = res.getBotpose(); // always use MegaTag to get robot pose (we cannot rely on the OTOS heading to give us a correct MT2 pose, so we tank the pose ambiguity for now (which actually doesn't seem too bad from the web UI))
 
 									// update RR localizer with MT bot pose
-									Position botPos = botPose.getPosition();
+									Position botPos = botPose.getPosition().toUnit(DistanceUnit.INCH);
 									YawPitchRollAngles botOrientation = botPose.getOrientation();
 
 									drive.localizer.setPose(new Pose2d(
 											botPos.x,
 											botPos.y,
-											botOrientation.getYaw(AngleUnit.RADIANS)+Math.PI // limelight coordinate system offset
+											botOrientation.getYaw(AngleUnit.RADIANS)
 									));
+
+									drive.localizer.update();
 
 									return true;
 								},
@@ -175,14 +194,26 @@ public class ActionableRaptorRobot extends RaptorRobot {
 		// requireLimelightRelocalization auto-locks limelight
 		return requireLimelightRelocalization(
 				new LockedUsageAction(
-						new LazyAction(() -> drive.actionBuilder(drive.localizer.getPose()).strafeToSplineHeading(pose.position, pose.heading).build()),
+						new LazyAction(() -> {
+							drive.localizer.update();
+
+							Action move = drive.actionBuilder(drive.localizer.getPose())
+									.strafeToSplineHeading(pose.position, pose.heading).build();
+
+							return move;
+						}),
 						drive
 				), -1
 		);
 	}
 
 	public Action strafeToBase() {
-		return teleOpUnlocalizedStrafeTo(GameConstants.DECODE.BASE_PARKING_POSE(onBlueTeam));
+		return new SequentialAction(
+				new InstantAction(() -> {
+					drive.keepRunningFlag = true; // run PID forever, because this should only be played at the end of a match and can be exited via cancel
+				}),
+				teleOpUnlocalizedStrafeTo(GameConstants.DECODE.BASE_PARKING_POSE(onBlueTeam))
+		);
 	}
 
 	public Action localizationEnabledAlignToGoal() {

@@ -13,6 +13,7 @@ import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collections;
 
+import lib8812.common.robot.hardwarewrappers.ICustomHardwareDevice;
 import lib8812.common.robot.hardwarewrappers.VirtualCRServo;
 import lib8812.common.robot.hardwarewrappers.VirtualMotor;
 import lib8812.common.robot.hardwarewrappers.VirtualServo;
@@ -105,7 +106,9 @@ public abstract class IRobot {
 
             if (Modifier.isStatic(fld.getModifiers())) continue;
 
-            if (!HardwareDevice.class.isAssignableFrom(type)) continue; // Field must be a hardware device
+            if (!HardwareDevice.class.isAssignableFrom(type) || ICustomHardwareDevice.class.isAssignableFrom(type)) continue;
+
+			// Field must be an SDK-native hardware device
 
 
             try {

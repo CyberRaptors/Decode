@@ -4,7 +4,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorController;
 import com.qualcomm.robotcore.hardware.configuration.typecontainers.MotorConfigurationType;
 
-public class SoftwareGangedMotors implements DcMotor {
+public class SoftwareGangedMotors implements DcMotor, ICustomHardwareDevice {
 	final DcMotor[] motors;
 
 	public SoftwareGangedMotors(DcMotor... motors) {
@@ -148,5 +148,10 @@ public class SoftwareGangedMotors implements DcMotor {
 		for (DcMotor motor : motors) {
 			motor.close();
 		}
+	}
+
+	@Override
+	public boolean isVirtualDevice() {
+		return false;
 	}
 }

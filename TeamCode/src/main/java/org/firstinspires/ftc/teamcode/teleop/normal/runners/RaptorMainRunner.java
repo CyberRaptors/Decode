@@ -36,7 +36,6 @@ package org.firstinspires.ftc.teamcode.teleop.normal.runners;
 
 import com.acmerobotics.roadrunner.InstantAction;
 import com.acmerobotics.roadrunner.Pose2d;
-import com.acmerobotics.roadrunner.PoseVelocity2d;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.hardware.limelightvision.LLResult;
@@ -97,7 +96,13 @@ public class RaptorMainRunner extends ITeleOpRunner {
 
 							double distanceFromBotCenterToGoalCorner = GameConstants.DECODE.GOAL_POSITION(bot.onBlueTeam).minus(botPos).norm();
 
-							shooterMaxVelo = bot.calculateV0ForV2Shooter(distanceFromBotCenterToGoalCorner);
+							double goalHeight = 38.75;
+
+							double distanceFromBotToTarget = Math.sqrt(
+									distanceFromBotCenterToGoalCorner*distanceFromBotCenterToGoalCorner + goalHeight*goalHeight
+							);
+
+							shooterMaxVelo = bot.calculateV0ForV2Shooter(distanceFromBotToTarget);
 						}), 20),
 						new InstantAction(() -> autoVeloActionStillRunning = false) // we need a SequentialAction to reset this flag in case the requireLimelightRelocalization gives up and never dispatches the velo update InstantAction
 				)
@@ -130,34 +135,33 @@ public class RaptorMainRunner extends ITeleOpRunner {
 		shooterMaxVelo = bot.SHOOTER_VELO_PRESETS[0];
 	}
 
-	void limelightAlignToGoalSyncIteration() {
-		try {
-			if (bot.use(bot.limelight, bot.drive)) {
+	double limelightAlignToGoalSyncIteration() {
+		if (bot.use(bot.limelight)) {
+			try {
 				bot.limelight.pipelineSwitch(bot.LIMELIGHT_APRILTAG_INDEX);
 
 				LLResult res = bot.limelight.getLatestResult();
 
 				if (res.getPipelineIndex() != bot.LIMELIGHT_APRILTAG_INDEX)
-					return; // we will get there in a future iteration
+					return 0; // we will get there in a future iteration
 
-				if (!res.isValid()) return;
+				if (!res.isValid()) return 0;
 
 				List<LLResultTypes.FiducialResult> fiducials = res.getFiducialResults();
 
-				if (fiducials.isEmpty()) return;
+				if (fiducials.isEmpty()) return 0;
 
-				double delX = res.getTx(); // use res.getTx for 3D point-of-interest tracking
+				double delX = res.getTx()-2; // use res.getTx for 3D point-of-interest tracking, use 2 degree offset to compat for shooter bending
 
-				bot.drive.setDrivePowers(
-						new PoseVelocity2d(
-								new Vector2d(0, 0),
-								-delX / 20 // pure proportional controller
-						)
-				);
+				if (Math.abs(delX) < 1) return 0; // don't move if within acceptable error range to avoid back-and-forth swinging
+
+				return -delX / 20; // pure proportional controller for angular velocity
+			} finally {
+				bot.release(bot.limelight);
 			}
-		} finally {
-			bot.release(bot.limelight, bot.drive);
 		}
+
+		return 0;
 	}
 
 	@Override
@@ -169,24 +173,23 @@ public class RaptorMainRunner extends ITeleOpRunner {
 
 		keybinder.bind("b").of(gamepad1).to(cancelMacros);
 		keybinder.bind("x").of(gamepad1).to(() -> verbose = !verbose);
-		keybinder.bind("y").of(gamepad1).to(this::limelightAlignToGoalSyncIteration);
-//		keybinder.bind("a").of(gamepad1).to(() -> actions.scheduleAll(bot.strafeToBase()));
+//		keybinder.bind("right_bumper").of(gamepad1).to(() -> actions.scheduleAll(bot.strafeToBase()));
 
 		keybinder.bind("dpad_up").of(gamepad2).to(this::incrementVeloPreset);
 		keybinder.bind("dpad_down").of(gamepad2).to(this::decrementVeloPreset);
 
-		keybinder.bind("right_bumper").of(gamepad2).to(() -> {
-			autoVelocityMode = false;
-
-			if (shooterMaxVelo < 0) {
-				shooterMaxVelo = bot.SHOOTER_VELO_FOR_MID_SHOT;
-				shooterEnabled = false;
-			} else {
-				shooterMaxVelo = -1000;
-				shooterEnabled = true;
-			}
-
-		});
+//		keybinder.bind("right_bumper").of(gamepad2).to(() -> {
+//			autoVelocityMode = false;
+//
+//			if (shooterMaxVelo < 0) {
+//				shooterMaxVelo = bot.SHOOTER_VELO_FOR_MID_SHOT;
+//				shooterEnabled = false;
+//			} else {
+//				shooterMaxVelo = -1000;
+//				shooterEnabled = true;
+//			}
+//
+//		});
 		keybinder.bind("left_bumper").of(gamepad2).to(() -> autoVelocityMode = true);
 
 		keybinder.bind("a").of(gamepad2).to(this::toggleShooterEnabled);
@@ -206,8 +209,19 @@ public class RaptorMainRunner extends ITeleOpRunner {
 		});
 
 		while (opModeIsActive()) {
-			bot.driverControl.applyDrivePower(-gamepad1.inner.left_stick_y, -gamepad1.inner.left_stick_x, -gamepad1.inner.right_stick_x);
-			bot.driverControl.setIntakeAndTransferPower(gamepad2.inner.right_trigger-gamepad2.inner.left_trigger); // use a direct call instead of two separate keybind patterns for this to avoid overwrites
+			/* DRIVE CONTROL */
+
+			Vector2d linearVel = new Vector2d(-gamepad1.inner.left_stick_y,  -gamepad1.inner.left_stick_x);
+			double angVel = -gamepad1.inner.right_stick_x;
+
+			if (gamepad1.inner.y) angVel = limelightAlignToGoalSyncIteration();
+
+			bot.driverControl.applyDrivePower(linearVel.x, linearVel.y, angVel);
+
+			/* END DRIVE CONTROL */
+
+			bot.driverControl.setIntakePower(gamepad2.inner.right_trigger-gamepad2.inner.left_trigger); // use a direct call instead of two separate keybind patterns for this to avoid overwrites
+			bot.driverControl.setTransferPower(gamepad2.inner.right_stick_y+gamepad2.inner.left_stick_y);
 
 			if (autoVelocityMode) {
 				autoAdjustShooterMaxVelo();
@@ -219,6 +233,7 @@ public class RaptorMainRunner extends ITeleOpRunner {
 
 			keybinder.executeActions();
 			actions.execute();
+
 
 			if (verbose) {
 				telemetry.addData(
@@ -234,7 +249,13 @@ public class RaptorMainRunner extends ITeleOpRunner {
 			telemetry.addData(
 					"intake group",
 					"power (%.2f)",
-					bot.intakeAndTransfer.getPower()
+					bot.intake.getPower()
+			);
+
+			telemetry.addData(
+					"transfer",
+					"power (%.2f)",
+					bot.transfer.getPower()
 			);
 
 			telemetry.addData(
@@ -244,20 +265,28 @@ public class RaptorMainRunner extends ITeleOpRunner {
 			);
 
 			if (shooterEnabled) {
+				double maxError = Math.max(
+						Math.abs(bot.shooterLeft.getVelocity()-shooterMaxVelo),
+						Math.abs(bot.shooterRight.getVelocity()-shooterMaxVelo)
+				);
+
+				boolean canShoot = maxError <= 20;
+
 				telemetry.addData(
 						"shooter",
-						"velo limit (%.2f) left velo (%.2f) right velo (%.2f) shot type (%s)",
+						"velo limit (%.2f) left velo (%.2f) right velo (%.2f) shot type (%s) %s",
 						shooterMaxVelo,
 						bot.shooterLeft.getVelocity(),
 						bot.shooterRight.getVelocity(),
-						bot.getShooterVelocityPresetLabel(shooterMaxVelo)
+						autoVelocityMode ? "auto" : bot.getShooterVelocityPresetLabel(shooterMaxVelo),
+						canShoot ? "READY TO SHOOT" : ""
 				);
 			} else {
 				telemetry.addData(
 						"shooter",
 						"disabled, velo limit (%.2f) shot type (%s)",
 						shooterMaxVelo,
-						bot.getShooterVelocityPresetLabel(shooterMaxVelo)
+						autoVelocityMode ? "auto" : bot.getShooterVelocityPresetLabel(shooterMaxVelo)
 				);
 			}
 

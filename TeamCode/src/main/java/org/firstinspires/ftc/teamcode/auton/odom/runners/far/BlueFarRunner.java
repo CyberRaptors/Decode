@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.auton.odom.runners.near;
+package org.firstinspires.ftc.teamcode.auton.odom.runners.far;
 
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.SequentialAction;
@@ -12,7 +12,7 @@ import lib8812.common.robot.IRobot;
 import lib8812.common.rr.MecanumDrive;
 import lib8812.common.teleop.ITeleOpRunner;
 
-public class BlueNearRunner extends ITeleOpRunner {
+public class BlueFarRunner extends ITeleOpRunner {
 	ActionableRaptorRobot bot = new ActionableRaptorRobot(true);
 
 	Action main;
@@ -21,46 +21,50 @@ public class BlueNearRunner extends ITeleOpRunner {
 	protected void customInit() {
 		MecanumDrive drive = bot.drive;
 
-		drive.localizer.setPose(CommonPoses.INITIAL_BLUE_NEAR_POSE);
+		drive.localizer.setPose(CommonPoses.INITIAL_BLUE_FAR_POSE);
 
-		Action initialMoveToShoot = drive.actionBuilder(CommonPoses.INITIAL_BLUE_NEAR_POSE)
+		Action initialMoveToShoot = drive.actionBuilder(CommonPoses.INITIAL_BLUE_FAR_POSE)
 				.strafeToSplineHeading(
-						CommonPoses.BLUE_NEAR_SHOT_POSE.position,
-						CommonPoses.BLUE_NEAR_SHOT_POSE.heading
+						CommonPoses.BLUE_FAR_SHOT_POSE.position,
+						CommonPoses.BLUE_FAR_SHOT_POSE.heading
 				)
 				.build();
 
 		Action pickupFirstSpike = new SequentialAction(
-				drive.actionBuilder(CommonPoses.BLUE_NEAR_SHOT_POSE)
+				drive.actionBuilder(CommonPoses.BLUE_FAR_SHOT_POSE)
 						.strafeToSplineHeading(
-								CommonPoses.BLUE_FIRST_SPIKE_START_POSE.position,
-								CommonPoses.BLUE_FIRST_SPIKE_START_POSE.heading
+								CommonPoses.BLUE_THIRD_SPIKE_START_POSE.position,
+								CommonPoses.BLUE_THIRD_SPIKE_START_POSE.heading
 						)
 						.build(),
-				drive.actionBuilder(CommonPoses.BLUE_FIRST_SPIKE_START_POSE)
+				bot.setIntakeAndTransferPower(1),
+				drive.actionBuilder(CommonPoses.BLUE_THIRD_SPIKE_START_POSE)
 						.strafeToSplineHeading(
-								CommonPoses.BLUE_FIRST_SPIKE_END_POSE.position,
-								CommonPoses.BLUE_FIRST_SPIKE_END_POSE.heading,
+								CommonPoses.BLUE_THIRD_SPIKE_END_POSE.position,
+								CommonPoses.BLUE_THIRD_SPIKE_END_POSE.heading,
 								bot.SPIKE_PICKUP_VEL_CONSTRAINT
+
 						)
 						.build()
 		);
 
-		Action secondMoveToShoot = drive.actionBuilder(CommonPoses.BLUE_FIRST_SPIKE_END_POSE)
+		Action secondMoveToShoot = drive.actionBuilder(CommonPoses.BLUE_THIRD_SPIKE_END_POSE)
 				.afterTime(0, bot.setIntakeAndTransferPower(0))
 				.strafeToSplineHeading(
-						CommonPoses.BLUE_NEAR_SHOT_POSE.position,
-						CommonPoses.BLUE_NEAR_SHOT_POSE.heading
+						CommonPoses.BLUE_FAR_SHOT_POSE.position,
+						CommonPoses.BLUE_FAR_SHOT_POSE.heading
 				)
 				.build();
 
 		Action pickupSecondSpike = new SequentialAction(
-				drive.actionBuilder(CommonPoses.BLUE_NEAR_SHOT_POSE)
+				drive.actionBuilder(CommonPoses.BLUE_FAR_SHOT_POSE
+						)
 						.strafeToSplineHeading(
 								CommonPoses.BLUE_SECOND_SPIKE_START_POSE.position,
 								CommonPoses.BLUE_SECOND_SPIKE_START_POSE.heading
 						)
 						.build(),
+				bot.setIntakeAndTransferPower(1),
 				drive.actionBuilder(CommonPoses.BLUE_SECOND_SPIKE_START_POSE)
 						.strafeToSplineHeading(
 								CommonPoses.BLUE_SECOND_SPIKE_END_POSE.position,
@@ -73,36 +77,33 @@ public class BlueNearRunner extends ITeleOpRunner {
 		Action thirdMoveToShoot = drive.actionBuilder(CommonPoses.BLUE_SECOND_SPIKE_END_POSE)
 				.afterTime(0, bot.setIntakeAndTransferPower(0))
 				.strafeToSplineHeading(
-						CommonPoses.BLUE_NEAR_SHOT_POSE.position,
-						CommonPoses.BLUE_NEAR_SHOT_POSE.heading
+						CommonPoses.BLUE_FAR_SHOT_POSE.position,
+						CommonPoses.BLUE_FAR_SHOT_POSE.heading
 				)
 				.build();
 
-		Action park = drive.actionBuilder(CommonPoses.BLUE_NEAR_SHOT_POSE)
-				.strafeToSplineHeading(
-						CommonPoses.BLUE_NEAR_PARK_POSE.position,
-						CommonPoses.BLUE_NEAR_PARK_POSE.heading
-				)
+		Action park = drive.actionBuilder(CommonPoses.BLUE_FAR_SHOT_POSE)
+				.strafeTo(CommonPoses.BLUE_FAR_PARK_POS)
 				.build();
 
 		main = new SequentialAction(
-				bot.startShootersAsync(bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
+				bot.startShootersAsync(bot.SHOOTER_VELO_FOR_FAR_SHOT),
 				initialMoveToShoot,
-				bot.shootThree(bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
+				bot.shootThree(bot.SHOOTER_VELO_FOR_FAR_SHOT),
 				bot.disableShootersAsync(),
 				bot.setIntakePower(1),
 				bot.setTransferPower(0.15),
 				pickupFirstSpike,
-				bot.startShootersAsync(bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
+				bot.startShootersAsync(bot.SHOOTER_VELO_FOR_FAR_SHOT),
 				secondMoveToShoot,
-				bot.shootThree(bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
+				bot.shootThree(bot.SHOOTER_VELO_FOR_FAR_SHOT),
 				bot.setIntakePower(1),
 				bot.setTransferPower(0.15),
 				bot.disableShootersAsync(),
 				pickupSecondSpike,
-				bot.startShootersAsync(bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
+				bot.startShootersAsync(bot.SHOOTER_VELO_FOR_FAR_SHOT),
 				thirdMoveToShoot,
-				bot.shootThree(bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
+				bot.shootThree(bot.SHOOTER_VELO_FOR_FAR_SHOT),
 				bot.disableShootersAsync(),
 				park
 		);

@@ -3,12 +3,12 @@ package org.firstinspires.ftc.teamcode.auton.odom.opmodes.far;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
-import org.firstinspires.ftc.teamcode.auton.odom.runners.far.BlueFarSixArtifactMidShotRunner;
+import org.firstinspires.ftc.teamcode.auton.odom.runners.far.BlueFarRunner;
 
-@Autonomous(name = "Blue Far SixArtifact Move")
-public class BlueFarSixArtifact extends LinearOpMode {
+@Autonomous(name = "Blue Far [Reg]")
+public class BlueFar extends LinearOpMode {
 	@Override
 	public void runOpMode() throws InterruptedException {
-		new BlueFarSixArtifactMidShotRunner().run(this);
+		new BlueFarRunner().run(this);
 	}
 }
