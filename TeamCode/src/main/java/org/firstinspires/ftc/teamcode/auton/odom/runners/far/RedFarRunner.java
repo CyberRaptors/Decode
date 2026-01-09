@@ -37,7 +37,7 @@ public class RedFarRunner extends ITeleOpRunner {
 								CommonPoses.RED_THIRD_SPIKE_START_POSE.heading
 						)
 						.build(),
-				bot.setIntakeAndTransferPower(1),
+//				bot.setIntakeAndTransferPower(1),
 				drive.actionBuilder(CommonPoses.RED_THIRD_SPIKE_START_POSE)
 						.strafeToSplineHeading(
 								CommonPoses.RED_THIRD_SPIKE_END_POSE.position,
@@ -64,7 +64,7 @@ public class RedFarRunner extends ITeleOpRunner {
 								CommonPoses.RED_SECOND_SPIKE_START_POSE.heading
 						)
 						.build(),
-				bot.setIntakeAndTransferPower(1),
+//				bot.setIntakeAndTransferPower(1),
 				drive.actionBuilder(CommonPoses.RED_SECOND_SPIKE_START_POSE)
 						.strafeToSplineHeading(
 								CommonPoses.RED_SECOND_SPIKE_END_POSE.position,

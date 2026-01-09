@@ -151,7 +151,7 @@ public class RaptorMainRunner extends ITeleOpRunner {
 
 				if (fiducials.isEmpty()) return 0;
 
-				double delX = res.getTx()-2; // use res.getTx for 3D point-of-interest tracking, use 2 degree offset to compat for shooter bending
+				double delX = res.getTx()-0; // use res.getTx for 3D point-of-interest tracking, use 2 degree offset to compat for shooter bending
 
 				if (Math.abs(delX) < 1) return 0; // don't move if within acceptable error range to avoid back-and-forth swinging
 

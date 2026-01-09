@@ -37,7 +37,7 @@ public class RedFarTameRunner extends ITeleOpRunner {
 								CommonPoses.RED_THIRD_SPIKE_START_POSE.heading
 						)
 						.build(),
-				bot.setIntakeAndTransferPower(1),
+//				bot.setIntakeAndTransferPower(1),
 				drive.actionBuilder(CommonPoses.RED_THIRD_SPIKE_START_POSE)
 						.strafeToSplineHeading(
 								CommonPoses.RED_THIRD_SPIKE_END_POSE.position,
@@ -65,11 +65,11 @@ public class RedFarTameRunner extends ITeleOpRunner {
 				bot.shootThree(bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
 				bot.disableShootersAsync(),
 				bot.setIntakePower(1),
+				bot.setTransferPower(0.15),
 				pickupFirstSpike,
 				bot.startShootersAsync(bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
 				secondMoveToShoot,
 				bot.shootThree(bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
-				bot.setIntakePower(1),
 				bot.disableShootersAsync(),
 				park
 		);

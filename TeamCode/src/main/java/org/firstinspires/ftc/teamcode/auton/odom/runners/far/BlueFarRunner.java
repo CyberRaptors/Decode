@@ -37,7 +37,7 @@ public class BlueFarRunner extends ITeleOpRunner {
 								CommonPoses.BLUE_THIRD_SPIKE_START_POSE.heading
 						)
 						.build(),
-				bot.setIntakeAndTransferPower(1),
+//				bot.setIntakeAndTransferPower(1),
 				drive.actionBuilder(CommonPoses.BLUE_THIRD_SPIKE_START_POSE)
 						.strafeToSplineHeading(
 								CommonPoses.BLUE_THIRD_SPIKE_END_POSE.position,
@@ -57,14 +57,13 @@ public class BlueFarRunner extends ITeleOpRunner {
 				.build();
 
 		Action pickupSecondSpike = new SequentialAction(
-				drive.actionBuilder(CommonPoses.BLUE_FAR_SHOT_POSE
-						)
+				drive.actionBuilder(CommonPoses.BLUE_FAR_SHOT_POSE)
 						.strafeToSplineHeading(
 								CommonPoses.BLUE_SECOND_SPIKE_START_POSE.position,
 								CommonPoses.BLUE_SECOND_SPIKE_START_POSE.heading
 						)
 						.build(),
-				bot.setIntakeAndTransferPower(1),
+//				bot.setIntakeAndTransferPower(1),
 				drive.actionBuilder(CommonPoses.BLUE_SECOND_SPIKE_START_POSE)
 						.strafeToSplineHeading(
 								CommonPoses.BLUE_SECOND_SPIKE_END_POSE.position,

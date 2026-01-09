@@ -37,7 +37,7 @@ public class BlueNearScaryRunner extends ITeleOpRunner {
 								CommonPoses.BLUE_FIRST_SPIKE_START_POSE.heading
 						)
 						.build(),
-				bot.setIntakeAndTransferPower(1),
+//				bot.setIntakeAndTransferPower(1),
 				drive.actionBuilder(CommonPoses.BLUE_FIRST_SPIKE_START_POSE)
 						.strafeToSplineHeading(
 								CommonPoses.BLUE_FIRST_SPIKE_END_POSE.position,
@@ -73,7 +73,7 @@ public class BlueNearScaryRunner extends ITeleOpRunner {
 								CommonPoses.BLUE_SECOND_SPIKE_START_POSE.heading
 						)
 						.build(),
-				bot.setIntakeAndTransferPower(1),
+//				bot.setIntakeAndTransferPower(1),
 				drive.actionBuilder(CommonPoses.BLUE_SECOND_SPIKE_START_POSE)
 						.strafeToSplineHeading(
 								CommonPoses.BLUE_SECOND_SPIKE_END_POSE.position,
@@ -105,14 +105,14 @@ public class BlueNearScaryRunner extends ITeleOpRunner {
 				bot.shootThree(bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
 				bot.disableShootersAsync(),
 				bot.setIntakePower(1),
-				bot.setTransferPower(0.05),
+				bot.setTransferPower(0.15),
 				pickupFirstSpike,
 				clearGate,
 				bot.startShootersAsync(bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
 				secondMoveToShoot,
 				bot.shootThree(bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
 				bot.setIntakePower(1),
-				bot.setTransferPower(0.05),
+				bot.setTransferPower(0.15),
 				bot.disableShootersAsync(),
 				pickupSecondSpike,
 				bot.startShootersAsync(bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
