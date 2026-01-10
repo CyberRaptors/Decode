@@ -39,11 +39,13 @@ import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.hardware.limelightvision.LLResult;
-import com.qualcomm.hardware.limelightvision.LLResultTypes;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
+import org.firstinspires.ftc.robotcore.external.navigation.Position;
+import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.teamcode.robot.ActionableRaptorRobot;
-
-import java.util.List;
 
 import lib8812.common.game.GameConstants;
 import lib8812.common.robot.IRobot;
@@ -81,7 +83,9 @@ public class RaptorMainRunner extends ITeleOpRunner {
 			return;
 		}
 
-		bot.driverControl.setShooterVelocity(shooterMaxVelo);
+		bot.driverControl.setShooterVelocity(
+				bot.cancelTransferVelo(shooterMaxVelo, bot.transfer.getVelocity())
+		);
 	}
 
 	void autoAdjustShooterMaxVelo() {
@@ -136,28 +140,41 @@ public class RaptorMainRunner extends ITeleOpRunner {
 	}
 
 	double limelightAlignToGoalSyncIteration() {
-		if (bot.use(bot.limelight)) {
+		if (bot.use(bot.limelight, bot.drive.localizer)) {
 			try {
 				bot.limelight.pipelineSwitch(bot.LIMELIGHT_APRILTAG_INDEX);
 
 				LLResult res = bot.limelight.getLatestResult();
 
-				if (res.getPipelineIndex() != bot.LIMELIGHT_APRILTAG_INDEX)
-					return 0; // we will get there in a future iteration
+				if (!(res.isValid() && res.getPipelineIndex() == bot.LIMELIGHT_APRILTAG_INDEX) || res.getStaleness() > 100) {
+					return 0;
+				}
 
-				if (!res.isValid()) return 0;
+				if (res.getBotposeTagCount() == 0) return 0;
 
-				List<LLResultTypes.FiducialResult> fiducials = res.getFiducialResults();
+				Pose3D botPose = res.getBotpose(); // always use MegaTag to get robot pose (we cannot rely on the OTOS heading to give us a correct MT2 pose, so we tank the pose ambiguity for now (which actually doesn't seem too bad from the web UI))
 
-				if (fiducials.isEmpty()) return 0;
+				// update RR localizer with MT bot pose
+				Position botPos = botPose.getPosition().toUnit(DistanceUnit.INCH);
+				YawPitchRollAngles botOrientation = botPose.getOrientation();
 
-				double delX = res.getTx()-0; // use res.getTx for 3D point-of-interest tracking, use 2 degree offset to compat for shooter bending
+				bot.drive.localizer.setPose(new Pose2d(
+						botPos.x,
+						botPos.y,
+						botOrientation.getYaw(AngleUnit.RADIANS)
+				));
+
+				bot.drive.localizer.update();
+
+				double targetAngle = GameConstants.DECODE.GOAL_POSITION(bot.onBlueTeam).minus(bot.drive.localizer.getPose().position).angleCast().toDouble();
+
+				double delX = targetAngle-bot.drive.localizer.getPose().heading.toDouble();
 
 				if (Math.abs(delX) < 1) return 0; // don't move if within acceptable error range to avoid back-and-forth swinging
 
 				return -delX / 20; // pure proportional controller for angular velocity
 			} finally {
-				bot.release(bot.limelight);
+				bot.release(bot.limelight, bot.drive.localizer);
 			}
 		}
 

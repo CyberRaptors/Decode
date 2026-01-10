@@ -29,13 +29,18 @@ public class RaptorRobot extends IMecanumRobot {
 		}
 	}
 
+	final double SHOOTER_MOTOR_TICKS_PER_REV = 28;
+	final double TRANSFER_MOTOR_TICKS_PER_REV = 384.5;
+
 	public final int LIMELIGHT_APRILTAG_INDEX;
 
 	public final double SHOOTER_VELO_FOR_CLOSE_AUTO_SHOT = 1420;
 
-	public final double SHOOTER_VELO_FOR_CLOSE_SHOT = 1660;
-	public final double SHOOTER_VELO_FOR_MID_SHOT = 1661;
+	public final double SHOOTER_VELO_FOR_CLOSE_SHOT = 1500;
+	public final double SHOOTER_VELO_FOR_MID_SHOT = 1660;
 	public final double SHOOTER_VELO_FOR_FAR_SHOT = 1820;
+
+	public final double TRANSFER_TO_SHOOTER_VELO_CANCEL_MULTIPLIER = SHOOTER_MOTOR_TICKS_PER_REV/TRANSFER_MOTOR_TICKS_PER_REV;
 
 	public final double[] SHOOTER_VELO_PRESETS = {
 			SHOOTER_VELO_FOR_CLOSE_SHOT,
@@ -49,7 +54,7 @@ public class RaptorRobot extends IMecanumRobot {
 	public MecanumDrive drive;
 
 	public DcMotor intake;
-	public DcMotor transfer;
+	public DcMotorEx transfer;
 	public SoftwareGangedMotors intakeAndTransfer;
 	public BinaryClaw shooterGate;
 
@@ -87,9 +92,15 @@ public class RaptorRobot extends IMecanumRobot {
 		shooterGate.inner.setDirection(Servo.Direction.REVERSE);
 		shooterGate.open();
 
+		transfer.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 		transfer.setDirection(DcMotorSimple.Direction.REVERSE);
 
 		intakeAndTransfer = new SoftwareGangedMotors(intake, transfer);
+	}
+
+	// returns new shooter velo with transfer velo canceled out
+	public double cancelTransferVelo(double shooterVelo, double transferVelo) {
+		return shooterVelo - transferVelo*TRANSFER_TO_SHOOTER_VELO_CANCEL_MULTIPLIER;
 	}
 
 	// calculates optimal shooter velocity from distance using linear regression
