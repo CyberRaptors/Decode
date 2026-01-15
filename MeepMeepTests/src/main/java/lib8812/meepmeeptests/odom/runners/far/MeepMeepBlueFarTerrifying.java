@@ -2,12 +2,13 @@ package lib8812.meepmeeptests.odom.runners.far;
 
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.SequentialAction;
+import com.acmerobotics.roadrunner.SleepAction;
 import com.noahbres.meepmeep.roadrunner.DriveShim;
 
 import lib8812.meepmeeptests.stubs.ActionableRaptorRobotStub;
 import lib8812.meepmeeptests.stubs.game.CommonPoses;
 
-public class MeepMeepBlueFar {
+public class MeepMeepBlueFarTerrifying {
 	static ActionableRaptorRobotStub bot = new ActionableRaptorRobotStub();
 	static Action main;
 
@@ -62,6 +63,23 @@ public class MeepMeepBlueFar {
 				)
 				.build();
 
+		Action pickupFromLoadingZoneAndMoveToShoot = drive.actionBuilder(CommonPoses.BLUE_FAR_SHOT_POSE)
+				.afterTime(0, bot.setIntakePower(1))
+				.afterTime(0, bot.setTransferPower(0.15))
+				.strafeToLinearHeading(
+						CommonPoses.BLUE_FAR_TERRIFYING_PICKUP_FROM_LOADING_ZONE_POSE.position,
+						CommonPoses.BLUE_FAR_TERRIFYING_PICKUP_FROM_LOADING_ZONE_POSE.heading
+				)
+				.stopAndAdd(new SleepAction(3.5))
+				.afterTime(0, bot.setIntakeAndTransferPower(0))
+				.afterTime(0, bot.startShootersAsync(bot.SHOOTER_VELO_FOR_FAR_SHOT))
+				.strafeToLinearHeading(
+						CommonPoses.BLUE_FAR_SHOT_POSE.position,
+						CommonPoses.BLUE_FAR_SHOT_POSE.heading
+				)
+				.build();
+
+
 		Action park = drive.actionBuilder(CommonPoses.BLUE_FAR_SHOT_POSE)
 				.strafeToSplineHeading(
 						CommonPoses.BLUE_FAR_PARK_POSE.position,
@@ -79,6 +97,10 @@ public class MeepMeepBlueFar {
 				bot.disableShootersAsync(),
 
 				pickupSecondSpikeAndMoveToShoot,
+				bot.shootThree(bot.SHOOTER_VELO_FOR_FAR_SHOT),
+				bot.disableShootersAsync(),
+
+				pickupFromLoadingZoneAndMoveToShoot,
 				bot.shootThree(bot.SHOOTER_VELO_FOR_FAR_SHOT),
 				bot.disableShootersAsync(),
 

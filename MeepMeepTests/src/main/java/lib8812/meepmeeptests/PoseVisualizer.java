@@ -9,7 +9,7 @@ import com.noahbres.meepmeep.roadrunner.DriveShim;
 import lib8812.meepmeeptests.stubs.game.CommonPoses;
 
 public class PoseVisualizer {
-	static Pose2d targetPose = CommonPoses.BLUE_BASE_PARKING_POSE;
+	static Pose2d targetPose = CommonPoses.BLUE_FAR_TERRIFYING_PICKUP_FROM_LOADING_ZONE_POSE;
 
 	public static Action run(DriveShim drive) {
 		drive.setPoseEstimate(new Pose2d(0, 0, 0));

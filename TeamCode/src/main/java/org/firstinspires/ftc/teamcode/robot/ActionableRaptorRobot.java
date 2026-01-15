@@ -4,6 +4,7 @@ import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.InstantAction;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.PoseVelocity2d;
+import com.acmerobotics.roadrunner.RaceAction;
 import com.acmerobotics.roadrunner.Rotation2d;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.SleepAction;
@@ -27,7 +28,7 @@ import lib8812.common.game.GameConstants;
 
 public class ActionableRaptorRobot extends RaptorRobot {
 
-	public final double MAX_VELO_FOR_SPIKE_PICKUP = 10;
+	public final double MAX_VELO_FOR_SPIKE_PICKUP = 20;
 	public final VelConstraint SPIKE_PICKUP_VEL_CONSTRAINT = (a, b, c) -> MAX_VELO_FOR_SPIKE_PICKUP;
 
 	public ActionableRaptorRobot(boolean blueTeam) {
@@ -76,30 +77,31 @@ public class ActionableRaptorRobot extends RaptorRobot {
 	}
 
 	public Action shootThree(double velo) {
-		double secondShotVelo = velo*(5.0/6);
-		double thirdShotVelo = velo*(3.0/4);
-
 		return new LockedUsageAction(
 				new SequentialAction(
 						new MotorSetVelocityAction(shooterRight, velo),
 						new MotorSetVelocityAction(shooterLeft, velo),
+						new RaceAction(
+								new SequentialAction(
+										new InstantAction(() -> transfer.setPower(1)),
+										new SleepAction(3) // shoot three artifacts in 3s
+								),
+								telemetryPacket -> {
+									// ensure shooter compensates for transfer velocity continuously
 
-						new InstantAction(() -> {
-							shooterGate.open();
-							intakeAndTransfer.setPower(1);
-						}),
-						new SleepAction(0.5),
-						new InstantAction(() -> intakeAndTransfer.setPower(-0.15)),
-						new SleepAction(0.5),
-						new InstantAction(() -> intakeAndTransfer.setPower(1)),
-						new SleepAction(0.5),
-						new InstantAction(() -> intakeAndTransfer.setPower(-0.15)),
-						new SleepAction(0.5),
-						new InstantAction(() -> intakeAndTransfer.setPower(1)),
-						new SleepAction(1.5),
-						new InstantAction(() -> intakeAndTransfer.setPower(0))
+									shooterRight.setVelocity(
+											cancelTransferVelo(velo, transfer.getVelocity())
+									);
+
+									shooterLeft.setVelocity(
+											cancelTransferVelo(velo, transfer.getVelocity())
+									);
+
+									return true; // always run again, the SequentialAction will finish and end the RaceAction, thus ending this action
+								}
+						)
 				),
-				intake, transfer, shooterLeft, shooterRight, shooterGate
+				intake, transfer, shooterLeft, shooterRight
 		);
 	}
 

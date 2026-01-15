@@ -7,7 +7,7 @@ import com.noahbres.meepmeep.roadrunner.DriveShim;
 import lib8812.meepmeeptests.stubs.ActionableRaptorRobotStub;
 import lib8812.meepmeeptests.stubs.game.CommonPoses;
 
-public class MeepMeepBlueNearScary {
+public class MeepMeepBlueNearTerrifying {
 	static ActionableRaptorRobotStub bot = new ActionableRaptorRobotStub();
 	static Action main;
 
@@ -15,7 +15,6 @@ public class MeepMeepBlueNearScary {
 		drive.setPoseEstimate(CommonPoses.INITIAL_BLUE_NEAR_POSE);
 
 		Action initialMoveToShoot = drive.actionBuilder(CommonPoses.INITIAL_BLUE_NEAR_POSE)
-				.afterTime(0, bot.startShootersAsync(bot.SHOOTER_VELO_FOR_CLOSE_SHOT))
 				.strafeToLinearHeading(
 						CommonPoses.BLUE_NEAR_SHOT_POSE.position,
 						CommonPoses.BLUE_NEAR_SHOT_POSE.heading
@@ -35,13 +34,9 @@ public class MeepMeepBlueNearScary {
 						bot.SPIKE_PICKUP_VEL_CONSTRAINT
 				)
 				.afterTime(0, bot.setIntakeAndTransferPower(0))
-				.strafeToLinearHeading(
-						CommonPoses.BLUE_CLEAR_GATE_START_POSE.position,
-						CommonPoses.BLUE_CLEAR_GATE_START_POSE.heading
-				)
-				.strafeToLinearHeading(
-						CommonPoses.BLUE_CLEAR_GATE_END_POSE.position,
-						CommonPoses.BLUE_CLEAR_GATE_END_POSE.heading
+				.splineToLinearHeading(
+						CommonPoses.BLUE_QUICK_CLEAR_GATE_END_POSE,
+						CommonPoses.BLUE_QUICK_CLEAR_GATE_END_POSE.heading
 				)
 				.afterTime(0, bot.startShootersAsync(bot.SHOOTER_VELO_FOR_CLOSE_SHOT))
 				.strafeToLinearHeading(
@@ -70,12 +65,26 @@ public class MeepMeepBlueNearScary {
 				)
 				.build();
 
-		Action park = drive.actionBuilder(CommonPoses.BLUE_NEAR_SHOT_POSE)
-				.strafeToLinearHeading(
-						CommonPoses.BLUE_NEAR_PARK_POSE.position,
-						CommonPoses.BLUE_NEAR_PARK_POSE.heading
+		Action pickupThirdSpikeAndMoveToShootAndPark = drive.actionBuilder(CommonPoses.BLUE_NEAR_SHOT_POSE)
+				.afterTime(0, bot.setIntakePower(1))
+				.afterTime(0, bot.setTransferPower(0.15))
+				.splineToSplineHeading(
+						CommonPoses.BLUE_THIRD_SPIKE_START_POSE,
+						CommonPoses.BLUE_THIRD_SPIKE_START_POSE.heading
+				)
+				.splineToSplineHeading(
+						CommonPoses.BLUE_THIRD_SPIKE_END_POSE,
+						CommonPoses.BLUE_THIRD_SPIKE_END_POSE.heading,
+						bot.SPIKE_PICKUP_VEL_CONSTRAINT
+				)
+				.afterTime(0, bot.setIntakeAndTransferPower(0))
+				.afterTime(0, bot.startShootersAsync(bot.SHOOTER_VELO_FOR_CLOSE_SHOT))
+				.splineToLinearHeading(
+						CommonPoses.BLUE_NEAR_SHORT_PARK_POSE,
+						CommonPoses.BLUE_NEAR_SHORT_PARK_POSE.heading
 				)
 				.build();
+
 
 		main = new SequentialAction(
 				initialMoveToShoot,
@@ -90,7 +99,9 @@ public class MeepMeepBlueNearScary {
 				bot.shootThree(bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
 				bot.disableShootersAsync(),
 
-				park
+				pickupThirdSpikeAndMoveToShootAndPark,
+				bot.shootThree(bot.SHOOTER_VELO_FOR_SHORT_PARK_SHOT),
+				bot.disableShootersAsync()
 		);
 
 		return main;
