@@ -12,7 +12,7 @@ public class GameConstants {
 		public static final int MOTIF_PGP_APRILTAG_ID = 22;
 		public static final int MOTIF_PPG_APRILTAG_ID = 23;
 
-		public static final double GOAL_APRILTAG_HEIGHT_IN = 38.75;
+		public static final double APPROX_GOAL_HEIGHT_IN = 38.75;
 
 		public static int GOAL_APRILTAG_ID(boolean blue) {
 			if (blue) return BLUE_GOAL_APRILTAG_ID;
@@ -37,6 +37,51 @@ public class GameConstants {
 			if (blue) return CommonPoses.BLUE_BASE_PARKING_POSE;
 
 			return CommonPoses.RED_BASE_PARKING_POSE;
+		}
+
+		public static boolean isInNearShootingZone(Vector2d pos, double botRadius) {
+			double extremeX = pos.x-botRadius;
+
+			if (extremeX > 0) return false;
+
+			double extremeY;
+
+			if (pos.y > 0) { // red side of field
+				extremeY = pos.y - botRadius;
+
+			} else { // blue side of field
+				extremeY = pos.y + botRadius;
+			}
+
+			return Math.abs(extremeX) >= Math.abs(extremeY);
+		}
+
+		public static boolean isInFarShootingZone(Vector2d pos, double botRadius) {
+			double extremeX = pos.x+botRadius;
+
+			if (extremeX < FieldConstants.TILE_LENGTH_IN*2) return false;
+
+			double extremeY;
+
+			if (pos.y > 0) { // red side of field
+				extremeY = pos.y - botRadius;
+
+			} else { // blue side of field
+				extremeY = pos.y + botRadius;
+			}
+
+			return Math.abs(extremeX-FieldConstants.TILE_LENGTH_IN*2) >= Math.abs(extremeY);
+		}
+
+		public static boolean isInLegalShootingZone(Vector2d pos, double botRadius) {
+			return isInNearShootingZone(pos, botRadius) || isInFarShootingZone(pos, botRadius);
+		}
+
+		public static String getShotZoneLabel(Vector2d pos, double botRadius) {
+			if (isInNearShootingZone(pos, botRadius)) return "near";
+			if (isInFarShootingZone(pos, botRadius)) return "far";
+
+			return "none";
 		}
 	}
 }

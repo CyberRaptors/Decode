@@ -17,7 +17,7 @@ DRIVER B
 	LEFT STICK (Y) - Run transfer forwards (+) and backwards (-)
 	RIGHT STICK (Y) - Run transfer forwards (+) and backwards (-)
 
-	RIGHT BUMPER - Run shooter to intake from human
+	RIGHT BUMPER (HOLD) - Relinquish shooting control to auto-shoot mode
 	LEFT BUMPER - Enable automatic shooter velocity control
 		- Shooter velocity control starts as manual; the driver can set velocity presets using their designated controls
 		- In automatic control, the optimal velocity is automatically calculated based on the robot's localization
@@ -36,6 +36,7 @@ package org.firstinspires.ftc.teamcode.teleop.normal.runners;
 
 import com.acmerobotics.roadrunner.InstantAction;
 import com.acmerobotics.roadrunner.Pose2d;
+import com.acmerobotics.roadrunner.Rotation2d;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.Vector2d;
 import com.qualcomm.hardware.limelightvision.LLResult;
@@ -61,13 +62,23 @@ public class RaptorMainRunner extends ITeleOpRunner {
 
 	boolean shooterEnabled = false;
 	boolean autoVelocityMode = false;
+	boolean autoShootMode = false;
 	boolean verbose = false;
 
 	boolean autoVeloActionStillRunning = false;
+	boolean autoShotActionStillRunning = false;
 
 	double shooterMaxVelo;
 
+	long timeOfLastLimelightLocalization = 0;
+
+	Vector2d lastLinearVel;
+	Rotation2d headingBeforeAutoShootMode;
+
+
 	void toggleShooterEnabled() {
+		autoShootMode = false; // toggling the shooter should relinquish auto-shoot control
+
 		if (shooterMaxVelo < 0) {
 			shooterMaxVelo = bot.SHOOTER_VELO_FOR_MID_SHOT;
 		} else {
@@ -78,7 +89,7 @@ public class RaptorMainRunner extends ITeleOpRunner {
 	}
 
 	void runShooter() {
-		if (!shooterEnabled) {
+		if (!shooterEnabled && !autoShootMode) {
 			bot.driverControl.setShooterOff();
 			return;
 		}
@@ -88,7 +99,7 @@ public class RaptorMainRunner extends ITeleOpRunner {
 		);
 	}
 
-	void autoAdjustShooterMaxVelo() {
+	void scheduleAutoVelocityAction() {
 		if (autoVeloActionStillRunning) return; // ensure that only one velocity update action is dispatched at a time
 
 		autoVeloActionStillRunning = true;
@@ -100,13 +111,11 @@ public class RaptorMainRunner extends ITeleOpRunner {
 
 							double distanceFromBotCenterToGoalCorner = GameConstants.DECODE.GOAL_POSITION(bot.onBlueTeam).minus(botPos).norm();
 
-							double goalHeight = 38.75;
-
 							double distanceFromBotToTarget = Math.sqrt(
-									distanceFromBotCenterToGoalCorner*distanceFromBotCenterToGoalCorner + goalHeight*goalHeight
+									distanceFromBotCenterToGoalCorner*distanceFromBotCenterToGoalCorner + GameConstants.DECODE.APPROX_GOAL_HEIGHT_IN *GameConstants.DECODE.APPROX_GOAL_HEIGHT_IN
 							);
 
-							shooterMaxVelo = bot.calculateV0ForV2Shooter(distanceFromBotToTarget);
+							shooterMaxVelo = bot.calculateV0ForShooter(distanceFromBotToTarget);
 						}), 20),
 						new InstantAction(() -> autoVeloActionStillRunning = false) // we need a SequentialAction to reset this flag in case the requireLimelightRelocalization gives up and never dispatches the velo update InstantAction
 				)
@@ -139,7 +148,8 @@ public class RaptorMainRunner extends ITeleOpRunner {
 		shooterMaxVelo = bot.SHOOTER_VELO_PRESETS[0];
 	}
 
-	double limelightAlignToGoalSyncIteration() {
+	// returns whether or not localization was successful this iteration
+	boolean requireLimelightLocalizationSyncIteration() {
 		if (bot.use(bot.limelight, bot.drive.localizer)) {
 			try {
 				bot.limelight.pipelineSwitch(bot.LIMELIGHT_APRILTAG_INDEX);
@@ -147,10 +157,10 @@ public class RaptorMainRunner extends ITeleOpRunner {
 				LLResult res = bot.limelight.getLatestResult();
 
 				if (!(res.isValid() && res.getPipelineIndex() == bot.LIMELIGHT_APRILTAG_INDEX) || res.getStaleness() > 100) {
-					return 0;
+					return false;
 				}
 
-				if (res.getBotposeTagCount() == 0) return 0;
+				if (res.getBotposeTagCount() == 0) return false;
 
 				Pose3D botPose = res.getBotpose(); // always use MegaTag to get robot pose (we cannot rely on the OTOS heading to give us a correct MT2 pose, so we tank the pose ambiguity for now (which actually doesn't seem too bad from the web UI))
 
@@ -166,19 +176,83 @@ public class RaptorMainRunner extends ITeleOpRunner {
 
 				bot.drive.localizer.update();
 
-				double targetAngle = GameConstants.DECODE.GOAL_POSITION(bot.onBlueTeam).minus(bot.drive.localizer.getPose().position).angleCast().toDouble();
-
-				double delX = targetAngle-bot.drive.localizer.getPose().heading.toDouble();
-
-				if (Math.abs(delX) < 1) return 0; // don't move if within acceptable error range to avoid back-and-forth swinging
-
-				return -delX / 20; // pure proportional controller for angular velocity
+				return true;
 			} finally {
 				bot.release(bot.limelight, bot.drive.localizer);
 			}
 		}
 
+		return false;
+	}
+
+	double limelightAlignToGoalSyncIteration() {
+		if (localizationIsCurrent()) {
+				Rotation2d targetRot = GameConstants.DECODE.GOAL_POSITION(bot.onBlueTeam).minus(bot.drive.localizer.getPose().position).angleCast();
+
+				double deltaThetaDeg = Math.toDegrees(targetRot.minus(bot.drive.localizer.getPose().heading));
+
+				if (Math.abs(deltaThetaDeg) < 1) return 0; // don't move if within acceptable error range to avoid back-and-forth swinging
+
+				return deltaThetaDeg / 20; // pure proportional controller for angular velocity
+		}
+
 		return 0;
+	}
+
+	// TODO: CHECK IF BOT IS ACTUALLY IN LEGAL SHOOTING ZONE
+	void autoShootModeSyncIteration(Vector2d linearVel, boolean alignedToGoal) {
+		// here kinda start out the same as LL sync iter, but if aligned, then use auto-velocity logic to set velo, then cancel out the linear vels and try to shoot, maybe we have a sensor in here but idk also could use transfer/shooter vels to see if a shot was made or actually just run the transfers + intake and assume you have smt
+		// but crucial check must be made: that robot is actually in a legal shooting zone
+		// if the LL performed alignment, it should have localized the bot so we can assume that we have a decently accurate localization here if the goal can actually be seen
+
+		if (localizationIsCurrent() && alignedToGoal) {
+			// do auto-velocity ourselves because we don't want some weird locking conflicts where auto-velocity hogs locks
+
+			Vector2d botPos = bot.drive.localizer.getPose().position;
+
+			double distanceFromBotCenterToGoalCorner = GameConstants.DECODE.GOAL_POSITION(bot.onBlueTeam).minus(botPos).norm();
+
+			double distanceFromBotToTarget = Math.sqrt(
+					distanceFromBotCenterToGoalCorner*distanceFromBotCenterToGoalCorner + GameConstants.DECODE.APPROX_GOAL_HEIGHT_IN *GameConstants.DECODE.APPROX_GOAL_HEIGHT_IN
+			);
+
+			double tentativeShooterVelo = bot.calculateV0ForShooter(distanceFromBotToTarget);
+
+			// since the drive is bot-centric, the x component in the linear velocity will always be forwards (same direction as the shooter)
+			// because of this, we don't need to do any fancy vector maths to cancel out our linear velocity, we just have to subtract the x component
+			// from the tentativeShooterVelo with a constant involved
+
+				shooterMaxVelo = tentativeShooterVelo - linearVel.x*bot.LINEAR_TO_SHOOTER_VELO_CANCEL_MULTIPLIER;
+
+			double realTargetVelo = bot.cancelTransferVelo(shooterMaxVelo, bot.transfer.getVelocity());
+
+			double maxShooterVelocityDeviation = Math.max(
+					Math.abs(bot.shooterLeft.getVelocity()-realTargetVelo),
+					Math.abs(bot.shooterRight.getVelocity()-realTargetVelo)
+			);
+
+			if (maxShooterVelocityDeviation <= 20) { // once we begin to get into the velocity range, start the transfer (don't worry about waiting for it to converge)
+				bot.intake.setPower(0.7);
+				bot.transfer.setPower(1);
+			}
+
+			if (!GameConstants.DECODE.isInLegalShootingZone(bot.drive.localizer.getPose().position, bot.RADIUS)) { // do not make illegal shots...
+				bot.intake.setPower(0);
+				bot.transfer.setPower(0);
+			}
+		}
+	}
+
+	void attemptToLocalizeUsingLL() {
+		if (requireLimelightLocalizationSyncIteration()) {
+			timeOfLastLimelightLocalization = System.currentTimeMillis();
+		}
+	}
+
+	boolean localizationIsCurrent() {
+		long timeSinceLastLocalization = System.currentTimeMillis()-timeOfLastLimelightLocalization;
+
+		return timeSinceLastLocalization <= 30_000;
 	}
 
 	@Override
@@ -190,28 +264,31 @@ public class RaptorMainRunner extends ITeleOpRunner {
 
 		keybinder.bind("b").of(gamepad1).to(cancelMacros);
 		keybinder.bind("x").of(gamepad1).to(() -> verbose = !verbose);
-//		keybinder.bind("right_bumper").of(gamepad1).to(() -> actions.scheduleAll(bot.strafeToBase()));
 
 		keybinder.bind("dpad_up").of(gamepad2).to(this::incrementVeloPreset);
 		keybinder.bind("dpad_down").of(gamepad2).to(this::decrementVeloPreset);
 
-//		keybinder.bind("right_bumper").of(gamepad2).to(() -> {
-//			autoVelocityMode = false;
-//
-//			if (shooterMaxVelo < 0) {
-//				shooterMaxVelo = bot.SHOOTER_VELO_FOR_MID_SHOT;
-//				shooterEnabled = false;
-//			} else {
-//				shooterMaxVelo = -1000;
-//				shooterEnabled = true;
-//			}
-//
-//		});
+		keybinder.bind("right_bumper").of(gamepad2).to((v) -> {
+			// use value bind fn to ensure that this binding runs every iteration (so this effectively becomes a hold-button
+
+			// NOTE: we only lock transfer for the duration of the button hold because this is the only device that we directly write to,
+			// all other writes are performed externally or separately from autoShootModeSyncIteration()
+
+			if (v != 0) {
+				if (!autoShootMode && bot.use(bot.transfer, bot.intake)) {
+					headingBeforeAutoShootMode = bot.drive.localizer.getPose().heading;
+
+					autoShootMode = true;
+				}
+			} else if (autoShootMode) {
+				bot.release(bot.transfer, bot.intake);
+				autoShootMode = false;
+			}
+		});
 		keybinder.bind("left_bumper").of(gamepad2).to(() -> autoVelocityMode = true);
 
 		keybinder.bind("a").of(gamepad2).to(this::toggleShooterEnabled);
 		keybinder.bind("b").of(gamepad2).to(cancelMacros);
-		keybinder.bind("y").of(gamepad2).to(bot.driverControl::toggleShooterGate);
 		keybinder.bind("x").of(gamepad2).to(() -> actions.scheduleAll(bot.shootThree(shooterMaxVelo)));
 
 		keybinder.bind("dpad_left").of(gamepad2).to(() -> {
@@ -226,31 +303,71 @@ public class RaptorMainRunner extends ITeleOpRunner {
 		});
 
 		while (opModeIsActive()) {
+			boolean alignedToGoal = false;
+
 			/* DRIVE CONTROL */
 
 			Vector2d linearVel = new Vector2d(-gamepad1.inner.left_stick_y,  -gamepad1.inner.left_stick_x);
 			double angVel = -gamepad1.inner.right_stick_x;
 
-			if (gamepad1.inner.y) angVel = limelightAlignToGoalSyncIteration();
+			if (gamepad1.inner.y) {
+				angVel = limelightAlignToGoalSyncIteration();
+
+				alignedToGoal = angVel == 0;
+			}
+
+			if (headingBeforeAutoShootMode != null) {
+				double deltaTheta = bot.drive.localizer.getPose().heading.minus(headingBeforeAutoShootMode);
+				double deltaThetaDeg = Math.toDegrees(deltaTheta);
+
+				if (autoShootMode) {
+					angVel = limelightAlignToGoalSyncIteration();
+					alignedToGoal = angVel == 0;
+
+					double rotationOffset = angVel*2;
+
+					double rotateBy = - (deltaTheta + rotationOffset);
+
+					double xPrime = linearVel.x * Math.cos(rotateBy) - linearVel.y * Math.sin(rotateBy);
+					double yPrime = linearVel.x * Math.sin(rotateBy) + linearVel.y * Math.cos(rotateBy);
+
+					linearVel = new Vector2d(xPrime, yPrime);
+				} else if (Math.abs(deltaThetaDeg) >= 2 && angVel == 0) {
+					angVel = -deltaThetaDeg/20;
+
+					double xPrime = linearVel.x * Math.cos(deltaTheta) - linearVel.y * Math.sin(deltaTheta);
+					double yPrime = linearVel.x * Math.sin(deltaTheta) + linearVel.y * Math.cos(deltaTheta);
+
+					linearVel = new Vector2d(xPrime, yPrime);
+				} else {
+					headingBeforeAutoShootMode = null;
+				}
+			}
 
 			bot.driverControl.applyDrivePower(linearVel.x, linearVel.y, angVel);
+
+			lastLinearVel = linearVel;
 
 			/* END DRIVE CONTROL */
 
 			bot.driverControl.setIntakePower(gamepad2.inner.right_trigger-gamepad2.inner.left_trigger); // use a direct call instead of two separate keybind patterns for this to avoid overwrites
 			bot.driverControl.setTransferPower(gamepad2.inner.right_stick_y+gamepad2.inner.left_stick_y);
 
-			if (autoVelocityMode) {
-				autoAdjustShooterMaxVelo();
+			if (autoShootMode) {
+				autoShootModeSyncIteration(linearVel, alignedToGoal);
+			}
+			else if (autoVelocityMode) {
+				scheduleAutoVelocityAction();
 			}
 
 			runShooter();
+
+			attemptToLocalizeUsingLL();
 
 			bot.drive.localizer.update();
 
 			keybinder.executeActions();
 			actions.execute();
-
 
 			if (verbose) {
 				telemetry.addData(
@@ -262,6 +379,8 @@ public class RaptorMainRunner extends ITeleOpRunner {
 						bot.leftBack.getPower()
 				);
 			}
+
+			telemetry.addData("linearVel set", "x (%.2f) y (%.2f)", linearVel.x, linearVel.y);
 
 			telemetry.addData(
 					"intake group",
@@ -281,10 +400,18 @@ public class RaptorMainRunner extends ITeleOpRunner {
 					bot.shooterGate.inner.getPositionLabel()
 			);
 
-			if (shooterEnabled) {
+			if (autoShootMode) {
+				telemetry.addData(
+						"FULL AUTO SHOOTING ENABLED",
+						"disable auto-shoot mode to see full shooter telemetry"
+				);
+			}
+			else if (shooterEnabled) {
+				double realTargetVelo = bot.cancelTransferVelo(shooterMaxVelo, bot.transfer.getVelocity());
+
 				double maxError = Math.max(
-						Math.abs(bot.shooterLeft.getVelocity()-shooterMaxVelo),
-						Math.abs(bot.shooterRight.getVelocity()-shooterMaxVelo)
+						Math.abs(bot.shooterLeft.getVelocity()-realTargetVelo),
+						Math.abs(bot.shooterRight.getVelocity()-realTargetVelo)
 				);
 
 				boolean canShoot = maxError <= 20;
@@ -309,6 +436,8 @@ public class RaptorMainRunner extends ITeleOpRunner {
 
 			Pose2d botPose = bot.drive.localizer.getPose();
 			telemetry.addData("current position", "x: %.2f in, y: %.2f in, heading: %.2f deg", botPose.position.x, botPose.position.y, Math.toDegrees(botPose.heading.toDouble()));
+			telemetry.addData("localization", "%s (%s)", localizationIsCurrent() ? "current" : "stale", alignedToGoal ? "holding goal alignment" : "goal alignment unknown");
+			telemetry.addData("current shot zone", GameConstants.DECODE.getShotZoneLabel(botPose.position, bot.RADIUS));
 
 			telemetry.update();
 		}

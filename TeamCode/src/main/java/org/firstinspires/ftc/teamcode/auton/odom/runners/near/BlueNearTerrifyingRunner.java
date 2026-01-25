@@ -12,7 +12,7 @@ import lib8812.common.robot.IRobot;
 import lib8812.common.rr.MecanumDrive;
 import lib8812.common.teleop.ITeleOpRunner;
 
-public class BlueNearScaryRunner extends ITeleOpRunner {
+public class BlueNearTerrifyingRunner extends ITeleOpRunner {
 	ActionableRaptorRobot bot = new ActionableRaptorRobot(true);
 
 	Action main;
@@ -43,15 +43,7 @@ public class BlueNearScaryRunner extends ITeleOpRunner {
 						CommonPoses.BLUE_FIRST_SPIKE_END_POSE.heading,
 						bot.SPIKE_PICKUP_VEL_CONSTRAINT
 				)
-				.afterTime(0, bot.setIntakeAndTransferPower(0))
-				.strafeToLinearHeading(
-						CommonPoses.BLUE_CLEAR_GATE_START_POSE.position,
-						CommonPoses.BLUE_CLEAR_GATE_START_POSE.heading
-				)
-				.strafeToLinearHeading(
-						CommonPoses.BLUE_CLEAR_GATE_END_POSE.position,
-						CommonPoses.BLUE_CLEAR_GATE_END_POSE.heading
-				)
+				.afterTime(0.5, bot.setIntakeAndTransferPower(0))
 				.afterTime(0, bot.startShootersAsync(bot.SHOOTER_VELO_FOR_CLOSE_SHOT))
 				.strafeToLinearHeading(
 						CommonPoses.BLUE_NEAR_SHOT_POSE.position,
@@ -71,7 +63,7 @@ public class BlueNearScaryRunner extends ITeleOpRunner {
 						CommonPoses.BLUE_SECOND_SPIKE_END_POSE.heading,
 						bot.SPIKE_PICKUP_VEL_CONSTRAINT
 				)
-				.afterTime(0, bot.setIntakeAndTransferPower(0))
+				.afterTime(0.5, bot.setIntakeAndTransferPower(0))
 				.afterTime(0, bot.startShootersAsync(bot.SHOOTER_VELO_FOR_CLOSE_SHOT))
 				.splineToLinearHeading(
 						CommonPoses.BLUE_NEAR_SHOT_POSE,
@@ -79,16 +71,29 @@ public class BlueNearScaryRunner extends ITeleOpRunner {
 				)
 				.build();
 
-		Action park = drive.actionBuilder(CommonPoses.BLUE_NEAR_SHOT_POSE)
-				.strafeToLinearHeading(
-						CommonPoses.BLUE_NEAR_PARK_POSE.position,
-						CommonPoses.BLUE_NEAR_PARK_POSE.heading
+		Action pickupThirdSpikeAndMoveToShootAndPark = drive.actionBuilder(CommonPoses.BLUE_NEAR_SHOT_POSE)
+				.afterTime(0, bot.setIntakePower(1))
+				.afterTime(0, bot.setTransferPower(0.15))
+				.splineToSplineHeading(
+						CommonPoses.BLUE_THIRD_SPIKE_START_POSE,
+						CommonPoses.BLUE_THIRD_SPIKE_START_POSE.heading
+				)
+				.splineToSplineHeading(
+						CommonPoses.BLUE_THIRD_SPIKE_END_POSE,
+						CommonPoses.BLUE_THIRD_SPIKE_END_POSE.heading,
+						bot.SPIKE_PICKUP_VEL_CONSTRAINT
+				)
+				.afterTime(0.5, bot.setIntakeAndTransferPower(0))
+				.afterTime(0, bot.startShootersAsync(bot.SHOOTER_VELO_FOR_SHORT_PARK_SHOT))
+				.splineToLinearHeading(
+						CommonPoses.BLUE_NEAR_SHORT_PARK_POSE,
+						CommonPoses.BLUE_NEAR_SHORT_PARK_POSE.heading
 				)
 				.build();
 
+
 		main = new SequentialAction(
 				initialMoveToShoot,
-				bot.shootThree(bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
 				bot.disableShootersAsync(),
 
 				pickupFirstSpikeClearGateAndMoveToShoot,
@@ -99,7 +104,9 @@ public class BlueNearScaryRunner extends ITeleOpRunner {
 				bot.shootThree(bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
 				bot.disableShootersAsync(),
 
-				park
+				pickupThirdSpikeAndMoveToShootAndPark,
+				bot.shootThree(bot.SHOOTER_VELO_FOR_SHORT_PARK_SHOT),
+				bot.disableShootersAsync()
 		);
 	}
 

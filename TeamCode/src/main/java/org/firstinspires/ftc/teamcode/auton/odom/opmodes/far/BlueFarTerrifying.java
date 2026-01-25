@@ -3,12 +3,12 @@ package org.firstinspires.ftc.teamcode.auton.odom.opmodes.far;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
-import org.firstinspires.ftc.teamcode.auton.odom.runners.far.RedFarTameRunner;
+import org.firstinspires.ftc.teamcode.auton.odom.runners.far.BlueFarTerrifyingRunner;
 
-@Autonomous(name = "Red Far [Tame]")
-public class RedFarTame extends LinearOpMode {
+@Autonomous(name = "Blue Far [Terrifying]")
+public class BlueFarTerrifying extends LinearOpMode {
 	@Override
 	public void runOpMode() throws InterruptedException {
-		new RedFarTameRunner().run(this);
+		new BlueFarTerrifyingRunner().run(this);
 	}
 }

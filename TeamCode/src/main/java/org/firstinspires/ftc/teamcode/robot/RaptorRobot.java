@@ -29,18 +29,25 @@ public class RaptorRobot extends IMecanumRobot {
 		}
 	}
 
+	// s/2 for inscribed circle radius: we don't use 18/2 = 9 here because the wheels are actually closer to 17in
+	// and we want to give a buffer to be safe when making shot zone calculations
+	public final double RADIUS = 8.25;
+
 	final double SHOOTER_MOTOR_TICKS_PER_REV = 28;
 	final double TRANSFER_MOTOR_TICKS_PER_REV = 384.5;
 
 	public final int LIMELIGHT_APRILTAG_INDEX;
 
-	public final double SHOOTER_VELO_FOR_CLOSE_AUTO_SHOT = 1420;
-
-	public final double SHOOTER_VELO_FOR_CLOSE_SHOT = 1500;
-	public final double SHOOTER_VELO_FOR_MID_SHOT = 1660;
+	public final double SHOOTER_VELO_FOR_CLOSE_SHOT = 1640;
+	public final double SHOOTER_VELO_FOR_MID_SHOT = 1720;
 	public final double SHOOTER_VELO_FOR_FAR_SHOT = 1820;
 
+	// auto-only (no preset)
+	public final double SHOOTER_VELO_FOR_SHORT_PARK_SHOT = 1680;
+	public final double SHOOTER_VELO_FOR_CLOSE_MONSTER_SHOT = SHOOTER_VELO_FOR_MID_SHOT+30;
+
 	public final double TRANSFER_TO_SHOOTER_VELO_CANCEL_MULTIPLIER = SHOOTER_MOTOR_TICKS_PER_REV/TRANSFER_MOTOR_TICKS_PER_REV;
+	public final double LINEAR_TO_SHOOTER_VELO_CANCEL_MULTIPLIER = 30;
 
 	public final double[] SHOOTER_VELO_PRESETS = {
 			SHOOTER_VELO_FOR_CLOSE_SHOT,
@@ -103,10 +110,10 @@ public class RaptorRobot extends IMecanumRobot {
 		return shooterVelo - transferVelo*TRANSFER_TO_SHOOTER_VELO_CANCEL_MULTIPLIER;
 	}
 
-	// calculates optimal shooter velocity from distance using linear regression
-	public double calculateV0ForV2Shooter(double distance) {
-		double m = 3.5002;
-		double b = 1311.74128;
+	// calculates optimal shooter velocity from distance using linear regression, TODO: params need to be updated (v4)
+	public double calculateV0ForShooter(double distance) {
+		double m = 2.60607;
+		double b = 1446.19367;
 
 		return m*distance + b;
 	}

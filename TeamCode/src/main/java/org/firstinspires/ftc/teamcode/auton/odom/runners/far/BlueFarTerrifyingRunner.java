@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.auton.odom.runners.far;
 
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.SequentialAction;
+import com.acmerobotics.roadrunner.SleepAction;
 import com.acmerobotics.roadrunner.ftc.Actions;
 
 import org.firstinspires.ftc.teamcode.InteropFields;
@@ -12,7 +13,7 @@ import lib8812.common.robot.IRobot;
 import lib8812.common.rr.MecanumDrive;
 import lib8812.common.teleop.ITeleOpRunner;
 
-public class BlueFarTameRunner extends ITeleOpRunner {
+public class BlueFarTerrifyingRunner extends ITeleOpRunner {
 	ActionableRaptorRobot bot = new ActionableRaptorRobot(true);
 
 	Action main;
@@ -51,6 +52,43 @@ public class BlueFarTameRunner extends ITeleOpRunner {
 				)
 				.build();
 
+		Action pickupSecondSpikeAndMoveToShoot = drive.actionBuilder(CommonPoses.BLUE_FAR_SHOT_POSE)
+				.afterTime(0, bot.setIntakePower(1))
+				.afterTime(0, bot.setTransferPower(0.15))
+				.splineToSplineHeading(
+						CommonPoses.BLUE_SECOND_SPIKE_START_POSE,
+						CommonPoses.BLUE_SECOND_SPIKE_START_POSE.heading
+				)
+				.splineToSplineHeading(
+						CommonPoses.BLUE_SECOND_SPIKE_END_POSE,
+						CommonPoses.BLUE_SECOND_SPIKE_END_POSE.heading,
+						bot.SPIKE_PICKUP_VEL_CONSTRAINT
+				)
+				.afterTime(0, bot.setIntakeAndTransferPower(0))
+				.afterTime(0, bot.startShootersAsync(bot.SHOOTER_VELO_FOR_FAR_SHOT))
+				.splineToLinearHeading(
+						CommonPoses.BLUE_FAR_SHOT_POSE,
+						CommonPoses.BLUE_FAR_SHOT_POSE.heading
+				)
+				.build();
+
+		Action pickupFromLoadingZoneAndMoveToShoot = drive.actionBuilder(CommonPoses.BLUE_FAR_SHOT_POSE)
+				.afterTime(0, bot.setIntakePower(1))
+				.afterTime(0, bot.setTransferPower(0.15))
+				.strafeToLinearHeading(
+						CommonPoses.BLUE_FAR_TERRIFYING_PICKUP_FROM_LOADING_ZONE_POSE.position,
+						CommonPoses.BLUE_FAR_TERRIFYING_PICKUP_FROM_LOADING_ZONE_POSE.heading
+				)
+				.stopAndAdd(new SleepAction(3.5))
+				.afterTime(0, bot.setIntakeAndTransferPower(0))
+				.afterTime(0, bot.startShootersAsync(bot.SHOOTER_VELO_FOR_FAR_SHOT))
+				.strafeToLinearHeading(
+						CommonPoses.BLUE_FAR_SHOT_POSE.position,
+						CommonPoses.BLUE_FAR_SHOT_POSE.heading
+				)
+				.build();
+
+
 		Action park = drive.actionBuilder(CommonPoses.BLUE_FAR_SHOT_POSE)
 				.strafeToSplineHeading(
 						CommonPoses.BLUE_FAR_PARK_POSE.position,
@@ -64,6 +102,14 @@ public class BlueFarTameRunner extends ITeleOpRunner {
 				bot.disableShootersAsync(),
 
 				pickupFirstSpikeAndMoveToShoot,
+				bot.shootThree(bot.SHOOTER_VELO_FOR_FAR_SHOT),
+				bot.disableShootersAsync(),
+
+				pickupSecondSpikeAndMoveToShoot,
+				bot.shootThree(bot.SHOOTER_VELO_FOR_FAR_SHOT),
+				bot.disableShootersAsync(),
+
+				pickupFromLoadingZoneAndMoveToShoot,
 				bot.shootThree(bot.SHOOTER_VELO_FOR_FAR_SHOT),
 				bot.disableShootersAsync(),
 

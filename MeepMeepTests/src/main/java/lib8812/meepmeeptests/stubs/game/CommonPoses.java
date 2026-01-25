@@ -87,6 +87,6 @@ public class CommonPoses {
 	public static final Pose2d BLUE_BASE_PARKING_POSE = new Pose2d(FieldConstants.TILE_LENGTH_IN*1.5, FieldConstants.TILE_LENGTH_IN*1.5, Math.PI);
 	public static final Pose2d RED_BASE_PARKING_POSE = allianceReflect(BLUE_BASE_PARKING_POSE);
 
-	public static final Vector2d BLUE_GOAL_CORNER = new Vector2d(-FieldConstants.TILE_LENGTH_IN*3, FieldConstants.TILE_LENGTH_IN*3);
+	public static final Vector2d BLUE_GOAL_CORNER = new Vector2d(-FieldConstants.TILE_LENGTH_IN*3, -FieldConstants.TILE_LENGTH_IN*3);
 	public static final Vector2d RED_GOAL_CORNER = allianceReflect(BLUE_GOAL_CORNER);
 }

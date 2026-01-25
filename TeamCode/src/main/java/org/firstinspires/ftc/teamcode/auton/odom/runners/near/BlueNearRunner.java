@@ -24,56 +24,50 @@ public class BlueNearRunner extends ITeleOpRunner {
 		drive.localizer.setPose(CommonPoses.INITIAL_BLUE_NEAR_POSE);
 
 		Action initialMoveToShoot = drive.actionBuilder(CommonPoses.INITIAL_BLUE_NEAR_POSE)
+				.afterTime(0, bot.startShootersAsync(bot.SHOOTER_VELO_FOR_CLOSE_SHOT))
+				.afterDisp(45, bot.shootThree(bot.SHOOTER_VELO_FOR_CLOSE_SHOT))
 				.strafeToSplineHeading(
 						CommonPoses.BLUE_NEAR_SHOT_POSE.position,
 						CommonPoses.BLUE_NEAR_SHOT_POSE.heading
 				)
 				.build();
 
-		Action pickupFirstSpike = new SequentialAction(
-				drive.actionBuilder(CommonPoses.BLUE_NEAR_SHOT_POSE)
-						.strafeToSplineHeading(
-								CommonPoses.BLUE_FIRST_SPIKE_START_POSE.position,
-								CommonPoses.BLUE_FIRST_SPIKE_START_POSE.heading
-						)
-						.build(),
-				drive.actionBuilder(CommonPoses.BLUE_FIRST_SPIKE_START_POSE)
-						.strafeToSplineHeading(
-								CommonPoses.BLUE_FIRST_SPIKE_END_POSE.position,
-								CommonPoses.BLUE_FIRST_SPIKE_END_POSE.heading,
-								bot.SPIKE_PICKUP_VEL_CONSTRAINT
-						)
-						.build()
-		);
-
-		Action secondMoveToShoot = drive.actionBuilder(CommonPoses.BLUE_FIRST_SPIKE_END_POSE)
-				.afterTime(0, bot.setIntakeAndTransferPower(0))
-				.strafeToSplineHeading(
-						CommonPoses.BLUE_NEAR_SHOT_POSE.position,
+		Action pickupFirstSpikeAndMoveToShoot = drive.actionBuilder(CommonPoses.BLUE_NEAR_SHOT_POSE)
+				.afterTime(0, bot.setIntakePower(1))
+				.afterTime(0, bot.setTransferPower(0.15))
+				.splineToSplineHeading(
+						CommonPoses.BLUE_FIRST_SPIKE_START_POSE,
+						CommonPoses.BLUE_FIRST_SPIKE_START_POSE.heading
+				)
+				.splineToSplineHeading(
+						CommonPoses.BLUE_FIRST_SPIKE_END_POSE,
+						CommonPoses.BLUE_FIRST_SPIKE_END_POSE.heading,
+						bot.SPIKE_PICKUP_VEL_CONSTRAINT
+				)
+				.afterTime(0.5, bot.setIntakeAndTransferPower(0))
+				.afterTime(0, bot.startShootersAsync(bot.SHOOTER_VELO_FOR_CLOSE_SHOT))
+				.splineToLinearHeading(
+						CommonPoses.BLUE_NEAR_SHOT_POSE,
 						CommonPoses.BLUE_NEAR_SHOT_POSE.heading
 				)
 				.build();
 
-		Action pickupSecondSpike = new SequentialAction(
-				drive.actionBuilder(CommonPoses.BLUE_NEAR_SHOT_POSE)
-						.strafeToSplineHeading(
-								CommonPoses.BLUE_SECOND_SPIKE_START_POSE.position,
-								CommonPoses.BLUE_SECOND_SPIKE_START_POSE.heading
-						)
-						.build(),
-				drive.actionBuilder(CommonPoses.BLUE_SECOND_SPIKE_START_POSE)
-						.strafeToSplineHeading(
-								CommonPoses.BLUE_SECOND_SPIKE_END_POSE.position,
-								CommonPoses.BLUE_SECOND_SPIKE_END_POSE.heading,
-								bot.SPIKE_PICKUP_VEL_CONSTRAINT
-						)
-						.build()
-		);
-
-		Action thirdMoveToShoot = drive.actionBuilder(CommonPoses.BLUE_SECOND_SPIKE_END_POSE)
-				.afterTime(0, bot.setIntakeAndTransferPower(0))
-				.strafeToSplineHeading(
-						CommonPoses.BLUE_NEAR_SHOT_POSE.position,
+		Action pickupSecondSpikeAndMoveToShoot = drive.actionBuilder(CommonPoses.BLUE_NEAR_SHOT_POSE)
+				.afterTime(0, bot.setIntakePower(1))
+				.afterTime(0, bot.setTransferPower(0.15))
+				.splineToSplineHeading(
+						CommonPoses.BLUE_SECOND_SPIKE_START_POSE,
+						CommonPoses.BLUE_SECOND_SPIKE_START_POSE.heading
+				)
+				.splineToSplineHeading(
+						CommonPoses.BLUE_SECOND_SPIKE_END_POSE,
+						CommonPoses.BLUE_SECOND_SPIKE_END_POSE.heading,
+						bot.SPIKE_PICKUP_VEL_CONSTRAINT
+				)
+				.afterTime(0.5, bot.setIntakeAndTransferPower(0))
+				.afterTime(0, bot.startShootersAsync(bot.SHOOTER_VELO_FOR_CLOSE_SHOT))
+				.splineToLinearHeading(
+						CommonPoses.BLUE_NEAR_SHOT_POSE,
 						CommonPoses.BLUE_NEAR_SHOT_POSE.heading
 				)
 				.build();
@@ -86,24 +80,17 @@ public class BlueNearRunner extends ITeleOpRunner {
 				.build();
 
 		main = new SequentialAction(
-				bot.startShootersAsync(bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
 				initialMoveToShoot,
+				bot.disableShootersAsync(),
+
+				pickupFirstSpikeAndMoveToShoot,
 				bot.shootThree(bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
 				bot.disableShootersAsync(),
-				bot.setIntakePower(1),
-				bot.setTransferPower(0.15),
-				pickupFirstSpike,
-				bot.startShootersAsync(bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
-				secondMoveToShoot,
-				bot.shootThree(bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
-				bot.setIntakePower(1),
-				bot.setTransferPower(0.15),
-				bot.disableShootersAsync(),
-				pickupSecondSpike,
-				bot.startShootersAsync(bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
-				thirdMoveToShoot,
+
+				pickupSecondSpikeAndMoveToShoot,
 				bot.shootThree(bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
 				bot.disableShootersAsync(),
+
 				park
 		);
 	}

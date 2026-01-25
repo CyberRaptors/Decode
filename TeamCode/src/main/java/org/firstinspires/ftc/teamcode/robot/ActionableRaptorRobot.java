@@ -1,7 +1,9 @@
 package org.firstinspires.ftc.teamcode.robot;
 
+import com.acmerobotics.roadrunner.AccelConstraint;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.InstantAction;
+import com.acmerobotics.roadrunner.MinMax;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.PoseVelocity2d;
 import com.acmerobotics.roadrunner.RaceAction;
@@ -27,9 +29,15 @@ import lib8812.common.actions.OnceAction;
 import lib8812.common.game.GameConstants;
 
 public class ActionableRaptorRobot extends RaptorRobot {
-
-	public final double MAX_VELO_FOR_SPIKE_PICKUP = 20;
+	public final double MAX_VELO_FOR_SPIKE_PICKUP = 60;
 	public final VelConstraint SPIKE_PICKUP_VEL_CONSTRAINT = (a, b, c) -> MAX_VELO_FOR_SPIKE_PICKUP;
+
+	public final double MAX_VELO_FOR_MONSTER_LZ_PICKUP = 60;
+	public final VelConstraint MONSTER_LZ_PICKUP_VEL_CONSTRAINT = (a, b, c) -> MAX_VELO_FOR_MONSTER_LZ_PICKUP;
+
+
+	public final MinMax ACCEL_FOR_MONSTER_LZ_PICKUP = new MinMax(-80, 80);
+	public final AccelConstraint MONSTER_LZ_PICKUP_ACCEL_CONSTRAINT = (a, b, c) -> ACCEL_FOR_MONSTER_LZ_PICKUP;
 
 	public ActionableRaptorRobot(boolean blueTeam) {
 		super(blueTeam);
@@ -77,14 +85,25 @@ public class ActionableRaptorRobot extends RaptorRobot {
 	}
 
 	public Action shootThree(double velo) {
+		return shootBase(velo, 3);
+	}
+
+	public Action shootTwo(double velo) {
+		return shootBase(velo, 2);
+	}
+
+	Action shootBase(double velo, double dt) {
 		return new LockedUsageAction(
 				new SequentialAction(
 						new MotorSetVelocityAction(shooterRight, velo),
 						new MotorSetVelocityAction(shooterLeft, velo),
 						new RaceAction(
 								new SequentialAction(
-										new InstantAction(() -> transfer.setPower(1)),
-										new SleepAction(3) // shoot three artifacts in 3s
+										new InstantAction(() -> {
+											intake.setPower(0.7);
+											transfer.setPower(1);
+										}),
+										new SleepAction(dt) // shoot three artifacts for dt secs
 								),
 								telemetryPacket -> {
 									// ensure shooter compensates for transfer velocity continuously
@@ -96,6 +115,9 @@ public class ActionableRaptorRobot extends RaptorRobot {
 									shooterLeft.setVelocity(
 											cancelTransferVelo(velo, transfer.getVelocity())
 									);
+
+									telemetryPacket.addLine("shooterRight velo: "+shooterRight.getVelocity());
+									telemetryPacket.addLine("shooterLeft velo: "+shooterRight.getVelocity());
 
 									return true; // always run again, the SequentialAction will finish and end the RaceAction, thus ending this action
 								}

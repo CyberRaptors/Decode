@@ -24,57 +24,42 @@ public class BlueNearTameRunner extends ITeleOpRunner {
 		drive.localizer.setPose(CommonPoses.INITIAL_BLUE_NEAR_POSE);
 
 		Action initialMoveToShoot = drive.actionBuilder(CommonPoses.INITIAL_BLUE_NEAR_POSE)
-				.strafeToSplineHeading(
+				.afterTime(0, bot.startShootersAsync(bot.SHOOTER_VELO_FOR_CLOSE_SHOT))
+				.strafeToLinearHeading(
 						CommonPoses.BLUE_NEAR_SHOT_POSE.position,
 						CommonPoses.BLUE_NEAR_SHOT_POSE.heading
 				)
 				.build();
 
-		Action pickupFirstSpike = new SequentialAction(
-				drive.actionBuilder(CommonPoses.BLUE_NEAR_SHOT_POSE)
-						.strafeToSplineHeading(
-								CommonPoses.BLUE_FIRST_SPIKE_START_POSE.position,
-								CommonPoses.BLUE_FIRST_SPIKE_START_POSE.heading
-						)
-						.build(),
-//				bot.setIntakeAndTransferPower(1),
-				drive.actionBuilder(CommonPoses.BLUE_FIRST_SPIKE_START_POSE)
-						.strafeToSplineHeading(
-								CommonPoses.BLUE_FIRST_SPIKE_END_POSE.position,
-								CommonPoses.BLUE_FIRST_SPIKE_END_POSE.heading,
-								bot.SPIKE_PICKUP_VEL_CONSTRAINT
-						)
-						.build()
-		);
-
-		Action secondMoveToShoot = drive.actionBuilder(CommonPoses.BLUE_FIRST_SPIKE_END_POSE)
-				.afterTime(0, bot.setIntakeAndTransferPower(0))
-				.strafeToSplineHeading(
-						CommonPoses.BLUE_NEAR_SHOT_POSE.position,
-						CommonPoses.BLUE_NEAR_SHOT_POSE.heading
+		Action pickupFirstSpikeAndMoveToShootAndPark = drive.actionBuilder(CommonPoses.BLUE_NEAR_SHOT_POSE)
+				.afterTime(0, bot.setIntakePower(1))
+				.afterTime(0, bot.setTransferPower(0.15))
+				.splineToSplineHeading(
+						CommonPoses.BLUE_FIRST_SPIKE_START_POSE,
+						CommonPoses.BLUE_FIRST_SPIKE_START_POSE.heading
 				)
-				.build();
-
-		Action park = drive.actionBuilder(CommonPoses.BLUE_NEAR_SHOT_POSE)
-				.strafeToSplineHeading(
-						CommonPoses.BLUE_NEAR_SHORT_PARK_POSE.position,
+				.splineToSplineHeading(
+						CommonPoses.BLUE_FIRST_SPIKE_END_POSE,
+						CommonPoses.BLUE_FIRST_SPIKE_END_POSE.heading,
+						bot.SPIKE_PICKUP_VEL_CONSTRAINT
+				)
+				.afterTime(0.5, bot.setIntakeAndTransferPower(0))
+				.afterTime(0, bot.startShootersAsync(bot.SHOOTER_VELO_FOR_SHORT_PARK_SHOT))
+				.splineToLinearHeading(
+						CommonPoses.BLUE_NEAR_SHORT_PARK_POSE,
 						CommonPoses.BLUE_NEAR_SHORT_PARK_POSE.heading
 				)
 				.build();
 
+
 		main = new SequentialAction(
-				bot.startShootersAsync(bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
 				initialMoveToShoot,
-				bot.shootThree(bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
+				bot.shootThree(bot.SHOOTER_VELO_FOR_SHORT_PARK_SHOT),
 				bot.disableShootersAsync(),
-				bot.setIntakePower(1),
-				bot.setTransferPower(0.15),
-				pickupFirstSpike,
-				bot.startShootersAsync(bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
-				secondMoveToShoot,
-				bot.shootThree(bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
-				bot.disableShootersAsync(),
-				park
+
+				pickupFirstSpikeAndMoveToShootAndPark,
+				bot.shootThree(bot.SHOOTER_VELO_FOR_SHORT_PARK_SHOT),
+				bot.disableShootersAsync()
 		);
 	}
 
