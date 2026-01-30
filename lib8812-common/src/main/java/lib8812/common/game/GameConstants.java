@@ -33,10 +33,30 @@ public class GameConstants {
 
 			return CommonPoses.RED_GOAL_CORNER;
 		}
+
 		public static Pose2d BASE_PARKING_POSE(boolean blue) {
 			if (blue) return CommonPoses.BLUE_BASE_PARKING_POSE;
 
 			return CommonPoses.RED_BASE_PARKING_POSE;
+		}
+
+		public static Pose2d GATE_CLEAR_START_POSE(boolean blue) {
+			if (blue) return CommonPoses.BLUE_CLEAR_GATE_START_POSE;
+
+			return CommonPoses.RED_CLEAR_GATE_START_POSE;
+		}
+
+		public static Pose2d GATE_CLEAR_END_POSE(boolean blue) {
+			if (blue) return CommonPoses.BLUE_CLEAR_GATE_END_POSE;
+
+			return CommonPoses.RED_CLEAR_GATE_END_POSE;
+		}
+
+		public static Pose2d MONSTER_GATE_CLEAR_POSE(boolean blue) {
+			if (blue) return CommonPoses.BLUE_MONSTER_CLEAR_GATE_POSE;
+
+			return CommonPoses.RED_MONSTER_CLEAR_GATE_POSE;
+
 		}
 
 		public static boolean isInNearShootingZone(Vector2d pos, double botRadius) {

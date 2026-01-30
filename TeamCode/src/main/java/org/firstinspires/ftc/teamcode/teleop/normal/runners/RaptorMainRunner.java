@@ -10,6 +10,10 @@ DRIVER A
 	B - Globally cancel all macros
 	X - Enable/disable verbose mode
 	Y (HOLD) - Limelight-enabled goal alignment
+	A (HOLD) - Strafe to base (full park)
+
+	RIGHT BUMPER (HOLD) - Clear gate
+	LEFT BUMPER (HOLD) - Clear gate with possibility for intaking
 
 DRIVER B
 	RIGHT TRIGGER - Run intake & rail group forwards
@@ -34,6 +38,8 @@ DRIVER B
 
 package org.firstinspires.ftc.teamcode.teleop.normal.runners;
 
+import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
+import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.InstantAction;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.Rotation2d;
@@ -75,6 +81,9 @@ public class RaptorMainRunner extends ITeleOpRunner {
 	Vector2d lastLinearVel;
 	Rotation2d headingBeforeAutoShootMode;
 
+	Action clearGateAction;
+	Action clearGateSimplyStratAction;
+	Action strafeToBaseAction;
 
 	void toggleShooterEnabled() {
 		autoShootMode = false; // toggling the shooter should relinquish auto-shoot control
@@ -199,11 +208,40 @@ public class RaptorMainRunner extends ITeleOpRunner {
 		return 0;
 	}
 
-	// TODO: CHECK IF BOT IS ACTUALLY IN LEGAL SHOOTING ZONE
-	void autoShootModeSyncIteration(Vector2d linearVel, boolean alignedToGoal) {
+	double getGoalAlignmentErrorDeg() {
+		if (localizationIsCurrent()) {
+			Rotation2d targetRot = GameConstants.DECODE.GOAL_POSITION(bot.onBlueTeam).minus(bot.drive.localizer.getPose().position).angleCast();
+
+			return Math.toDegrees(targetRot.minus(bot.drive.localizer.getPose().heading));
+		}
+
+		return Integer.MAX_VALUE;
+	}
+
+	void autoShootModeSyncIteration(Vector2d linearVel) {
 		// here kinda start out the same as LL sync iter, but if aligned, then use auto-velocity logic to set velo, then cancel out the linear vels and try to shoot, maybe we have a sensor in here but idk also could use transfer/shooter vels to see if a shot was made or actually just run the transfers + intake and assume you have smt
 		// but crucial check must be made: that robot is actually in a legal shooting zone
 		// if the LL performed alignment, it should have localized the bot so we can assume that we have a decently accurate localization here if the goal can actually be seen
+
+		boolean alignedToGoal = false;
+		double goalAlignmentErrorDeg = getGoalAlignmentErrorDeg();
+
+		// use a more complex algorithm to determine if the bot is (roughly) aligned to the goal +-2 degrees, incorporating linear velocity
+		// if the error is large (more than 6 deg), then don't bother
+		// otherwise, incorporate linear y velocity
+
+		if (Math.abs(goalAlignmentErrorDeg) < 6) {
+			// positive y velocity will be right [roughly clockwise on blue (negative), roughly counterclockwise on red (positive)]
+			// negative y velocity will be left [roughly counterclockwise on blue (positive), roughly clockwise on red (negative)]
+
+			// we can then add the velocity to the error via a constant multiplier
+
+			double linearToAngularMultiplier = 4;
+
+			goalAlignmentErrorDeg+=linearVel.y*(bot.onBlueTeam ? -1 : 1)*linearToAngularMultiplier;
+
+			alignedToGoal = Math.abs(goalAlignmentErrorDeg) <= 2;
+		}
 
 		if (localizationIsCurrent() && alignedToGoal) {
 			// do auto-velocity ourselves because we don't want some weird locking conflicts where auto-velocity hogs locks
@@ -222,7 +260,7 @@ public class RaptorMainRunner extends ITeleOpRunner {
 			// because of this, we don't need to do any fancy vector maths to cancel out our linear velocity, we just have to subtract the x component
 			// from the tentativeShooterVelo with a constant involved
 
-				shooterMaxVelo = tentativeShooterVelo - linearVel.x*bot.LINEAR_TO_SHOOTER_VELO_CANCEL_MULTIPLIER;
+			shooterMaxVelo = tentativeShooterVelo - linearVel.x*bot.LINEAR_TO_SHOOTER_VELO_CANCEL_MULTIPLIER;
 
 			double realTargetVelo = bot.cancelTransferVelo(shooterMaxVelo, bot.transfer.getVelocity());
 
@@ -236,10 +274,14 @@ public class RaptorMainRunner extends ITeleOpRunner {
 				bot.transfer.setPower(1);
 			}
 
-			if (!GameConstants.DECODE.isInLegalShootingZone(bot.drive.localizer.getPose().position, bot.RADIUS)) { // do not make illegal shots...
+			if (!bot.canShootFromCurrentPosition()) { // do not make illegal or hopeless (too close) shots
 				bot.intake.setPower(0);
 				bot.transfer.setPower(0);
 			}
+		} else {
+			// either we are not localized or we are no longer facing the goal, do not transfer
+			bot.intake.setPower(0);
+			bot.transfer.setPower(0);
 		}
 	}
 
@@ -255,15 +297,115 @@ public class RaptorMainRunner extends ITeleOpRunner {
 		return timeSinceLastLocalization <= 30_000;
 	}
 
+	void dispatchClearGateIteration(double v) {
+		// use value bind fn to make this a "hold" control rather than a press control
+
+		if (v == 0 && clearGateAction != null) {
+			bot.release(bot.drive);
+			clearGateAction = null;
+
+			return;
+		}
+
+		if (clearGateAction == null && localizationIsCurrent() && bot.use(bot.drive)) {
+			Pose2d start = GameConstants.DECODE.GATE_CLEAR_START_POSE(bot.onBlueTeam);
+			Pose2d end = GameConstants.DECODE.GATE_CLEAR_END_POSE(bot.onBlueTeam);
+
+			clearGateAction = bot.drive.actionBuilder(bot.drive.localizer.getPose())
+//					.strafeToLinearHeading(start.position, start.heading)
+					.strafeToLinearHeading(end.position, end.heading)
+					.build();
+		}
+
+		if (clearGateAction != null) {
+			boolean done = !clearGateAction.run(new TelemetryPacket());
+
+			if (done) {
+				bot.release(bot.drive);
+				clearGateAction = null;
+			}
+		}
+	}
+
+	void dispatchSimplyStratIteration(double v) {
+		// use value bind fn to make this a "hold" control rather than a press control
+
+		if (v == 0 && clearGateSimplyStratAction != null) {
+			bot.release(bot.drive);
+			clearGateSimplyStratAction = null;
+
+			return;
+		}
+
+		if (clearGateSimplyStratAction == null && localizationIsCurrent() && bot.use(bot.drive)) {
+			Pose2d target = GameConstants.DECODE.MONSTER_GATE_CLEAR_POSE(bot.onBlueTeam);
+
+			clearGateSimplyStratAction = bot.drive.actionBuilder(bot.drive.localizer.getPose())
+					.strafeToLinearHeading(target.position, target.heading)
+					.build();
+		}
+
+		if (clearGateSimplyStratAction != null) {
+			boolean done = !clearGateSimplyStratAction.run(new TelemetryPacket());
+
+			if (done) {
+				bot.release(bot.drive);
+				clearGateSimplyStratAction = null;
+			}
+		}
+	}
+
+	void dispatchStrafeToBaseIteration(double v) {
+		// use value bind fn to make this a "hold" control rather than a press control
+
+		if (v == 0 && strafeToBaseAction != null) {
+			bot.release(bot.drive);
+			strafeToBaseAction = null;
+
+			return;
+		}
+
+		if (strafeToBaseAction == null && localizationIsCurrent() && bot.use(bot.drive)) {
+			Pose2d targetPose = GameConstants.DECODE.BASE_PARKING_POSE(bot.onBlueTeam);
+
+			strafeToBaseAction = bot.drive.actionBuilder(bot.drive.localizer.getPose())
+					.strafeToLinearHeading(targetPose.position, targetPose.heading)
+					.build();
+		}
+
+		if (strafeToBaseAction != null) {
+			boolean done = !strafeToBaseAction.run(new TelemetryPacket());
+
+			if (done) {
+				bot.release(bot.drive);
+				strafeToBaseAction = null;
+			}
+		}
+	}
+
+
 	@Override
 	protected void internalRun() {
 		Runnable cancelMacros = () -> {
 			actions.clear();
 			bot.releaseAllDevices();
+
+			// if macros are canceled and hold macros like autoShootMode are enabled, the user will have to manually disable & re-enable
+			// those macros by releasing and pressing their control button in order to ensure that the locks for the required
+			// hardware devices are re-acquired
 		};
+
+		// GAMEPAD 1 ------------------------------------------------------------------------------------
 
 		keybinder.bind("b").of(gamepad1).to(cancelMacros);
 		keybinder.bind("x").of(gamepad1).to(() -> verbose = !verbose);
+
+		keybinder.bind("y").of(gamepad1).to(this::dispatchStrafeToBaseIteration);
+		keybinder.bind("right_bumper").of(gamepad1).to(this::dispatchClearGateIteration);
+		keybinder.bind("left_bumper").of(gamepad1).to(this::dispatchSimplyStratIteration);
+
+
+		// GAMEPAD 2 ------------------------------------------------------------------------------------
 
 		keybinder.bind("dpad_up").of(gamepad2).to(this::incrementVeloPreset);
 		keybinder.bind("dpad_down").of(gamepad2).to(this::decrementVeloPreset);
@@ -303,7 +445,7 @@ public class RaptorMainRunner extends ITeleOpRunner {
 		});
 
 		while (opModeIsActive()) {
-			boolean alignedToGoal = false;
+			boolean holdingGoalAlignment = false;
 
 			/* DRIVE CONTROL */
 
@@ -313,7 +455,7 @@ public class RaptorMainRunner extends ITeleOpRunner {
 			if (gamepad1.inner.y) {
 				angVel = limelightAlignToGoalSyncIteration();
 
-				alignedToGoal = angVel == 0;
+				holdingGoalAlignment = angVel == 0;
 			}
 
 			if (headingBeforeAutoShootMode != null) {
@@ -322,7 +464,7 @@ public class RaptorMainRunner extends ITeleOpRunner {
 
 				if (autoShootMode) {
 					angVel = limelightAlignToGoalSyncIteration();
-					alignedToGoal = angVel == 0;
+					holdingGoalAlignment = angVel == 0;
 
 					double rotationOffset = angVel*2;
 
@@ -354,7 +496,7 @@ public class RaptorMainRunner extends ITeleOpRunner {
 			bot.driverControl.setTransferPower(gamepad2.inner.right_stick_y+gamepad2.inner.left_stick_y);
 
 			if (autoShootMode) {
-				autoShootModeSyncIteration(linearVel, alignedToGoal);
+				autoShootModeSyncIteration(linearVel);
 			}
 			else if (autoVelocityMode) {
 				scheduleAutoVelocityAction();
@@ -436,7 +578,7 @@ public class RaptorMainRunner extends ITeleOpRunner {
 
 			Pose2d botPose = bot.drive.localizer.getPose();
 			telemetry.addData("current position", "x: %.2f in, y: %.2f in, heading: %.2f deg", botPose.position.x, botPose.position.y, Math.toDegrees(botPose.heading.toDouble()));
-			telemetry.addData("localization", "%s (%s)", localizationIsCurrent() ? "current" : "stale", alignedToGoal ? "holding goal alignment" : "goal alignment unknown");
+			telemetry.addData("localization", "%s (%s)", localizationIsCurrent() ? "current" : "stale", holdingGoalAlignment ? "holding goal alignment" : "goal alignment unknown");
 			telemetry.addData("current shot zone", GameConstants.DECODE.getShotZoneLabel(botPose.position, bot.RADIUS));
 
 			telemetry.update();

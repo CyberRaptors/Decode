@@ -16,7 +16,8 @@ public class MeepMeepMain {
 
 		DriveShim drive = myBot.getDrive();
 
-		myBot.runAction( PoseVisualizer.run(drive)
+		myBot.runAction(
+				PoseVisualizer.run(drive)
 //				new SequentialAction(
 //						MeepMeepBlueNearTame.run(drive),
 //						MeepMeepBlueNear.run(drive),

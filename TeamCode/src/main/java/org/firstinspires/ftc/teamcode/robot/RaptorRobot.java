@@ -12,6 +12,8 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.InteropFields;
 
+import lib8812.common.game.FieldConstants;
+import lib8812.common.game.GameConstants;
 import lib8812.common.robot.IMecanumRobot;
 import lib8812.common.robot.hardwarewrappers.BinaryClaw;
 import lib8812.common.robot.hardwarewrappers.SoftwareGangedMotors;
@@ -126,7 +128,17 @@ public class RaptorRobot extends IMecanumRobot {
 		return "custom";
 	}
 
-	public boolean isInsideShootingZone() { return false; }
+	public boolean canShootFromCurrentPosition() {
+		// we can shoot from anywhere IF we are not too close to the goal (threshold in inches below)
+
+		double minimumShotDistance = 2*FieldConstants.TILE_LENGTH_IN;
+
+		double distanceFromGoal = GameConstants.DECODE.GOAL_POSITION(onBlueTeam).minus(drive.localizer.getPose().position).norm();
+
+		boolean farEnoughAway = distanceFromGoal >= minimumShotDistance;
+
+		return farEnoughAway && GameConstants.DECODE.isInLegalShootingZone(drive.localizer.getPose().position, RADIUS);
+	}
 
 	public final RaptorRobot.LockingControl driverControl = new RaptorRobot.LockingControl();
 

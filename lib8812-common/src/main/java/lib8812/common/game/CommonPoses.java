@@ -83,6 +83,8 @@ public class CommonPoses {
 	public static final Pose2d RED_FAR_PARK_POSE = allianceReflect(BLUE_FAR_PARK_POSE);
 	public static final Pose2d RED_MID_SHOT_POSE = allianceReflect(BLUE_MID_SHOT_POSE);
 
+	public static final Pose2d RED_MONSTER_CLEAR_GATE_POSE = allianceReflect(BLUE_MONSTER_CLEAR_GATE_POSE);
+
 
 	public static final Pose2d BLUE_BASE_PARKING_POSE = new Pose2d(FieldConstants.TILE_LENGTH_IN*1.5, FieldConstants.TILE_LENGTH_IN*1.5, Math.PI);
 	public static final Pose2d RED_BASE_PARKING_POSE = allianceReflect(BLUE_BASE_PARKING_POSE);
