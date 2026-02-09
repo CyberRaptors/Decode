@@ -63,13 +63,13 @@ public class RaptorComponentTestRunner extends ITeleOpRunner {
 
         telemetry.addLine("Testing transfer...");
         telemetry.update();
-        robot.driverControl.setTransferPower(1.0);
+        robot.driverControl.setTransferVelocity(1.0);
         timer.reset();
         while(opMode.opModeIsActive() && timer.seconds() < 5.0) {
             telemetry.update();
             sleep(50);
         }
-        robot.driverControl.setTransferPower(0);
+        robot.driverControl.setTransferVelocity(0);
         telemetry.addLine("Intake test complete.");
         telemetry.update();
 

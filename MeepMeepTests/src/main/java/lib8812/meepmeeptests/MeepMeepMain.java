@@ -1,9 +1,21 @@
 package lib8812.meepmeeptests;
 
+import com.acmerobotics.roadrunner.SequentialAction;
 import com.noahbres.meepmeep.MeepMeep;
 import com.noahbres.meepmeep.roadrunner.DefaultBotBuilder;
 import com.noahbres.meepmeep.roadrunner.DriveShim;
 import com.noahbres.meepmeep.roadrunner.entity.RoadRunnerBotEntity;
+
+import lib8812.meepmeeptests.odom.runners.far.MeepMeepBlueFar;
+import lib8812.meepmeeptests.odom.runners.far.MeepMeepBlueFarMonster;
+import lib8812.meepmeeptests.odom.runners.far.MeepMeepBlueFarScary;
+import lib8812.meepmeeptests.odom.runners.far.MeepMeepBlueFarTame;
+import lib8812.meepmeeptests.odom.runners.far.MeepMeepBlueFarTerrifying;
+import lib8812.meepmeeptests.odom.runners.near.MeepMeepBlueNear;
+import lib8812.meepmeeptests.odom.runners.near.MeepMeepBlueNearMonster;
+import lib8812.meepmeeptests.odom.runners.near.MeepMeepBlueNearScary;
+import lib8812.meepmeeptests.odom.runners.near.MeepMeepBlueNearTame;
+import lib8812.meepmeeptests.odom.runners.near.MeepMeepBlueNearTerrifying;
 
 public class MeepMeepMain {
 	public static void main(String[] args) {
@@ -17,20 +29,19 @@ public class MeepMeepMain {
 		DriveShim drive = myBot.getDrive();
 
 		myBot.runAction(
-				PoseVisualizer.run(drive)
-//				new SequentialAction(
-//						MeepMeepBlueNearTame.run(drive),
-//						MeepMeepBlueNear.run(drive),
-//						MeepMeepBlueNearScary.run(drive),
-//						MeepMeepBlueNearTerrifying.run(drive),
-//						MeepMeepBlueNearMonster.run(drive),
-//
-//						MeepMeepBlueFarTame.run(drive),
-//						MeepMeepBlueFar.run(drive),
-//						MeepMeepBlueFarScary.run(drive),
-//						MeepMeepBlueFarTerrifying.run(drive),
-//						MeepMeepBlueFarMonster.run(drive)
-//				)
+				new SequentialAction(
+						MeepMeepBlueNearTame.run(drive),
+						MeepMeepBlueNear.run(drive),
+						MeepMeepBlueNearScary.run(drive),
+						MeepMeepBlueNearTerrifying.run(drive),
+						MeepMeepBlueNearMonster.run(drive),
+
+						MeepMeepBlueFarTame.run(drive),
+						MeepMeepBlueFar.run(drive),
+						MeepMeepBlueFarScary.run(drive),
+						MeepMeepBlueFarTerrifying.run(drive),
+						MeepMeepBlueFarMonster.run(drive)
+				)
 		);
 
 		meepMeep
@@ -47,5 +58,7 @@ public class MeepMeepMain {
 //		);
 
 		meepMeep.start();
+
+//		ShotZoneLegalityChecker.run(meepMeep, myBot, drive, true);
 	}
 }

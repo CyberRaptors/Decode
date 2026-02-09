@@ -8,16 +8,14 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
 import org.firstinspires.ftc.teamcode.InteropFields;
 
 import lib8812.common.game.FieldConstants;
 import lib8812.common.game.GameConstants;
 import lib8812.common.robot.IMecanumRobot;
-import lib8812.common.robot.hardwarewrappers.BinaryClaw;
 import lib8812.common.robot.hardwarewrappers.SoftwareGangedMotors;
-import lib8812.common.robot.hardwarewrappers.VirtualServo;
 import lib8812.common.rr.MecanumDrive;
 
 public class RaptorRobot extends IMecanumRobot {
@@ -33,23 +31,28 @@ public class RaptorRobot extends IMecanumRobot {
 
 	// s/2 for inscribed circle radius: we don't use 18/2 = 9 here because the wheels are actually closer to 17in
 	// and we want to give a buffer to be safe when making shot zone calculations
-	public final double RADIUS = 8.25;
+
+	// currently using a smaller radius of 8 to make shot zone calculations more reliable
+	public final double RADIUS = 8; // 8.25;
 
 	final double SHOOTER_MOTOR_TICKS_PER_REV = 28;
 	final double TRANSFER_MOTOR_TICKS_PER_REV = 384.5;
 
 	public final int LIMELIGHT_APRILTAG_INDEX;
+	public final double AUTO_ALIGN_DEGREE_OFFSET = -2.75;
 
-	public final double SHOOTER_VELO_FOR_CLOSE_SHOT = 1640;
-	public final double SHOOTER_VELO_FOR_MID_SHOT = 1720;
-	public final double SHOOTER_VELO_FOR_FAR_SHOT = 1820;
+	public final double TRANSFER_MAX_VELOCITY = 2300;
+
+	public final double SHOOTER_VELO_FOR_CLOSE_SHOT = 1440;
+	public final double SHOOTER_VELO_FOR_MID_SHOT = 1500;
+	public final double SHOOTER_VELO_FOR_FAR_SHOT = 1620;
 
 	// auto-only (no preset)
-	public final double SHOOTER_VELO_FOR_SHORT_PARK_SHOT = 1680;
-	public final double SHOOTER_VELO_FOR_CLOSE_MONSTER_SHOT = SHOOTER_VELO_FOR_MID_SHOT+30;
+	public final double SHOOTER_VELO_FOR_SHORT_PARK_SHOT = SHOOTER_VELO_FOR_CLOSE_SHOT+80;
+	public final double SHOOTER_VELO_FOR_CLOSE_MONSTER_SHOT = SHOOTER_VELO_FOR_MID_SHOT-20;
 
-	public final double TRANSFER_TO_SHOOTER_VELO_CANCEL_MULTIPLIER = SHOOTER_MOTOR_TICKS_PER_REV/TRANSFER_MOTOR_TICKS_PER_REV;
-	public final double LINEAR_TO_SHOOTER_VELO_CANCEL_MULTIPLIER = 30;
+	public final double TRANSFER_TO_SHOOTER_VELO_CANCEL_MULTIPLIER = 0;
+	public final double LINEAR_TO_SHOOTER_VELO_CANCEL_MULTIPLIER = 40;
 
 	public final double[] SHOOTER_VELO_PRESETS = {
 			SHOOTER_VELO_FOR_CLOSE_SHOT,
@@ -60,12 +63,23 @@ public class RaptorRobot extends IMecanumRobot {
 	public final double SHOOTER_GATE_OPEN_POS = 0.0;
 	public final double SHOOTER_GATE_CLOSED_POS = 0.218;
 
+	public final double SHOOTER_RIGHT_P = 38;
+	public final double SHOOTER_RIGHT_I = 0;
+	public final double SHOOTER_RIGHT_D = -6;
+	public final double SHOOTER_RIGHT_F = 14;
+
+	public final double SHOOTER_LEFT_P = 38;
+	public final double SHOOTER_LEFT_I = 0;
+	public final double SHOOTER_LEFT_D = -5;
+	public final double SHOOTER_LEFT_F = 14;
+
+	public final double AUTO_SHOOT_ANG_VELO_OFFSET_MULTIPLIER = 1; // previously two; if the problem became worse then we need to increase this
+
 	public MecanumDrive drive;
 
 	public DcMotor intake;
 	public DcMotorEx transfer;
 	public SoftwareGangedMotors intakeAndTransfer;
-	public BinaryClaw shooterGate;
 
 	public DcMotorEx shooterLeft;
 	public DcMotorEx shooterRight;
@@ -88,18 +102,11 @@ public class RaptorRobot extends IMecanumRobot {
 		shooterLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 		shooterRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
+		setShooterPIDFCoefficients(SHOOTER_LEFT_P, SHOOTER_LEFT_I, SHOOTER_LEFT_D, SHOOTER_LEFT_F, shooterLeft);
+		setShooterPIDFCoefficients(SHOOTER_RIGHT_P, SHOOTER_RIGHT_I, SHOOTER_RIGHT_D, SHOOTER_RIGHT_F, shooterRight);
+
 		limelight.setPollRateHz(50);
 		limelight.start();
-
-		shooterGate = new BinaryClaw(
-				new VirtualServo(), // disable shooterGate to reduce power draw
-//				hardwareMap.get(Servo.class, "shooterGate"),
-				SHOOTER_GATE_OPEN_POS,
-				SHOOTER_GATE_CLOSED_POS
-		);
-
-		shooterGate.inner.setDirection(Servo.Direction.REVERSE);
-		shooterGate.open();
 
 		transfer.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 		transfer.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -114,8 +121,8 @@ public class RaptorRobot extends IMecanumRobot {
 
 	// calculates optimal shooter velocity from distance using linear regression, TODO: params need to be updated (v4)
 	public double calculateV0ForShooter(double distance) {
-		double m = 2.60607;
-		double b = 1446.19367;
+		double m = 2.62515;
+		double b = 1238.80596;
 
 		return m*distance + b;
 	}
@@ -131,7 +138,7 @@ public class RaptorRobot extends IMecanumRobot {
 	public boolean canShootFromCurrentPosition() {
 		// we can shoot from anywhere IF we are not too close to the goal (threshold in inches below)
 
-		double minimumShotDistance = 2*FieldConstants.TILE_LENGTH_IN;
+		double minimumShotDistance = 2.8*FieldConstants.TILE_LENGTH_IN;
 
 		double distanceFromGoal = GameConstants.DECODE.GOAL_POSITION(onBlueTeam).minus(drive.localizer.getPose().position).norm();
 
@@ -141,6 +148,18 @@ public class RaptorRobot extends IMecanumRobot {
 	}
 
 	public final RaptorRobot.LockingControl driverControl = new RaptorRobot.LockingControl();
+
+	public void setShooterPIDFCoefficients(double p, double i, double d, double f, DcMotorEx shooter) {
+		PIDFCoefficients originalPIDFCoefficients = shooter.getPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER);
+
+		if (originalPIDFCoefficients.p == p && originalPIDFCoefficients.i == i && originalPIDFCoefficients.d == d && originalPIDFCoefficients.f == f)
+			return;
+
+		PIDFCoefficients newPIDFCoefficients = new PIDFCoefficients(p, i, d, f);
+
+		shooter.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, newPIDFCoefficients);
+	}
+
 
 	public class LockingControl {
 		public void applyDrivePower(double forwardPower, double strafePower, double angularPower) {
@@ -157,12 +176,8 @@ public class RaptorRobot extends IMecanumRobot {
 			useAndRelease(intake, () -> intake.setPower(power));
 		}
 
-		public void setTransferPower(double power) {
-			useAndRelease(transfer, () -> transfer.setPower(power));
-		}
-
-		public void toggleShooterGate() {
-			useAndRelease(shooterGate, () -> shooterGate.toggle());
+		public void setTransferVelocity(double velo) {
+			useAndRelease(transfer, () -> transfer.setVelocity(velo));
 		}
 
 		public void setShooterVelocity(double velo) {

@@ -43,7 +43,7 @@ public class BlueNearTameRunner extends ITeleOpRunner {
 						CommonPoses.BLUE_FIRST_SPIKE_END_POSE.heading,
 						bot.SPIKE_PICKUP_VEL_CONSTRAINT
 				)
-				.afterTime(0.5, bot.setIntakeAndTransferPower(0))
+				.afterTime(0, bot.setIntakeAndTransferPower(0))
 				.afterTime(0, bot.startShootersAsync(bot.SHOOTER_VELO_FOR_SHORT_PARK_SHOT))
 				.splineToLinearHeading(
 						CommonPoses.BLUE_NEAR_SHORT_PARK_POSE,
@@ -54,7 +54,7 @@ public class BlueNearTameRunner extends ITeleOpRunner {
 
 		main = new SequentialAction(
 				initialMoveToShoot,
-				bot.shootThree(bot.SHOOTER_VELO_FOR_SHORT_PARK_SHOT),
+				bot.shootThree(bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
 				bot.disableShootersAsync(),
 
 				pickupFirstSpikeAndMoveToShootAndPark,

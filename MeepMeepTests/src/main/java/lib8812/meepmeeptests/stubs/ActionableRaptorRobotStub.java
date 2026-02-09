@@ -5,6 +5,10 @@ import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.MinMax;
 import com.acmerobotics.roadrunner.SleepAction;
 import com.acmerobotics.roadrunner.VelConstraint;
+import com.noahbres.meepmeep.roadrunner.DriveShim;
+
+import lib8812.meepmeeptests.stubs.game.FieldConstants;
+import lib8812.meepmeeptests.stubs.game.GameConstants;
 
 public class ActionableRaptorRobotStub {
 	public final double MAX_VELO_FOR_SPIKE_PICKUP = 20;
@@ -13,6 +17,7 @@ public class ActionableRaptorRobotStub {
 	public final double MAX_VELO_FOR_MONSTER_LZ_PICKUP = 60;
 	public final VelConstraint MONSTER_LZ_PICKUP_VEL_CONSTRAINT = (a, b, c) -> MAX_VELO_FOR_MONSTER_LZ_PICKUP;
 
+	public final double RADIUS = 8; // 8.25;
 
 	public final MinMax ACCEL_FOR_MONSTER_LZ_PICKUP = new MinMax(-80, 80);
 	public final AccelConstraint MONSTER_LZ_PICKUP_ACCEL_CONSTRAINT = (a, b, c) -> ACCEL_FOR_MONSTER_LZ_PICKUP;
@@ -35,4 +40,16 @@ public class ActionableRaptorRobotStub {
 	public Action shootThree(double velo) { return new SleepAction(3.1); }
 
 	public Action shootTwo(double velo) { return new SleepAction(2.1); }
+
+	public boolean canShootFromCurrentPosition(DriveShim drive, boolean onBlueTeam) {
+		// we can shoot from anywhere IF we are not too close to the goal (threshold in inches below)
+
+		double minimumShotDistance = 2.8*FieldConstants.TILE_LENGTH_IN;
+
+		double distanceFromGoal = GameConstants.DECODE.GOAL_POSITION(onBlueTeam).minus(drive.getPoseEstimate().position).norm();
+
+		boolean farEnoughAway = distanceFromGoal >= minimumShotDistance;
+
+		return farEnoughAway && GameConstants.DECODE.isInLegalShootingZone(drive.getPoseEstimate().position, RADIUS);
+	}
 }
