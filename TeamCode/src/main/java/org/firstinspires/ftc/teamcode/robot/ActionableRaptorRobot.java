@@ -4,12 +4,21 @@ import com.acmerobotics.roadrunner.AccelConstraint;
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.InstantAction;
 import com.acmerobotics.roadrunner.MinMax;
-import com.acmerobotics.roadrunner.RaceAction;
+import com.acmerobotics.roadrunner.NullAction;
+import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.SleepAction;
 import com.acmerobotics.roadrunner.VelConstraint;
+import com.qualcomm.hardware.limelightvision.LLResult;
+
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
+import org.firstinspires.ftc.robotcore.external.navigation.Position;
+import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 
 import lib8812.common.actions.MotorSetVelocityAction;
+import lib8812.common.actions.OnceAction;
 
 public class ActionableRaptorRobot extends RaptorRobot {
 	public final double MAX_VELO_FOR_SPIKE_PICKUP = 20;
@@ -94,36 +103,57 @@ public class ActionableRaptorRobot extends RaptorRobot {
 	Action shootBase(double velo, double dt) {
 		return new LockedUsageAction(
 				new SequentialAction(
-						new MotorSetVelocityAction(shooterRight, velo),
-						new MotorSetVelocityAction(shooterLeft, velo),
-						new RaceAction(
-								new SequentialAction(
-										new InstantAction(() -> {
-											intake.setPower(1);
-											transfer.setPower(1);
-										}),
-										new SleepAction(dt) // shoot three artifacts for dt secs
-								),
-								telemetryPacket -> {
-									// ensure shooter compensates for transfer velocity continuously
-
-									shooterRight.setVelocity(
-											cancelTransferVelo(velo, transfer.getVelocity())
-									);
-
-									shooterLeft.setVelocity(
-											cancelTransferVelo(velo, transfer.getVelocity())
-									);
-
-									return true; // always run again, the SequentialAction will finish and end the RaceAction, thus ending this action
-								}
-						),
+						new MotorSetVelocityAction(shooterRight, velo, 40),
+						new MotorSetVelocityAction(shooterLeft, velo, 40),
+						new InstantAction(() -> {
+							intake.setPower(1);
+							transfer.setPower(1);
+						}),
+						new SleepAction(dt),
 						new InstantAction(() -> {
 							intake.setPower(0);
 							transfer.setPower(0);
 						})
 				),
 				intake, transfer, shooterLeft, shooterRight
+		);
+	}
+
+	public Action relocalize() {
+		return new LockedUsageAction(
+				new SequentialAction(
+						new InstantAction(() -> limelight.pipelineSwitch(LIMELIGHT_APRILTAG_INDEX)),
+						new OnceAction(
+								() -> {
+									LLResult res = limelight.getLatestResult();
+
+									if (!(res.isValid() && res.getPipelineIndex() == LIMELIGHT_APRILTAG_INDEX) || res.getStaleness() > 100) {
+										return false;
+									}
+
+									if (res.getBotposeTagCount() == 0) return false;
+
+									Pose3D botPose = res.getBotpose(); // always use MegaTag to get robot pose (we cannot rely on the OTOS heading to give us a correct MT2 pose, so we tank the pose ambiguity for now (which actually doesn't seem too bad from the web UI))
+
+									// update RR localizer with MT bot pose
+									Position botPos = botPose.getPosition().toUnit(DistanceUnit.INCH);
+									YawPitchRollAngles botOrientation = botPose.getOrientation();
+
+									drive.localizer.setPose(new Pose2d(
+											botPos.x,
+											botPos.y,
+											botOrientation.getYaw(AngleUnit.RADIANS)
+									));
+
+									drive.localizer.update();
+
+									return true;
+								},
+								new NullAction(),
+								20
+						)
+				),
+				limelight, drive.localizer
 		);
 	}
 }

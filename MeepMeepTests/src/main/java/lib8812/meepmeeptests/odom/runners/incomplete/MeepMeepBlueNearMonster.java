@@ -1,28 +1,19 @@
-package org.firstinspires.ftc.teamcode.auton.odom.runners.near;
+package lib8812.meepmeeptests.odom.runners.incomplete;
 
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.SequentialAction;
 import com.acmerobotics.roadrunner.SleepAction;
-import com.acmerobotics.roadrunner.ftc.Actions;
+import com.noahbres.meepmeep.roadrunner.DriveShim;
 
-import org.firstinspires.ftc.teamcode.InteropFields;
-import org.firstinspires.ftc.teamcode.robot.ActionableRaptorRobot;
+import lib8812.meepmeeptests.stubs.ActionableRaptorRobotStub;
+import lib8812.meepmeeptests.stubs.game.CommonPoses;
 
-import lib8812.common.game.CommonPoses;
-import lib8812.common.robot.IRobot;
-import lib8812.common.rr.MecanumDrive;
-import lib8812.common.teleop.ITeleOpRunner;
+public class MeepMeepBlueNearMonster {
+	static ActionableRaptorRobotStub bot = new ActionableRaptorRobotStub();
+	static Action main;
 
-public class BlueNearMonsterRunner extends ITeleOpRunner {
-	ActionableRaptorRobot bot = new ActionableRaptorRobot(true);
-
-	Action main;
-
-	@Override
-	protected void customInit() {
-		MecanumDrive drive = bot.drive;
-
-		drive.localizer.setPose(CommonPoses.INITIAL_BLUE_NEAR_POSE);
+	public static Action run(DriveShim drive) {
+		drive.setPoseEstimate(CommonPoses.INITIAL_BLUE_NEAR_POSE);
 
 		Action initialMoveToShoot = drive.actionBuilder(CommonPoses.INITIAL_BLUE_NEAR_POSE)
 				.strafeToLinearHeading(
@@ -104,16 +95,7 @@ public class BlueNearMonsterRunner extends ITeleOpRunner {
 				bot.shootThree(bot.SHOOTER_VELO_FOR_SHORT_PARK_SHOT),
 				bot.disableShootersAsync()
 		);
-	}
 
-	@Override
-	protected void internalRun() {
-		Actions.runBlocking(main);
-		InteropFields.lastKnownPose = bot.drive.localizer.getPose();
-	}
-
-	@Override
-	protected IRobot getBot() {
-		return bot;
+		return main;
 	}
 }

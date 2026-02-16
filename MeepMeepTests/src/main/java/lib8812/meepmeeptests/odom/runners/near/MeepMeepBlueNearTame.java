@@ -34,7 +34,7 @@ public class MeepMeepBlueNearTame {
 						CommonPoses.BLUE_FIRST_SPIKE_END_POSE.heading,
 						bot.SPIKE_PICKUP_VEL_CONSTRAINT
 				)
-				.afterTime(0, bot.setIntakeAndTransferPower(0))
+				.afterTime(1, bot.setIntakeAndTransferPower(0))
 				.afterTime(0, bot.startShootersAsync(bot.SHOOTER_VELO_FOR_SHORT_PARK_SHOT))
 				.splineToLinearHeading(
 						CommonPoses.BLUE_NEAR_SHORT_PARK_POSE,

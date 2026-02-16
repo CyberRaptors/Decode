@@ -34,7 +34,7 @@ public class MeepMeepBlueNearScary {
 						CommonPoses.BLUE_FIRST_SPIKE_END_POSE.heading,
 						bot.SPIKE_PICKUP_VEL_CONSTRAINT
 				)
-				.afterTime(0, bot.setIntakeAndTransferPower(0))
+				.afterTime(1, bot.setIntakeAndTransferPower(0))
 				.strafeToLinearHeading(
 						CommonPoses.BLUE_CLEAR_GATE_START_POSE.position,
 						CommonPoses.BLUE_CLEAR_GATE_START_POSE.heading
@@ -62,7 +62,7 @@ public class MeepMeepBlueNearScary {
 						CommonPoses.BLUE_SECOND_SPIKE_END_POSE.heading,
 						bot.SPIKE_PICKUP_VEL_CONSTRAINT
 				)
-				.afterTime(0, bot.setIntakeAndTransferPower(0))
+				.afterTime(1, bot.setIntakeAndTransferPower(0))
 				.afterTime(0, bot.startShootersAsync(bot.SHOOTER_VELO_FOR_CLOSE_SHOT))
 				.splineToLinearHeading(
 						CommonPoses.BLUE_NEAR_SHOT_POSE,

@@ -43,7 +43,7 @@ public class BlueFarScaryRunner extends ITeleOpRunner {
 						CommonPoses.BLUE_SECOND_SPIKE_END_POSE.heading,
 						bot.SPIKE_PICKUP_VEL_CONSTRAINT
 				)
-				.afterTime(0, bot.setIntakeAndTransferPower(0))
+				.afterTime(1, bot.setIntakeAndTransferPower(0))
 				.strafeToLinearHeading(
 						CommonPoses.BLUE_CLEAR_GATE_FROM_FAR_START_POSE.position,
 						CommonPoses.BLUE_CLEAR_GATE_FROM_FAR_START_POSE.heading
@@ -76,7 +76,7 @@ public class BlueFarScaryRunner extends ITeleOpRunner {
 						CommonPoses.BLUE_THIRD_SPIKE_END_POSE.heading,
 						bot.SPIKE_PICKUP_VEL_CONSTRAINT
 				)
-				.afterTime(0, bot.setIntakeAndTransferPower(0))
+				.afterTime(1, bot.setIntakeAndTransferPower(0))
 				.afterTime(0, bot.startShootersAsync(bot.SHOOTER_VELO_FOR_FAR_SHOT))
 				.splineToLinearHeading(
 						CommonPoses.BLUE_FAR_SHOT_POSE,
@@ -99,6 +99,7 @@ public class BlueFarScaryRunner extends ITeleOpRunner {
 				pickupFirstSpikeAndMoveToShoot,
 				bot.shootThree(bot.SHOOTER_VELO_FOR_FAR_SHOT),
 				bot.disableShootersAsync(),
+				bot.relocalize(),
 
 				pickupSecondSpikeAndMoveToShoot,
 				bot.shootThree(bot.SHOOTER_VELO_FOR_FAR_SHOT),

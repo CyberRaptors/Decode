@@ -12,7 +12,7 @@ import lib8812.common.robot.IRobot;
 import lib8812.common.rr.MecanumDrive;
 import lib8812.common.teleop.ITeleOpRunner;
 
-public class BlueFarRunner extends ITeleOpRunner {
+public class RedFarScaryRunner extends ITeleOpRunner {
 	ActionableRaptorRobot bot = new ActionableRaptorRobot(true);
 
 	Action main;
@@ -21,60 +21,73 @@ public class BlueFarRunner extends ITeleOpRunner {
 	protected void customInit() {
 		MecanumDrive drive = bot.drive;
 
-		drive.localizer.setPose(CommonPoses.INITIAL_BLUE_FAR_POSE);
+		drive.localizer.setPose(CommonPoses.INITIAL_RED_FAR_POSE);
 
-		Action initialMoveToShoot = drive.actionBuilder(CommonPoses.INITIAL_BLUE_FAR_POSE)
+		Action initialMoveToShoot = drive.actionBuilder(CommonPoses.INITIAL_RED_FAR_POSE)
 				.afterTime(0, bot.startShootersAsync(bot.SHOOTER_VELO_FOR_FAR_SHOT))
 				.strafeToSplineHeading(
-						CommonPoses.BLUE_FAR_SHOT_POSE.position,
-						CommonPoses.BLUE_FAR_SHOT_POSE.heading
+						CommonPoses.RED_FAR_SHOT_POSE.position,
+						CommonPoses.RED_FAR_SHOT_POSE.heading
 				)
 				.build();
 
-		Action pickupFirstSpikeAndMoveToShoot = drive.actionBuilder(CommonPoses.BLUE_FAR_SHOT_POSE)
+		Action pickupFirstSpikeAndMoveToShoot = drive.actionBuilder(CommonPoses.RED_FAR_SHOT_POSE)
 				.afterTime(0, bot.setIntakePower(1))
 				.afterTime(0, bot.setTransferPower(0.15))
 				.splineToSplineHeading(
-						CommonPoses.BLUE_THIRD_SPIKE_START_POSE,
-						CommonPoses.BLUE_THIRD_SPIKE_START_POSE.heading
+						CommonPoses.RED_SECOND_SPIKE_START_POSE,
+						CommonPoses.RED_SECOND_SPIKE_START_POSE.heading
 				)
 				.splineToSplineHeading(
-						CommonPoses.BLUE_THIRD_SPIKE_END_POSE,
-						CommonPoses.BLUE_THIRD_SPIKE_END_POSE.heading,
+						CommonPoses.RED_SECOND_SPIKE_END_POSE,
+						CommonPoses.RED_SECOND_SPIKE_END_POSE.heading,
+						bot.SPIKE_PICKUP_VEL_CONSTRAINT
+				)
+				.afterTime(1, bot.setIntakeAndTransferPower(0))
+				.strafeToLinearHeading(
+						CommonPoses.RED_CLEAR_GATE_FROM_FAR_START_POSE.position,
+						CommonPoses.RED_CLEAR_GATE_FROM_FAR_START_POSE.heading
+				)
+				.strafeToLinearHeading(
+						CommonPoses.RED_CLEAR_GATE_FROM_FAR_END_POSE.position,
+						CommonPoses.RED_CLEAR_GATE_FROM_FAR_END_POSE.heading
+				)
+				.afterTime(0, bot.startShootersAsync(bot.SHOOTER_VELO_FOR_CLOSE_SHOT))
+
+				// backup before returning to shot pos to avoid hitting the third spike
+				.strafeToConstantHeading(
+						CommonPoses.RED_SECOND_SPIKE_START_POSE.position
+				)
+				.strafeToLinearHeading(
+						CommonPoses.RED_FAR_SHOT_POSE.position,
+						CommonPoses.RED_FAR_SHOT_POSE.heading
+				)
+				.build();
+
+		Action pickupSecondSpikeAndMoveToShoot = drive.actionBuilder(CommonPoses.RED_FAR_SHOT_POSE)
+				.afterTime(0, bot.setIntakePower(1))
+				.afterTime(0, bot.setTransferPower(0.15))
+				.splineToSplineHeading(
+						CommonPoses.RED_THIRD_SPIKE_START_POSE,
+						CommonPoses.RED_THIRD_SPIKE_START_POSE.heading
+				)
+				.splineToSplineHeading(
+						CommonPoses.RED_THIRD_SPIKE_END_POSE,
+						CommonPoses.RED_THIRD_SPIKE_END_POSE.heading,
 						bot.SPIKE_PICKUP_VEL_CONSTRAINT
 				)
 				.afterTime(1, bot.setIntakeAndTransferPower(0))
 				.afterTime(0, bot.startShootersAsync(bot.SHOOTER_VELO_FOR_FAR_SHOT))
 				.splineToLinearHeading(
-						CommonPoses.BLUE_FAR_SHOT_POSE,
-						CommonPoses.BLUE_FAR_SHOT_POSE.heading
+						CommonPoses.RED_FAR_SHOT_POSE,
+						CommonPoses.RED_FAR_SHOT_POSE.heading
 				)
 				.build();
 
-		Action pickupSecondSpikeAndMoveToShoot = drive.actionBuilder(CommonPoses.BLUE_FAR_SHOT_POSE)
-				.afterTime(0, bot.setIntakePower(1))
-				.afterTime(0, bot.setTransferPower(0.15))
-				.splineToSplineHeading(
-						CommonPoses.BLUE_SECOND_SPIKE_START_POSE,
-						CommonPoses.BLUE_SECOND_SPIKE_START_POSE.heading
-				)
-				.splineToSplineHeading(
-						CommonPoses.BLUE_SECOND_SPIKE_END_POSE,
-						CommonPoses.BLUE_SECOND_SPIKE_END_POSE.heading,
-						bot.SPIKE_PICKUP_VEL_CONSTRAINT
-				)
-				.afterTime(1, bot.setIntakeAndTransferPower(0))
-				.afterTime(0, bot.startShootersAsync(bot.SHOOTER_VELO_FOR_FAR_SHOT))
-				.splineToLinearHeading(
-						CommonPoses.BLUE_FAR_SHOT_POSE,
-						CommonPoses.BLUE_FAR_SHOT_POSE.heading
-				)
-				.build();
-
-		Action park = drive.actionBuilder(CommonPoses.BLUE_FAR_SHOT_POSE)
+		Action park = drive.actionBuilder(CommonPoses.RED_FAR_SHOT_POSE)
 				.strafeToSplineHeading(
-						CommonPoses.BLUE_FAR_PARK_POSE.position,
-						CommonPoses.BLUE_FAR_PARK_POSE.heading
+						CommonPoses.RED_FAR_PARK_POSE.position,
+						CommonPoses.RED_FAR_PARK_POSE.heading
 				)
 				.build();
 

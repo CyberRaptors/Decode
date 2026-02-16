@@ -24,8 +24,10 @@ public class RaptorRobot extends IMecanumRobot {
 
 		if (blueTeam) {
 			LIMELIGHT_APRILTAG_INDEX = 1; // has blue goal point-of-interest tracking
+			AUTO_ALIGN_DEGREE_OFFSET = -2.5;
 		} else {
 			LIMELIGHT_APRILTAG_INDEX = 2; // has red goal point-of-interest tracking
+			AUTO_ALIGN_DEGREE_OFFSET = 0;
 		}
 	}
 
@@ -39,7 +41,7 @@ public class RaptorRobot extends IMecanumRobot {
 	final double TRANSFER_MOTOR_TICKS_PER_REV = 384.5;
 
 	public final int LIMELIGHT_APRILTAG_INDEX;
-	public final double AUTO_ALIGN_DEGREE_OFFSET = -2.75;
+	public final double AUTO_ALIGN_DEGREE_OFFSET;
 
 	public final double TRANSFER_MAX_VELOCITY = 2300;
 
@@ -51,7 +53,6 @@ public class RaptorRobot extends IMecanumRobot {
 	public final double SHOOTER_VELO_FOR_SHORT_PARK_SHOT = SHOOTER_VELO_FOR_CLOSE_SHOT+80;
 	public final double SHOOTER_VELO_FOR_CLOSE_MONSTER_SHOT = SHOOTER_VELO_FOR_MID_SHOT-20;
 
-	public final double TRANSFER_TO_SHOOTER_VELO_CANCEL_MULTIPLIER = 0;
 	public final double LINEAR_TO_SHOOTER_VELO_CANCEL_MULTIPLIER = 40;
 
 	public final double[] SHOOTER_VELO_PRESETS = {
@@ -63,17 +64,17 @@ public class RaptorRobot extends IMecanumRobot {
 	public final double SHOOTER_GATE_OPEN_POS = 0.0;
 	public final double SHOOTER_GATE_CLOSED_POS = 0.218;
 
-	public final double SHOOTER_RIGHT_P = 38;
+	public final double SHOOTER_RIGHT_P = 37;
 	public final double SHOOTER_RIGHT_I = 0;
-	public final double SHOOTER_RIGHT_D = -6;
-	public final double SHOOTER_RIGHT_F = 14;
+	public final double SHOOTER_RIGHT_D = -5;
+	public final double SHOOTER_RIGHT_F = 13.8;
 
-	public final double SHOOTER_LEFT_P = 38;
+	public final double SHOOTER_LEFT_P = 37;
 	public final double SHOOTER_LEFT_I = 0;
 	public final double SHOOTER_LEFT_D = -5;
-	public final double SHOOTER_LEFT_F = 14;
+	public final double SHOOTER_LEFT_F = 13.8;
 
-	public final double AUTO_SHOOT_ANG_VELO_OFFSET_MULTIPLIER = 1; // previously two; if the problem became worse then we need to increase this
+	public final double AUTO_SHOOT_ANG_VELO_OFFSET_MULTIPLIER = 0; // previously two; if the problem became worse then we need to increase this
 
 	public MecanumDrive drive;
 
@@ -114,15 +115,10 @@ public class RaptorRobot extends IMecanumRobot {
 		intakeAndTransfer = new SoftwareGangedMotors(intake, transfer);
 	}
 
-	// returns new shooter velo with transfer velo canceled out
-	public double cancelTransferVelo(double shooterVelo, double transferVelo) {
-		return shooterVelo - transferVelo*TRANSFER_TO_SHOOTER_VELO_CANCEL_MULTIPLIER;
-	}
-
-	// calculates optimal shooter velocity from distance using linear regression, TODO: params need to be updated (v4)
+	// calculates optimal shooter velocity from distance using linear regression
 	public double calculateV0ForShooter(double distance) {
-		double m = 2.62515;
-		double b = 1238.80596;
+		double m = 2.62515; // 2.99567;
+		double b = 1238.80596; // 1294.26315;
 
 		return m*distance + b;
 	}

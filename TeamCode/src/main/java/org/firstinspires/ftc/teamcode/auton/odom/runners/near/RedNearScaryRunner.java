@@ -12,7 +12,7 @@ import lib8812.common.robot.IRobot;
 import lib8812.common.rr.MecanumDrive;
 import lib8812.common.teleop.ITeleOpRunner;
 
-public class BlueNearScaryRunner extends ITeleOpRunner {
+public class RedNearScaryRunner extends ITeleOpRunner {
 	ActionableRaptorRobot bot = new ActionableRaptorRobot(true);
 
 	Action main;
@@ -21,68 +21,68 @@ public class BlueNearScaryRunner extends ITeleOpRunner {
 	protected void customInit() {
 		MecanumDrive drive = bot.drive;
 
-		drive.localizer.setPose(CommonPoses.INITIAL_BLUE_NEAR_POSE);
+		drive.localizer.setPose(CommonPoses.INITIAL_RED_NEAR_POSE);
 
-		Action initialMoveToShoot = drive.actionBuilder(CommonPoses.INITIAL_BLUE_NEAR_POSE)
+		Action initialMoveToShoot = drive.actionBuilder(CommonPoses.INITIAL_RED_NEAR_POSE)
 				.afterTime(0, bot.startShootersAsync(bot.SHOOTER_VELO_FOR_CLOSE_SHOT))
 				.strafeToLinearHeading(
-						CommonPoses.BLUE_NEAR_SHOT_POSE.position,
-						CommonPoses.BLUE_NEAR_SHOT_POSE.heading
+						CommonPoses.RED_NEAR_SHOT_POSE.position,
+						CommonPoses.RED_NEAR_SHOT_POSE.heading
 				)
 				.build();
 
-		Action pickupFirstSpikeClearGateAndMoveToShoot = drive.actionBuilder(CommonPoses.BLUE_NEAR_SHOT_POSE)
+		Action pickupFirstSpikeClearGateAndMoveToShoot = drive.actionBuilder(CommonPoses.RED_NEAR_SHOT_POSE)
 				.afterTime(0, bot.setIntakePower(1))
 				.afterTime(0, bot.setTransferPower(0.15))
 				.splineToSplineHeading(
-						CommonPoses.BLUE_FIRST_SPIKE_START_POSE,
-						CommonPoses.BLUE_FIRST_SPIKE_START_POSE.heading
+						CommonPoses.RED_FIRST_SPIKE_START_POSE,
+						CommonPoses.RED_FIRST_SPIKE_START_POSE.heading
 				)
 				.splineToSplineHeading(
-						CommonPoses.BLUE_FIRST_SPIKE_END_POSE,
-						CommonPoses.BLUE_FIRST_SPIKE_END_POSE.heading,
+						CommonPoses.RED_FIRST_SPIKE_END_POSE,
+						CommonPoses.RED_FIRST_SPIKE_END_POSE.heading,
 						bot.SPIKE_PICKUP_VEL_CONSTRAINT
 				)
 				.afterTime(1, bot.setIntakeAndTransferPower(0))
 				.strafeToLinearHeading(
-						CommonPoses.BLUE_CLEAR_GATE_START_POSE.position,
-						CommonPoses.BLUE_CLEAR_GATE_START_POSE.heading
+						CommonPoses.RED_CLEAR_GATE_START_POSE.position,
+						CommonPoses.RED_CLEAR_GATE_START_POSE.heading
 				)
 				.strafeToLinearHeading(
-						CommonPoses.BLUE_CLEAR_GATE_END_POSE.position,
-						CommonPoses.BLUE_CLEAR_GATE_END_POSE.heading
+						CommonPoses.RED_CLEAR_GATE_END_POSE.position,
+						CommonPoses.RED_CLEAR_GATE_END_POSE.heading
 				)
 				.afterTime(0, bot.startShootersAsync(bot.SHOOTER_VELO_FOR_CLOSE_SHOT))
 				.strafeToLinearHeading(
-						CommonPoses.BLUE_NEAR_SHOT_POSE.position,
-						CommonPoses.BLUE_NEAR_SHOT_POSE.heading
+						CommonPoses.RED_NEAR_SHOT_POSE.position,
+						CommonPoses.RED_NEAR_SHOT_POSE.heading
 				)
 				.build();
 
-		Action pickupSecondSpikeAndMoveToShoot = drive.actionBuilder(CommonPoses.BLUE_NEAR_SHOT_POSE)
+		Action pickupSecondSpikeAndMoveToShoot = drive.actionBuilder(CommonPoses.RED_NEAR_SHOT_POSE)
 				.afterTime(0, bot.setIntakePower(1))
 				.afterTime(0, bot.setTransferPower(0.15))
 				.splineToSplineHeading(
-						CommonPoses.BLUE_SECOND_SPIKE_START_POSE,
-						CommonPoses.BLUE_SECOND_SPIKE_START_POSE.heading
+						CommonPoses.RED_SECOND_SPIKE_START_POSE,
+						CommonPoses.RED_SECOND_SPIKE_START_POSE.heading
 				)
 				.splineToSplineHeading(
-						CommonPoses.BLUE_SECOND_SPIKE_END_POSE,
-						CommonPoses.BLUE_SECOND_SPIKE_END_POSE.heading,
+						CommonPoses.RED_SECOND_SPIKE_END_POSE,
+						CommonPoses.RED_SECOND_SPIKE_END_POSE.heading,
 						bot.SPIKE_PICKUP_VEL_CONSTRAINT
 				)
 				.afterTime(1, bot.setIntakeAndTransferPower(0))
 				.afterTime(0, bot.startShootersAsync(bot.SHOOTER_VELO_FOR_CLOSE_SHOT))
 				.splineToLinearHeading(
-						CommonPoses.BLUE_NEAR_SHOT_POSE,
-						CommonPoses.BLUE_NEAR_SHOT_POSE.heading
+						CommonPoses.RED_NEAR_SHOT_POSE,
+						CommonPoses.RED_NEAR_SHOT_POSE.heading
 				)
 				.build();
 
-		Action park = drive.actionBuilder(CommonPoses.BLUE_NEAR_SHOT_POSE)
+		Action park = drive.actionBuilder(CommonPoses.RED_NEAR_SHOT_POSE)
 				.strafeToLinearHeading(
-						CommonPoses.BLUE_NEAR_PARK_POSE.position,
-						CommonPoses.BLUE_NEAR_PARK_POSE.heading
+						CommonPoses.RED_NEAR_PARK_POSE.position,
+						CommonPoses.RED_NEAR_PARK_POSE.heading
 				)
 				.build();
 

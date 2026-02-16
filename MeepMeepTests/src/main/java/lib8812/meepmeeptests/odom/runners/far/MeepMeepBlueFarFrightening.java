@@ -1,27 +1,19 @@
-package org.firstinspires.ftc.teamcode.auton.odom.runners.far;
+package lib8812.meepmeeptests.odom.runners.far;
 
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.SequentialAction;
-import com.acmerobotics.roadrunner.ftc.Actions;
+import com.acmerobotics.roadrunner.SleepAction;
+import com.noahbres.meepmeep.roadrunner.DriveShim;
 
-import org.firstinspires.ftc.teamcode.InteropFields;
-import org.firstinspires.ftc.teamcode.robot.ActionableRaptorRobot;
+import lib8812.meepmeeptests.stubs.ActionableRaptorRobotStub;
+import lib8812.meepmeeptests.stubs.game.CommonPoses;
 
-import lib8812.common.game.CommonPoses;
-import lib8812.common.robot.IRobot;
-import lib8812.common.rr.MecanumDrive;
-import lib8812.common.teleop.ITeleOpRunner;
+public class MeepMeepBlueFarFrightening {
+	static ActionableRaptorRobotStub bot = new ActionableRaptorRobotStub();
+	static Action main;
 
-public class BlueFarRunner extends ITeleOpRunner {
-	ActionableRaptorRobot bot = new ActionableRaptorRobot(true);
-
-	Action main;
-
-	@Override
-	protected void customInit() {
-		MecanumDrive drive = bot.drive;
-
-		drive.localizer.setPose(CommonPoses.INITIAL_BLUE_FAR_POSE);
+	public static Action run(DriveShim drive) {
+		drive.setPoseEstimate(CommonPoses.INITIAL_BLUE_FAR_POSE);
 
 		Action initialMoveToShoot = drive.actionBuilder(CommonPoses.INITIAL_BLUE_FAR_POSE)
 				.afterTime(0, bot.startShootersAsync(bot.SHOOTER_VELO_FOR_FAR_SHOT))
@@ -71,13 +63,30 @@ public class BlueFarRunner extends ITeleOpRunner {
 				)
 				.build();
 
+		Action pickupFromLoadingZoneAndMoveToShoot = drive.actionBuilder(CommonPoses.BLUE_FAR_SHOT_POSE)
+				.afterTime(0, bot.setIntakePower(1))
+				.afterTime(0, bot.setTransferPower(0.15))
+				.strafeToLinearHeading(
+						CommonPoses.BLUE_FAR_FRIGHTENING_PICKUP_FROM_LOADING_ZONE_POSE.position,
+						CommonPoses.BLUE_FAR_FRIGHTENING_PICKUP_FROM_LOADING_ZONE_POSE.heading
+				)
+				.stopAndAdd(new SleepAction(3.5))
+				.afterTime(1, bot.setIntakeAndTransferPower(0))
+				.afterTime(0, bot.startShootersAsync(bot.SHOOTER_VELO_FOR_FAR_SHOT))
+				.strafeToLinearHeading(
+						CommonPoses.BLUE_FAR_SHOT_POSE.position,
+						CommonPoses.BLUE_FAR_SHOT_POSE.heading
+				)
+				.build();
+
+
 		Action park = drive.actionBuilder(CommonPoses.BLUE_FAR_SHOT_POSE)
 				.strafeToSplineHeading(
 						CommonPoses.BLUE_FAR_PARK_POSE.position,
 						CommonPoses.BLUE_FAR_PARK_POSE.heading
 				)
 				.build();
-
+		
 		main = new SequentialAction(
 				initialMoveToShoot,
 				bot.shootThree(bot.SHOOTER_VELO_FOR_FAR_SHOT),
@@ -86,24 +95,18 @@ public class BlueFarRunner extends ITeleOpRunner {
 				pickupFirstSpikeAndMoveToShoot,
 				bot.shootThree(bot.SHOOTER_VELO_FOR_FAR_SHOT),
 				bot.disableShootersAsync(),
-				bot.relocalize(),
 
 				pickupSecondSpikeAndMoveToShoot,
 				bot.shootThree(bot.SHOOTER_VELO_FOR_FAR_SHOT),
 				bot.disableShootersAsync(),
 
+				pickupFromLoadingZoneAndMoveToShoot,
+				bot.shootThree(bot.SHOOTER_VELO_FOR_FAR_SHOT),
+				bot.disableShootersAsync(),
+
 				park
 		);
-	}
 
-	@Override
-	protected void internalRun() {
-		Actions.runBlocking(main);
-		InteropFields.lastKnownPose = bot.drive.localizer.getPose();
-	}
-
-	@Override
-	protected IRobot getBot() {
-		return bot;
+		return main;
 	}
 }

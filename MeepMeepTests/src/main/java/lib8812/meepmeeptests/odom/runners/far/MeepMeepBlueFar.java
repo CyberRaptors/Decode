@@ -34,7 +34,7 @@ public class MeepMeepBlueFar {
 						CommonPoses.BLUE_THIRD_SPIKE_END_POSE.heading,
 						bot.SPIKE_PICKUP_VEL_CONSTRAINT
 				)
-				.afterTime(0, bot.setIntakeAndTransferPower(0))
+				.afterTime(1, bot.setIntakeAndTransferPower(0))
 				.afterTime(0, bot.startShootersAsync(bot.SHOOTER_VELO_FOR_FAR_SHOT))
 				.splineToLinearHeading(
 						CommonPoses.BLUE_FAR_SHOT_POSE,
@@ -54,7 +54,7 @@ public class MeepMeepBlueFar {
 						CommonPoses.BLUE_SECOND_SPIKE_END_POSE.heading,
 						bot.SPIKE_PICKUP_VEL_CONSTRAINT
 				)
-				.afterTime(0, bot.setIntakeAndTransferPower(0))
+				.afterTime(1, bot.setIntakeAndTransferPower(0))
 				.afterTime(0, bot.startShootersAsync(bot.SHOOTER_VELO_FOR_FAR_SHOT))
 				.splineToLinearHeading(
 						CommonPoses.BLUE_FAR_SHOT_POSE,

@@ -73,6 +73,17 @@ public class RaptorMainRunner extends ITeleOpRunner {
 	Vector2d lastLinearVel;
 	Rotation2d headingBeforeAutoShootMode;
 
+
+//	public static double SHOOTER_RIGHT_P = 100;
+//	public static double SHOOTER_RIGHT_I = 0;
+//	public static double SHOOTER_RIGHT_D = 0;
+//	public static double SHOOTER_RIGHT_F = 14;
+//
+//	public static double SHOOTER_LEFT_P = 100;
+//	public static double SHOOTER_LEFT_I = 0;
+//	public static double SHOOTER_LEFT_D = 0;
+//	public static double SHOOTER_LEFT_F = 14;
+
 	void toggleShooterEnabled() {
 		autoShootMode = false; // toggling the shooter should relinquish auto-shoot control
 
@@ -92,7 +103,7 @@ public class RaptorMainRunner extends ITeleOpRunner {
 		}
 
 		bot.driverControl.setShooterVelocity(
-				bot.cancelTransferVelo(shooterMaxVelo, bot.transfer.getVelocity())
+				shooterMaxVelo
 		);
 	}
 
@@ -239,7 +250,7 @@ public class RaptorMainRunner extends ITeleOpRunner {
 
 			shooterMaxVelo = tentativeShooterVelo - linearVel.x*bot.LINEAR_TO_SHOOTER_VELO_CANCEL_MULTIPLIER;
 
-			double realTargetVelo = bot.cancelTransferVelo(shooterMaxVelo, bot.transfer.getVelocity());
+			double realTargetVelo = shooterMaxVelo;
 
 			double maxShooterVelocityDeviation = Math.max(
 					Math.abs(bot.shooterLeft.getVelocity()-realTargetVelo),
@@ -398,8 +409,6 @@ public class RaptorMainRunner extends ITeleOpRunner {
 			keybinder.executeActions();
 			actions.execute();
 
-
-			// the method internally handles redundant writes
 //			bot.setShooterPIDFCoefficients(SHOOTER_RIGHT_P, SHOOTER_RIGHT_I, SHOOTER_RIGHT_D, SHOOTER_RIGHT_F, bot.shooterRight);
 //			bot.setShooterPIDFCoefficients(SHOOTER_LEFT_P, SHOOTER_LEFT_I, SHOOTER_LEFT_D, SHOOTER_LEFT_F, bot.shooterLeft);
 //
@@ -410,7 +419,6 @@ public class RaptorMainRunner extends ITeleOpRunner {
 //			packet.put("targetVelo", shooterMaxVelo);
 //
 //			dash.sendTelemetryPacket(packet);
-			// dash only
 
 			if (verbose) {
 				telemetry.addData(
@@ -451,7 +459,7 @@ public class RaptorMainRunner extends ITeleOpRunner {
 				);
 			}
 			else if (shooterEnabled) {
-				double realTargetVelo = bot.cancelTransferVelo(shooterMaxVelo, bot.transfer.getVelocity());
+				double realTargetVelo = shooterMaxVelo;
 
 				double maxError = Math.max(
 						Math.abs(bot.shooterLeft.getVelocity()-realTargetVelo),

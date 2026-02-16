@@ -37,9 +37,9 @@ public class ActionableRaptorRobotStub {
 
 	public Action disableShootersAsync() { return new SleepAction(0); }
 
-	public Action shootThree(double velo) { return new SleepAction(3.1); }
+	public Action shootThree(double velo) { return new SleepAction(2); }
 
-	public Action shootTwo(double velo) { return new SleepAction(2.1); }
+	public Action shootTwo(double velo) { return new SleepAction(1); }
 
 	public boolean canShootFromCurrentPosition(DriveShim drive, boolean onBlueTeam) {
 		// we can shoot from anywhere IF we are not too close to the goal (threshold in inches below)

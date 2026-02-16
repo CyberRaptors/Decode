@@ -1,29 +1,21 @@
-package org.firstinspires.ftc.teamcode.auton.odom.runners.near;
+package lib8812.meepmeeptests.odom.runners.near;
 
 import com.acmerobotics.roadrunner.Action;
 import com.acmerobotics.roadrunner.SequentialAction;
-import com.acmerobotics.roadrunner.ftc.Actions;
+import com.noahbres.meepmeep.roadrunner.DriveShim;
 
-import org.firstinspires.ftc.teamcode.InteropFields;
-import org.firstinspires.ftc.teamcode.robot.ActionableRaptorRobot;
+import lib8812.meepmeeptests.stubs.ActionableRaptorRobotStub;
+import lib8812.meepmeeptests.stubs.game.CommonPoses;
 
-import lib8812.common.game.CommonPoses;
-import lib8812.common.robot.IRobot;
-import lib8812.common.rr.MecanumDrive;
-import lib8812.common.teleop.ITeleOpRunner;
+public class MeepMeepBlueNearFrightening {
+	static ActionableRaptorRobotStub bot = new ActionableRaptorRobotStub();
+	static Action main;
 
-public class BlueNearTerrifyingRunner extends ITeleOpRunner {
-	ActionableRaptorRobot bot = new ActionableRaptorRobot(true);
-
-	Action main;
-
-	@Override
-	protected void customInit() {
-		MecanumDrive drive = bot.drive;
-
-		drive.localizer.setPose(CommonPoses.INITIAL_BLUE_NEAR_POSE);
+	public static Action run(DriveShim drive) {
+		drive.setPoseEstimate(CommonPoses.INITIAL_BLUE_NEAR_POSE);
 
 		Action initialMoveToShoot = drive.actionBuilder(CommonPoses.INITIAL_BLUE_NEAR_POSE)
+				.afterTime(0, bot.startShootersAsync(bot.SHOOTER_VELO_FOR_CLOSE_SHOT))
 				.strafeToLinearHeading(
 						CommonPoses.BLUE_NEAR_SHOT_POSE.position,
 						CommonPoses.BLUE_NEAR_SHOT_POSE.heading
@@ -31,38 +23,42 @@ public class BlueNearTerrifyingRunner extends ITeleOpRunner {
 				.build();
 
 		Action pickupFirstSpikeClearGateAndMoveToShoot = drive.actionBuilder(CommonPoses.BLUE_NEAR_SHOT_POSE)
+				.afterTime(0, bot.setIntakePower(1))
+				.afterTime(0, bot.setTransferPower(0.15))
 				.splineToSplineHeading(
 						CommonPoses.BLUE_FIRST_SPIKE_START_POSE,
 						CommonPoses.BLUE_FIRST_SPIKE_START_POSE.heading
 				)
-				.afterTime(0, bot.setIntakePower(1))
-				.afterTime(0, bot.setTransferPower(0.15))
 				.splineToSplineHeading(
 						CommonPoses.BLUE_FIRST_SPIKE_END_POSE,
 						CommonPoses.BLUE_FIRST_SPIKE_END_POSE.heading,
 						bot.SPIKE_PICKUP_VEL_CONSTRAINT
 				)
-				.afterTime(2.5, bot.setIntakeAndTransferPower(0))
+				.afterTime(1, bot.setIntakeAndTransferPower(0))
+				.strafeToLinearHeading(
+						CommonPoses.BLUE_QUICK_CLEAR_GATE_END_POSE.position,
+						CommonPoses.BLUE_QUICK_CLEAR_GATE_END_POSE.heading
+				)
 				.afterTime(0, bot.startShootersAsync(bot.SHOOTER_VELO_FOR_CLOSE_SHOT))
-				.splineToLinearHeading(
-						CommonPoses.BLUE_NEAR_SHOT_POSE,
+				.strafeToLinearHeading(
+						CommonPoses.BLUE_NEAR_SHOT_POSE.position,
 						CommonPoses.BLUE_NEAR_SHOT_POSE.heading
 				)
 				.build();
 
 		Action pickupSecondSpikeAndMoveToShoot = drive.actionBuilder(CommonPoses.BLUE_NEAR_SHOT_POSE)
+				.afterTime(0, bot.setIntakePower(1))
+				.afterTime(0, bot.setTransferPower(0.15))
 				.splineToSplineHeading(
 						CommonPoses.BLUE_SECOND_SPIKE_START_POSE,
 						CommonPoses.BLUE_SECOND_SPIKE_START_POSE.heading
 				)
-				.afterTime(0, bot.setIntakePower(1))
-				.afterTime(0, bot.setTransferPower(0.15))
 				.splineToSplineHeading(
 						CommonPoses.BLUE_SECOND_SPIKE_END_POSE,
 						CommonPoses.BLUE_SECOND_SPIKE_END_POSE.heading,
 						bot.SPIKE_PICKUP_VEL_CONSTRAINT
 				)
-				.afterTime(2.5, bot.setIntakeAndTransferPower(0))
+				.afterTime(1, bot.setIntakeAndTransferPower(0))
 				.afterTime(0, bot.startShootersAsync(bot.SHOOTER_VELO_FOR_CLOSE_SHOT))
 				.splineToLinearHeading(
 						CommonPoses.BLUE_NEAR_SHOT_POSE,
@@ -70,33 +66,34 @@ public class BlueNearTerrifyingRunner extends ITeleOpRunner {
 				)
 				.build();
 
-		Action pickupThirdSpikeAndMoveToPark = drive.actionBuilder(CommonPoses.BLUE_NEAR_SHOT_POSE)
+		Action pickupThirdSpikeAndMoveToShoot = drive.actionBuilder(CommonPoses.BLUE_NEAR_SHOT_POSE)
+				.afterTime(0, bot.setIntakePower(1))
+				.afterTime(0, bot.setTransferPower(0.15))
 				.splineToSplineHeading(
 						CommonPoses.BLUE_THIRD_SPIKE_START_POSE,
 						CommonPoses.BLUE_THIRD_SPIKE_START_POSE.heading
 				)
-				.afterTime(0, bot.setIntakePower(1))
-				.afterTime(0, bot.setTransferPower(0.15))
 				.splineToSplineHeading(
 						CommonPoses.BLUE_THIRD_SPIKE_END_POSE,
 						CommonPoses.BLUE_THIRD_SPIKE_END_POSE.heading,
 						bot.SPIKE_PICKUP_VEL_CONSTRAINT
 				)
-				.strafeToLinearHeading(
-						CommonPoses.BLUE_THIRD_SPIKE_START_POSE.position,
-						CommonPoses.BLUE_THIRD_SPIKE_START_POSE.heading
-				)
-				.afterTime(0.5, bot.setIntakeAndTransferPower(0))
-//				.afterTime(0, bot.startShootersAsync(bot.SHOOTER_VELO_FOR_CLOSE_SHOT))
-				.strafeToLinearHeading(
-						CommonPoses.BLUE_CLEAR_GATE_START_POSE.position,
-						CommonPoses.BLUE_CLEAR_GATE_START_POSE.heading
+				.afterTime(1, bot.setIntakeAndTransferPower(0))
+				.afterTime(0, bot.startShootersAsync(bot.SHOOTER_VELO_FOR_CLOSE_SHOT))
+				.splineToLinearHeading(
+						CommonPoses.BLUE_NEAR_SHOT_POSE,
+						CommonPoses.BLUE_NEAR_SHOT_POSE.heading
 				)
 				.build();
 
+		Action park = drive.actionBuilder(CommonPoses.BLUE_NEAR_SHOT_POSE)
+				.strafeToLinearHeading(
+						CommonPoses.BLUE_NEAR_PARK_POSE.position,
+						CommonPoses.BLUE_NEAR_PARK_POSE.heading
+				)
+				.build();
 
 		main = new SequentialAction(
-				bot.startShootersAsync(bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
 				initialMoveToShoot,
 				bot.shootThree(bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
 				bot.disableShootersAsync(),
@@ -109,18 +106,13 @@ public class BlueNearTerrifyingRunner extends ITeleOpRunner {
 				bot.shootThree(bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
 				bot.disableShootersAsync(),
 
-				pickupThirdSpikeAndMoveToPark
+				pickupThirdSpikeAndMoveToShoot,
+				bot.shootThree(bot.SHOOTER_VELO_FOR_CLOSE_SHOT),
+				bot.disableShootersAsync(),
+
+				park
 		);
-	}
 
-	@Override
-	protected void internalRun() {
-		Actions.runBlocking(main);
-		InteropFields.lastKnownPose = bot.drive.localizer.getPose();
-	}
-
-	@Override
-	protected IRobot getBot() {
-		return bot;
+		return main;
 	}
 }

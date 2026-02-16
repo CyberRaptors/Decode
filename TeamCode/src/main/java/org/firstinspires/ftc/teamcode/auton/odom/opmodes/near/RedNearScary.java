@@ -3,12 +3,12 @@ package org.firstinspires.ftc.teamcode.auton.odom.opmodes.near;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
-import org.firstinspires.ftc.teamcode.auton.odom.runners.near.BlueNearMonsterRunner;
+import org.firstinspires.ftc.teamcode.auton.odom.runners.near.RedNearScaryRunner;
 
-@Autonomous(name = "Blue Near [Monster]")
-public class BlueNearMonster extends LinearOpMode {
+@Autonomous(name = "Red Near [Scary]")
+public class RedNearScary extends LinearOpMode {
 	@Override
 	public void runOpMode() throws InterruptedException {
-		new BlueNearMonsterRunner().run(this);
+		new RedNearScaryRunner().run(this);
 	}
 }
